@@ -1,0 +1,96 @@
+% SHAPES AND NETWORKS
+% By Alison Pease, 29th September 2004
+
+int001
+integer(I)
+otter:""
+ascii:@I@ is an integer
+integer(0).integer(1).integer(2).integer(3).integer(4).integer(5).
+integer(6).integer(7).integer(8).integer(9).integer(10).
+integer(11).integer(12).integer(13).integer(14).integer(15).
+integer(16).integer(17).integer(18).integer(19).integer(20).
+integer(21).integer(22).integer(23).integer(24).integer(25).
+integer(26).integer(27).integer(28).integer(29).integer(30).
+integer(31).integer(32).integer(33).integer(34).integer(35).
+integer(36).integer(37).integer(38).integer(39).integer(40).
+integer(41).integer(42).integer(43).integer(44).integer(45).
+integer(46).integer(47).integer(48).integer(49).integer(50).
+integer(51).integer(52).integer(53).integer(54).integer(55).
+integer(56).integer(57).integer(58).integer(59).integer(60).
+
+shape001
+shape(S)
+otter:""
+ascii:@S@ is a shape
+shape(cube).
+
+shape002
+face(F)
+ascii:@F@ is a face
+face(f1).
+face(f2).
+face(f3).
+face(f4).
+face(f5).
+face(f6).
+
+shape003
+face(S,F)
+ascii:@F@ is a face of @S@
+face(S,F) -> shape(S)
+face(cube,f1).
+face(cube,f2).
+face(cube,f3).
+face(cube,f4).
+face(cube,f5).
+face(cube,f6).
+
+shape004
+remove_face(S,F,G)
+ascii:remove @F@ from @S@ to get @G@
+remove_face(S,F,G) -> shape(S)
+remove_face(S,F,G) -> face(F)
+remove_face(cube,f1,abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he]).
+
+shape005
+euler_char_of_shape(S,N)
+ascii:the Euler characteristic of @S@ is @N@
+euler_char_of_shape(S,N) -> int(N)
+euler_char_of_shape(S,N) -> shape(S)
+euler_char_of_shape(cube,2).
+
+shape006
+euler_char_of_shape_is_two(S)
+ascii:the Euler characteristic of @S@ is 2
+euler_char_of_shape_is_two(S) -> shape(S)
+euler_char_of_shape_is_two(cube).
+
+graph001
+graph(G)
+ascii:@G@ is a connected graph
+graph(abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he]).
+
+graph005
+isplanar(G)
+ascii:@G@ is planar
+isplanar(G) -> graph(G)
+Code:
+
+graph006
+euler_char_of_graph(G,N)
+ascii:the Euler characteristic of @G@ is @N@
+euler_char_of_graph(G,N) -> int(N)
+euler_char_of_graph(G,N) -> graph(G)
+euler_char_of_graph(abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he],1).
+
+
+graph007
+euler_char_of_graph_is_one(G)
+ascii:the Euler characteristic of @G@ is 1
+euler_char_of_graph_is_one(G) -> graph(G)
+euler_char_of_graph_is_one(abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he]).
+
+                    
+
+
+

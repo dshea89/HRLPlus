@@ -1,0 +1,137 @@
+clickList("domain_list", "remove_outer_triangles.hrd", "true");
+clickCheckbox("subobject_overlap_check", "false");
+clickCheckbox("make_equivalences_from_equality_check", "false");
+clickCheckbox("embed_algebra_check", "false");
+clickCheckbox("embed_graph_check", "false");
+clickCheckbox("equal_check", "false");
+clickCheckbox("entity_disjunct_check", "false");
+clickCheckbox("linear_constraint_check", "false");
+clickCheckbox("record_check", "false");
+clickCheckbox("arithmeticb_check", "true");
+clickCheckbox("disjunct_check", "false");
+clickCheckbox("negate_check", "false");
+
+clickCheckbox("numrelation_check", "false");
+clickCheckbox("make_non_exists_from_empty_check", "true");
+clickCheckbox("make_implications_from_subsumptions_check", "true");
+clickCheckbox("use_lemma_incorporation_check", "true");
+clickButton("start_button")
+
+//getting the first conj
+clickList("force_primary_concept_list", "poly002", "true");
+clickList("force_secondary_concept_list", "graph005", "true");
+clickList("force_prodrule_list", "compose", "true");
+clickList("force_parameter_list", "[0, 1]: [a, b] : a is a polyhedron & b is a graph & remove a face from a and stretch it flat to get b & b is planar", "true");
+clickButton("force_button");
+clickList("force_primary_concept_list", "p11_0", "true");
+clickList("force_secondary_concept_list", "graph004", "true");
+clickList("force_prodrule_list", "compose", "true");
+clickList("force_parameter_list", "[0, 1]: [a, b] : a is a polyhedron & b is a graph & remove a face from a and stretch it flat to get b & b is planar & the euler char of graph b is 1", "true");
+clickButton("force_button");
+clickList("force_primary_concept_list", "p12_0", "true");
+clickList("force_prodrule_list", "exists", "true");
+clickList("force_parameter_list", "[1]: [a] : a is a polyhedron & exists b (b is a graph & remove a face from a and stretch it flat to get b & b is planar & the euler char of graph b is 1)", "true");
+clickButton("force_button");
+
+//getting the second conj
+clickList("force_primary_concept_list", "graph005", "true");
+clickList("force_secondary_concept_list", "graph003", "true");
+clickList("force_prodrule_list", "compose", "true");
+clickList("force_parameter_list", "[s, 1, 0]: [a, b] : b is an integer & a is a graph & the euler char of the graph a is b & a is planar", "true");
+clickButton("force_button");
+clickList("force_primary_concept_list", "graph006", "true");
+clickList("force_secondary_concept_list", "graph003", "true");
+clickList("force_prodrule_list", "compose", "true");
+clickList("force_parameter_list", "[0, 1, 2]: [a, b, c] : b is a graph & a is a graph & b is the triangulated version of a & c is an integer & the euler char of the graph b is c", "true");
+clickButton("force_button");
+
+clickList("force_primary_concept_list", "g19_0", "true");
+clickList("force_prodrule_list", "exists", "true");
+clickList("force_parameter_list", "[1]: [a, b] : a is a graph & b is an integer & exists c (c is a graph & c is the triangulated version of a & the euler char of the graph c is b)", "true");
+clickButton("force_button");
+clickList("concept_list", "g20_0", "true");
+clickList("force_primary_concept_list", "g20_0", "true");
+clickList("force_secondary_concept_list", "graph005", "true");
+clickList("force_prodrule_list", "compose", "true");
+clickList("force_parameter_list", "[1, 0]: [a, b] : b is an integer & a is a graph & exists c (c is a graph & c is the triangulated version of a & the euler char of the graph c is b) & a is planar", "true");
+clickButton("force_button");
+clickList("force_primary_concept_list", "graph003", "true");
+clickList("force_secondary_concept_list", "graph007", "true");
+clickList("force_prodrule_list", "compose", "true");
+clickList("force_parameter_list", "[1, 0]: [a, b] : b is an integer & a is a graph & the euler char of the graph a is b & a is triangulated", "true");
+clickButton("force_button");
+clickList("concept_list", "g21_0", "true");
+clickList("force_primary_concept_list", "graph008", "true");
+clickList("force_secondary_concept_list", "graph003", "true");
+clickList("force_prodrule_list", "compose", "true");
+clickList("force_parameter_list", "[0, 1, 2]: [a, b, c] : b is a graph & a is a graph & b is a with one triangle removed & c is an integer & the euler char of the graph b is c", "true");
+clickButton("force_button");
+clickList("force_primary_concept_list", "g23_0", "true");
+clickList("force_prodrule_list", "exists", "true");
+clickList("force_parameter_list", "[1]: [a, b] : a is a graph & b is an integer & exists c (c is a graph & c is a with one triangle removed & the euler char of the graph c is b)", "true");
+clickButton("force_button");
+setText("force_string_text", "step = ");
+setText("force_string_text", "step = graph001 entity_disjunct [egh[gh;he;eg]]");
+clickButton("force_button");
+clickList("force_primary_concept_list", "g25_0", "true");
+clickList("force_secondary_concept_list", "graph001", "true");
+clickList("force_prodrule_list", "negate", "true");
+clickList("force_parameter_list", "[]: [a] : a is a graph & -(a=egh[gh;he;eg])", "true");
+clickButton("force_button");
+clickList("concept_list", "g26_0", "true");
+clickList("force_primary_concept_list", "g22_0", "true");
+clickList("force_secondary_concept_list", "g26_0", "true");
+clickList("force_prodrule_list", "compose", "true");
+clickList("force_parameter_list", "[1, 0]: [a, b] : b is an integer & a is a graph & the euler char of the graph a is b & a is triangulated & -(a=egh[gh;he;eg])", "true");
+clickButton("force_button");
+clickList("force_primary_concept_list", "g25_0", "true");
+clickList("force_secondary_concept_list", "graph004", "true");
+clickList("force_prodrule_list", "compose", "true");
+clickList("force_parameter_list", "[1]: [a] : a is a graph & a=egh[gh;he;eg] & the euler char of graph a is 1", "true");
+clickButton("force_button");
+setText("force_string_text", "step = int001 entity_disjunct [1]");
+clickButton("force_button");
+clickList("force_primary_concept_list", "graph003", "true");
+clickList("force_secondary_concept_list", "g25_0", "true");
+clickList("force_prodrule_list", "compose", "true");
+clickList("force_parameter_list", "[1, 0]: [a, b] : b is an integer & a is a graph & the euler char of the graph a is b & a=egh[gh;he;eg]", "true");
+clickButton("force_button");
+clickList("concept_list", "g30_0", "true");
+clickList("force_primary_concept_list", "g30_0", "true");
+clickList("force_secondary_concept_list", "i29_0", "true");
+clickList("force_prodrule_list", "compose", "true");
+clickList("force_parameter_list", "[0, 1]: [a, b] : b is an integer & a is a graph & the euler char of the graph a is b & a=egh[gh;he;eg] & b=1", "true");
+clickButton("force_button");
+clickList("force_primary_concept_list", "p15_0", "true");
+clickList("force_prodrule_list", "exists", "true");
+clickList("force_parameter_list", "[1]: [a] : a is a polyhedron & exists b (b is a graph & remove a face from a and stretch it flat to get b & b is planar)", "true");
+clickButton("force_button");
+				 
+clickList("force_primary_concept_list", "graph009", "true");
+clickList("force_secondary_concept_list", "graph010", "true");
+clickList("force_prodrule_list", "disjunct", "true");
+clickList("force_parameter_list", "[]: [a, b] : b is a graph & ((a is a graph & b is a with one edge and one face removed) | (a is a graph & b is a with two edges, one vertex and one face removed))", "true");
+clickButton("force_button");
+
+
+clickList("force_primary_concept_list", "graph008", "true");
+clickList("force_secondary_concept_list", "graph007", "true");
+clickList("force_prodrule_list", "compose", "true");
+clickList("force_parameter_list", "[1, 0]: [a, b] : b is a graph & a is a graph & b is a with one triangle removed & a is triangulated", "true");
+clickButton("force_button");
+clickList("force_primary_concept_list", "g34_0", "true");
+clickList("force_prodrule_list", "exists", "true");
+clickList("force_parameter_list", "[1]: [a] : a is a graph & a is triangulated & exists b (b is a graph & b is a with one triangle removed)", "true");
+clickButton("force_button");
+clickList("force_primary_concept_list", "g33_0", "true");
+clickList("force_prodrule_list", "exists", "true");
+clickList("force_parameter_list", "[1]: [a] : exists b (b is a graph & ((a is a graph & b is a with one edge and one face removed) | (a is a graph & b is a with two edges, one vertex and one face removed)))", "true");
+clickButton("force_button");
+
+//force the global and local conjectures
+setText("force_conjecture_text", "{poly001->poly004<={poly001->p32_0<={poly004<->p17_0<={g18_0<->g21_0<={graph007->g37_0<={g27_0<->g24_0<={g30_0<->g31_0}}}}}}}");
+clickList("force_primary_concept_list", "graph008", "true");
+clickList("force_secondary_concept_list", "g33_0", "true");
+clickList("force_prodrule_list", "forall", "true");
+clickList("force_parameter_list", "[graph001, [1, 0], [1, 0]]: [a] : a is a graph & ((b is a graph & b is a with one triangle removed) -> (b is a graph & ((a is a graph & b is a with one edge and one face removed) | (a is a graph & b is a with two edges, one vertex and one face removed))))", "true");
+clickButton("force_button");

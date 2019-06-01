@@ -1,0 +1,63 @@
+myc001
+plant(P)
+ascii:@P@ is a plant
+prolog:plant(@P@)
+plant(cabbage).plant(radish).plant(orchid).plant(pine).plant(fir).
+plant(spruce).plant(oak).plant(wildrose).plant(oldgardenrose).
+plant(moderngardenrose).plant(buckrose).
+
+myc002
+class(C)
+ascii:@C@ is a class of plant
+prolog:class(@C@)
+class(rose).class(mustard).class(foresttimbertree).
+
+myc003
+mycorrhizal(P)
+ascii:@P@ is mycorrhizal
+prolog:mycorrhizal(@P@)
+mycorrhizal(P) -> plant(P)
+mycorrhizal(orchid).mycorrhizal(pine).mycorrhizal(fir).
+mycorrhizal(spruce).mycorrhizal(oak).mycorrhizal(wildrose).
+mycorrhizal(oldgardenrose).mycorrhizal(moderngardenrose).
+mycorrhizal(buckrose).
+
+
+myc004
+of_class(P,C)
+ascii:@P@ is a @C@
+prolog:of_class(@P@,@C@)
+function: 0=1
+of_class(P,C) -> plant(P)
+of_class(P,C) -> class(C)
+of_class(cabbage,mustard).
+of_class(radish,mustard).
+of_class(pine,foresttimbertree).
+of_class(fir,foresttimbertree).
+of_class(spruce,foresttimbertree).
+of_class(oak,foresttimbertree).
+of_class(wildrose,rose).
+of_class(oldgardenrose,rose).
+of_class(moderngardenrose,rose).
+of_class(buckrose,rose).
+
+myc005
+am(P)
+ascii:@P@ is arbuscular mycorrhizal
+prolog:am(@P@)
+am(P) -> plant(P)
+am(wildrose).am(oldgardenrose).am(moderngardenrose).am(buckrose).
+
+myc006
+ecto(P)
+ascii:@P@ is ectomycorrhizal
+prolog:ecto(@P@)
+ecto(P) -> plant(P)
+ecto(pine).ecto(fir).ecto(spruce).ecto(oak).
+
+
+
+
+
+
+

@@ -1,0 +1,62 @@
+
+% GROUPS
+% By Simon Colton, 18th September 2001
+
+group001
+group(G)
+otter:@G@ is a group
+group(0).
+group(0110).
+group(012100200).
+group(0123130020003100).
+group(0123414000200003000041000).
+
+group002
+element(G,E)
+otter:@E@ in @G@
+element(G,E) -> group(G)
+code:
+
+group003
+*(G,A,B,C)
+otter:@A@*@B@=@C@
+tptp:equal(multiply(@A@,@B@),@C@)
+*(G,A,B,C) -> group(G)
+*(G,A,B,C) -> element(G,A)
+*(G,A,B,C) -> element(G,B)
+*(G,A,B,C) -> element(G,C)
+function: 0,1,2=3
+code:
+
+group004a
+id(G,I)
+otter:@I@=id
+tptp:equal(@I@,identity)
+id(G,I) -> group(G)
+id(G,I) -> element(G,I)
+function: 0=1
+code:
+
+group005a
+inv(G,A,B)
+otter:inv(@A@)=@B@
+tptp:equal(inverse(@A@),@B@)
+inv(G,A,B) -> group(G)
+inv(G,A,B) -> element(G,A)
+inv(G,A,B) -> element(G,B)
+function: 0,1=2
+code:
+
+group007
+associative(G)
+ascii:@G@ is associative
+otter:""
+associative(G) -> group(G)
+code:
+
+group008
+left_hand_cancellation(G)
+ascii:the left hand cancellation law holds for @G@ 
+otter:""
+left_hand_cancellation(G) -> group(G)
+code:

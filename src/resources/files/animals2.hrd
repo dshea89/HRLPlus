@@ -1,0 +1,133 @@
+% ANIMALS
+% By Simon Colton, 31 August 2001 (from the Progol file)
+
+ani001
+animal(A)
+ascii:@A@ is an animal
+prolog:animal(@A@)
+animal(dog).animal(dolphin).animal(platypus).animal(bat).
+animal(herring).animal(shark).animal(eel).
+animal(lizard).animal(crocodile).animal(t_rex).animal(turtle).
+animal(snake).animal(eagle).animal(ostrich).animal(penguin).
+animal(cat).animal(dragon).
+
+ani002
+class(C)
+ascii:@C@ is a class of animal
+prolog:class(@C@)
+class(mammal).class(fish).
+class(reptile).class(bird).
+
+ani003
+covering(C)
+ascii:@C@ is a type of body covering
+prolog:covering(@C@)
+covering(hair).covering(none).
+covering(scales).covering(feathers).
+
+ani004
+habitat(H)
+ascii:@H@ is a habitat for animals
+prolog:habitat(@H@)
+habitat(land).habitat(water).
+habitat(air).habitat(caves).
+
+ani005
+integer(I)
+ascii:@I@ is an integer
+prolog:integer(@I@)
+integer(0).integer(2).
+integer(4).
+
+ani006
+of_class(A,C)
+ascii:@A@ is a @C@
+prolog:of_class(@A@,@C@)
+function: 0=1
+of_class(A,C) -> animal(A)
+of_class(A,C) -> class(C)
+of_class(dog,mammal).of_class(dolphin,mammal).of_class(platypus,mammal).
+of_class(bat,mammal).of_class(cat,mammal).of_class(trout,fish).
+of_class(herring,fish).of_class(shark,fish).of_class(eel,fish).
+of_class(lizard,reptile).of_class(crocodile,reptile).
+of_class(t_rex,reptile).of_class(snake,reptile).
+of_class(turtle,reptile).of_class(dragon,reptile).
+of_class(eagle,bird).of_class(ostrich,bird).of_class(penguin,bird).
+
+ani007
+has_covering(A,C)
+ascii:@A@ is covered by @C@
+prolog:has_covering(@A@,@C@)
+function: 0=1
+has_covering(A,C) -> animal(A)
+has_covering(A,C) -> covering(C)
+has_covering(cat,hair).has_covering(dog,hair).has_covering(dolphin,none).
+has_covering(platypus,hair).has_covering(bat,hair).has_covering(trout,scales).
+has_covering(herring,scales).has_covering(shark,none).has_covering(eel,none).
+has_covering(dragon,scales).has_covering(lizard,scales).has_covering(crocodile,scales).
+has_covering(t_rex,scales).has_covering(snake,scales).has_covering(turtle,scales).
+has_covering(eagle,feathers).has_covering(ostrich,feathers).has_covering(penguin,feathers).
+
+ani008
+has_legs(A,N)
+ascii:@A@ has @N@ legs
+prolog:has_legs(@A@,@N@)
+function: 0=1
+has_legs(A,N) -> animal(A)
+has_legs(A,N) -> integer(N)
+has_legs(dragon,4).has_legs(dog,4).has_legs(cat,4).has_legs(dolphin,0).
+has_legs(platypus,2).has_legs(bat,2).has_legs(trout,0).has_legs(herring,0).
+has_legs(shark,0).has_legs(eel,0).has_legs(lizard,4).has_legs(crocodile,4).
+has_legs(t_rex,4).has_legs(snake,0).has_legs(turtle,4).has_legs(eagle,2).
+has_legs(ostrich,2).has_legs(penguin,2).
+
+ani009
+has_milk(A).
+ascii:@A@ produces milk
+prolog:has_milk(@A@)
+has_milk(A) -> animal(A)
+has_milk(dog).has_milk(dolphin).
+has_milk(bat).has_milk(platypus).has_milk(cat).
+
+ani010
+homeothermic(A).
+ascii:@A@ is homeothermic
+prolog:homeothermic(@A@)
+homeothermic(A) -> animal(A)
+homeothermic(dog).homeothermic(dolphin).homeothermic(platypus).
+homeothermic(bat).homeothermic(eagle).homeothermic(ostrich).
+homeothermic(penguin).homeothermic(cat).
+
+ani011
+in_habitat(A,H)
+ascii:@A@ lives in @H@
+prolog:in_habitat(@A@,@H@)
+in_habitat(A,H) -> animal(A)
+in_habitat(A,H) -> habitat(H)
+in_habitat(dragon,air).in_habitat(dragon,caves).in_habitat(dog,land).
+in_habitat(cat,land).in_habitat(dolphin,water).in_habitat(platypus,water).
+in_habitat(bat,air).in_habitat(bat,caves).in_habitat(trout,water).
+in_habitat(herring,water).in_habitat(shark,water).in_habitat(eel,water).
+in_habitat(lizard,land).in_habitat(crocodile,water).in_habitat(crocodile,land).
+in_habitat(t_rex,land).in_habitat(snake,land).in_habitat(turtle,water).
+in_habitat(eagle,air).in_habitat(eagle,land).in_habitat(ostrich,land).
+in_habitat(penguin,water).
+
+ani012
+has_eggs(A)
+ascii:@A@ produces eggs
+prolog:has_eggs(@A@)
+has_eggs(A) -> animal(A)
+has_eggs(dragon).has_eggs(platypus).has_eggs(trout).
+has_eggs(herring).has_eggs(shark).has_eggs(eel).
+has_eggs(lizard).has_eggs(crocodile).has_eggs(t_rex).
+has_eggs(snake).has_eggs(turtle).has_eggs(eagle).
+has_eggs(ostrich).has_eggs(penguin).
+
+ani013
+has_gills(A)
+ascii:@A@ has gills
+prolog:has_gills(@A@)
+has_gills(A) -> animal(A)
+has_gills(trout).has_gills(herring).
+has_gills(shark).has_gills(eel).

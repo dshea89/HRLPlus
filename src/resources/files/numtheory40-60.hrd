@@ -1,0 +1,52 @@
+% NUMTHEORY SMALL
+% By Simon Colton, 14th November 2001
+
+int001
+integer(I)
+otter:""
+ascii:@I@ is an integer
+integer(40).integer(41).integer(42).integer(43).integer(44).integer(45).
+integer(46).integer(47).integer(48).integer(49).integer(50).
+integer(51).integer(52).integer(53).integer(54).integer(55).
+integer(56).integer(57).integer(58).integer(59).integer(60).
+
+int003
+divisor(I,D)
+ascii:@D@|@I@
+divisor(I,D) -> integer(I)
+divisor(I,D) -> integer(D)
+divisor(I,D) -> leq(I,D)
+Code
+
+int006
+addition(I,A,B)
+ascii:@A@+@B@=@I@
+addition(I,A,B) -> integer(I)
+addition(I,A,B) -> integer(A)
+addition(I,A,B) -> integer(B)
+addition(I,A,B) -> leq(I,A)
+addition(I,A,B) -> leq(I,B)
+addition(I,A,B) -> addition(I,B,A)
+function: 0,1=2
+function: 0,2=1
+function: 1,2=0
+Code
+
+int005
+multiplication(I,A,B)
+ascii:@A@*@B@=@I@
+multiplication(I,A,B) -> integer(I)
+multiplication(I,A,B) -> integer(A)
+multiplication(I,A,B) -> integer(B)
+multiplication(I,A,B) -> leq(I,A)
+multiplication(I,A,B) -> leq(I,B)
+multiplication(I,A,B) -> divisor(I,A)
+multiplication(I,A,B) -> divisor(I,B)
+multiplication(I,A,B) -> multiplication(I,B,A)
+function: 0,1=2
+function: 0,2=1
+function: 1,2=0
+Code
+
+
+

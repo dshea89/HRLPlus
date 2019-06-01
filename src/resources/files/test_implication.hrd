@@ -1,0 +1,34 @@
+int001
+integer(I)
+otter:""
+ascii:@I@ is an integer
+integer(1).
+integer(2).
+integer(3).
+integer(4).
+integer(5).
+integer(6).
+integer(7).
+integer(8).
+
+int003
+odd(I)
+otter:""
+ascii:@I@ is odd
+odd(I) -> integer(I)
+odd(1).
+odd(3).
+odd(5).
+odd(7).
+odd(9).
+
+int004
+prime(I)
+otter:""
+ascii:@I@ is prime
+prime(I) -> integer(I)
+prime(3).
+prime(5).
+prime(7).
+
+

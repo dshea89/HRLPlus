@@ -1,0 +1,48 @@
+// Choose the domain
+
+clickList("domain_list", "group.hrd", "true");
+
+// Datatables get too large, so we must remove some examples
+
+clickList("initial_entity_list", "group:0123412340234013401240123", "false");
+clickList("initial_entity_list", "group:012345120534201453345012453201534120", "false");
+clickList("initial_entity_list", "group:012345120453201534345012453120534201", "false");
+clickList("initial_entity_list", "group:0123456123456023456013456012456012356012346012345", "false");
+clickList("initial_entity_list", "group:0123456710325476230167453210765445670123547610326745230176543210", "false");
+clickList("initial_entity_list", "group:0123456710325476230167453210765445672301547632106745012376541032", "false");
+clickList("initial_entity_list", "group:0123456710325476230176543210674545670123547610326745321076542301", "false");
+clickList("initial_entity_list", "group:0123456710325476231076453201675445671032547601236754231076453201", "false");
+clickList("initial_entity_list", "group:0123456710325476231067543201764545672310547632016754103276450123", "false");
+
+// Release any constraints (allow full forcing capability)
+
+clickCheckbox("subobject_overlap_check", "false");
+setText("match_arity_limit_text", "10");
+setText("compose_arity_limit_text", "10");
+clickCheckbox("make_equivalences_from_equality_check", "false")
+
+// Load the theory
+
+clickButton("start_button");
+
+clickList("force_primary_concept_list", "algebra002", "true");
+clickList("force_secondary_concept_list", "algebra002", "true");
+clickList("force_prodrule_list", "compose", "true");
+clickList("force_parameter_list", "[1, 0, 2]: [a, b, c] : a is a group & b in a & c in a", "true");
+clickButton("force_button");
+clickList("force_primary_concept_list", "g7_0", "true");
+clickList("force_secondary_concept_list", "algebra002", "true");
+clickList("force_prodrule_list", "compose", "true");
+clickList("force_parameter_list", "[1, 0, 0, 2]: [a, b, c, d] : a is a group & b in a & c in a & d in a", "true");
+clickButton("force_button");
+clickList("force_primary_concept_list", "g8_0", "true");
+clickList("force_secondary_concept_list", "algebra002", "true");
+clickList("force_secondary_concept_list", "algebra003", "true");
+clickList("force_prodrule_list", "compose", "true");
+clickList("force_parameter_list", "[1, 2, 3, 0, 4]: [a, b, c, d, e] : a is a group & b in a & c in a & d in a & e in a & b*c=e", "true");
+clickButton("force_button");
+clickList("force_primary_concept_list", "g9_0", "true");
+clickList("force_secondary_concept_list", "algebra003", "true");
+clickList("force_prodrule_list", "compose", "true");
+clickList("force_parameter_list", "[1, 2, 0, 3, 0, 4]: [a, b, c, d, e, f] : a is a group & b in a & c in a & d in a & e in a & b*c=e & f in a & b*d=f", "true");
+clickButton("force_button");

@@ -1,0 +1,29 @@
+int001
+integer(I)
+otter:""
+ascii:@I@ is an integer
+integer(1).
+
+shape001
+shape(X)
+otter:""
+ascii:@X@ is a shape
+shape(cube).
+shape(abcdefgh).
+
+f001
+f(X,Y)
+otter:""
+ascii:f(@X@) equals @Y@
+f(X,Y) -> shape(X)
+f(X,Y) -> shape(Y)
+f(cube,abcdefgh).
+
+g001
+g(X,Y)
+otter:""
+ascii:g(@X@) equals @Y@
+g(X,Y) -> shape(X)
+g(X,Y) -> integer(Y)
+g(cube,2).
+g(abcdefgh,1).

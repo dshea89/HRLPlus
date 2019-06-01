@@ -1,0 +1,54 @@
+int001
+integer(I)
+otter:""
+ascii:@I@ is an integer
+integer(1).
+integer(2).
+
+shape001
+shape(X)
+otter:""
+ascii:@X@ is a shape
+shape(cube).
+shape(abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he]).
+shape(abcde[ab;ac;ad;ae;bc;bd;be;cd;ce;de]).
+
+shape002
+remove_a_face_and_stretch_flat(X,Y)
+otter:""
+ascii:remove a face from @X@ and stretch it flat to get @Y@
+remove_a_face_and_stretch_flat(X,Y) -> shape(X)
+remove_a_face_and_stretch_flat(X,Y) -> shape(Y)
+remove_a_face_and_stretch_flat(cube,abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he]).
+
+shape004
+euler_char_is_two(X)
+otter:""
+ascii:the euler char of @X@ is 2
+euler_char_is_two(X) -> shape(X)
+euler_char_is_two(cube).
+
+shape005
+euler_char_is_one(X)
+otter:""
+ascii:the euler char of @X@ is 1
+euler_char_is_one(X) -> shape(X)
+euler_char_is_two(abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he]).
+
+graph001
+graph(X)
+otter:""
+ascii:@X@ is a graph
+graph(abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he]).
+graph(abcde[ab;ac;ad;ae;bc;bd;be;cd;ce;de]).
+
+graph005
+isplanar(X)
+otter:""
+ascii:@X@ is planar
+isplanar(X) -> shape(X)
+isplanar(abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he]).
+
+
+
+

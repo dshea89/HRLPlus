@@ -1,0 +1,48 @@
+// Load the 
+
+clickList("domain_list", "testcompose1.hrd", "true");
+
+// The line below is important, because with subobject overlap on, every
+// subobject has to be relevant to both concepts in the composition, which isn't
+// true of f(g(x)) or g(f(x))
+
+clickCheckbox("subobject_overlap_check", "false");
+
+// You'll need this line to be able to force the concept of f(g(x)), because otherwise
+// you get an equivalence conjecture with concept g001:
+
+clickCheckbox("make_equivalences_from_equality_check", "false");
+
+// Turn off production rules:
+
+clickCheckbox("embed_algebra_check", "false");
+clickCheckbox("embed_graph_check", "false");
+clickCheckbox("equal_check", "false");
+clickCheckbox("entity_disjunct_check", "false");
+clickCheckbox("linear_constraint_check", "false");
+clickCheckbox("record_check", "false");
+clickCheckbox("arithmeticb_check", "false");
+clickCheckbox("disjunct_check", "false");
+clickCheckbox("numrelation_check", "false");
+
+// Force through the concepts of f(g(x)) and g(f(x))
+
+clickButton("start_button");
+clickList("force_primary_concept_list", "f001", "true");
+clickList("force_secondary_concept_list", "g001", "true");
+clickList("force_prodrule_list", "compose", "true");
+clickList("force_parameter_list", "[0, 1, 2]: [a, b, c] : a is an integer & b is an integer & f(a) is b & c is an integer & g(b) is c", "true");
+clickButton("force_button");
+clickList("force_primary_concept_list", "g001", "true");
+clickList("force_secondary_concept_list", "f001", "true");
+clickList("force_prodrule_list", "compose", "true");
+clickList("force_parameter_list", "[0, 1, 2]: [a, b, c] : a is an integer & b is an integer & g(a) is b & c is an integer & f(b) is c", "true");
+clickButton("force_button");
+clickList("force_primary_concept_list", "i4_0", "true");
+clickList("force_prodrule_list", "exists", "true");
+clickList("force_parameter_list", "[1]: [a, b] : a is an integer & b is an integer & exists c (c is an integer & f(a) is c & g(c) is b)", "true");
+clickButton("force_button");
+clickList("force_primary_concept_list", "i5_0", "true");
+clickList("force_prodrule_list", "exists", "true");
+clickList("force_parameter_list", "[1]: [a, b] : a is an integer & b is an integer & exists c (c is an integer & g(a) is c & f(c) is b)", "true");
+clickButton("force_button");

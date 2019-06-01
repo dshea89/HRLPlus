@@ -1,0 +1,163 @@
+int001
+integer(I)
+otter:""
+ascii:@I@ is an integer
+integer(1).
+integer(2).
+integer(3).
+integer(4).
+integer(5).
+integer(6).
+integer(7).
+integer(8).
+
+poly001
+poly(X)
+otter:""
+ascii:@X@ is a polyhedron
+poly(cube).
+
+poly002
+remove_a_face_and_stretch_flat(X,Y)
+otter:""
+ascii:remove a face from @X@ and stretch it flat to get @Y@
+remove_a_face_and_stretch_flat(X,Y) -> poly(X)
+remove_a_face_and_stretch_flat(X,Y) -> graph(Y)
+remove_a_face_and_stretch_flat(cube,abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he]).
+
+poly003
+euler_char_of_poly(X,Y)
+otter:""
+ascii:the euler char of the polyhredron @X@ is @Y@
+euler_char_of_poly(X,Y) -> poly(X)
+euler_char_of_poly(X,Y) -> integer(Y)
+euler_char_of_poly(cube,2).
+
+poly004
+euler_char_is_two(X)
+otter:""
+ascii:the euler char of @X@ is 2
+euler_char_is_two(X) -> poly(X)
+euler_char_is_two(cube).
+
+graph001
+graph(X)
+otter:""
+ascii:@X@ is a graph
+graph(abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he]).
+graph(abcde[ab;ac;ad;ae;bc;bd;be;cd;ce;de]).
+graph(abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+graph(abcdefgh[bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+graph(abcdefgh[cd;da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+graph(abcdefgh[da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+graph(abcdefgh[ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+graph(bcdefgh[bf;cg;dh;ef;fg;gh;he;bg;ch;de;eg]).
+graph(cdefgh[cg;dh;ef;fg;gh;he;ch;de;eg]).
+graph(defgh[dh;ef;fg;gh;he;de;eg]).
+graph(efgh[ef;fg;gh;he;eg]).
+graph(egh[gh;he;eg]).
+
+graph003
+euler_char_of_graph(X,Y)
+otter:""
+ascii:the euler char of the graph @X@ is @Y@
+euler_char_of_graph(X,Y) -> graph(X)
+euler_char_of_graph(X,Y) -> integer(Y)
+euler_char_of_graph(abcde[ab;ac;ad;ae;bc;bd;be;cd;ce;de],6).
+euler_char_of_graph(abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he],1).
+euler_char_of_graph(abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg],1).
+euler_char_of_graph(abcdefgh[bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg],1).
+euler_char_of_graph(abcdefgh[cd;da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg],1).
+euler_char_of_graph(abcdefgh[da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg],1).
+euler_char_of_graph(abcdefgh[ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg],1).
+euler_char_of_graph(bcdefgh[bf;cg;dh;ef;fg;gh;he;bg;ch;de;eg],1).
+euler_char_of_graph(cdefgh[cg;dh;ef;fg;gh;he;ch;de;eg],1).
+euler_char_of_graph(defgh[dh;ef;fg;gh;he;de;eg],1).
+euler_char_of_graph(efgh[ef;fg;gh;he;eg],1).
+euler_char_of_graph(egh[gh;he;eg],1).
+
+graph004
+euler_char_of_graph_is_one(X)
+otter:""
+ascii:the euler char of graph @X@ is 1
+euler_char_of_graph_is_one(X) -> graph(X)
+euler_char_of_graph_is_one(abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he]).
+euler_char_of_graph_is_one(abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+euler_char_of_graph_is_one(abcdefgh[bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+euler_char_of_graph_is_one(abcdefgh[cd;da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+euler_char_of_graph_is_one(abcdefgh[da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+euler_char_of_graph_is_one(abcdefgh[ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+euler_char_of_graph_is_one(bcdefgh[bf;cg;dh;ef;fg;gh;he;bg;ch;de;eg]).
+euler_char_of_graph_is_one(cdefgh[cg;dh;ef;fg;gh;he;ch;de;eg]).
+euler_char_of_graph_is_one(defgh[dh;ef;fg;gh;he;de;eg]).
+euler_char_of_graph_is_one(efgh[ef;fg;gh;he;eg]).
+euler_char_of_graph_is_one(egh[gh;he;eg]).
+
+graph005
+isplanar(X)
+otter:""
+ascii:@X@ is planar
+isplanar(X) -> graph(X)
+isplanar(abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he]).
+isplanar(abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+isplanar(abcdefgh[bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+isplanar(abcdefgh[cd;da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+isplanar(abcdefgh[da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+isplanar(abcdefgh[ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+isplanar(bcdefgh[bf;cg;dh;ef;fg;gh;he;bg;ch;de;eg]).
+isplanar(cdefgh[cg;dh;ef;fg;gh;he;ch;de;eg]).
+isplanar(defgh[dh;ef;fg;gh;he;de;eg]).
+isplanar(efgh[ef;fg;gh;he;eg]).
+isplanar(egh[gh;he;eg]).
+
+graph006
+triangulated(N,T)
+ascii:@T@ is the triangulated version of @N@
+triangulated(N,T) -> graph(N)
+triangulated(N,T) -> graph(T)
+triangulated(abcde[ab;ac;ad;ae;bc;bd;be;cd;ce;de],abcde[ab;ac;ad;ae;bc;bd;be;cd;ce;de]).
+triangulated(abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he],abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+triangulated(abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg],abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+triangulated(abcdefgh[bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg],abcdefgh[bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+triangulated(abcdefgh[cd;da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg],abcdefgh[cd;da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+triangulated(abcdefgh[da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg],abcdefgh[da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+triangulated(abcdefgh[ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg],abcdefgh[ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+triangulated(bcdefgh[bf;cg;dh;ef;fg;gh;he;bg;ch;de;eg],bcdefgh[bf;cg;dh;ef;fg;gh;he;bg;ch;de;eg]).
+triangulated(cdefgh[cg;dh;ef;fg;gh;he;ch;de;eg],cdefgh[cg;dh;ef;fg;gh;he;ch;de;eg]).
+triangulated(defgh[dh;ef;fg;gh;he;de;eg],defgh[dh;ef;fg;gh;he;de;eg]).
+triangulated(efgh[ef;fg;gh;he;eg],efgh[ef;fg;gh;he;eg]).
+triangulated(egh[gh;he;eg],egh[gh;he;eg]).
+
+graph007
+istriangulated(N)
+ascii:@N@ is triangulated
+istriangulated(N) -> graph(N)
+istriangulated(abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+istriangulated(abcdefgh[bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+istriangulated(abcdefgh[cd;da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+istriangulated(abcdefgh[da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+istriangulated(abcdefgh[ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+istriangulated(bcdefgh[bf;cg;dh;ef;fg;gh;he;bg;ch;de;eg]).
+istriangulated(cdefgh[cg;dh;ef;fg;gh;he;ch;de;eg]).
+istriangulated(defgh[dh;ef;fg;gh;he;de;eg]).
+istriangulated(efgh[ef;fg;gh;he;eg]).
+istriangulated(egh[gh;he;eg]).
+                     
+graph008
+graph_with_triangle_removed(N,T)
+ascii:@T@ is @N@ with one triangle removed
+graph_with_triangle_removed(N,T) -> graph(N)
+graph_with_triangle_removed(N,T) -> graph(T)
+graph_with_triangle_removed(abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg],abcdefgh[bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+graph_with_triangle_removed(abcdefgh[bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg],abcdefgh[cd;da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+graph_with_triangle_removed(abcdefgh[cd;da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg],abcdefgh[da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+graph_with_triangle_removed(abcdefgh[da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg],abcdefgh[ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+graph_with_triangle_removed(abcdefgh[ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg],bcdefgh[bf;cg;dh;ef;fg;gh;he;bg;ch;de;eg]).
+graph_with_triangle_removed(bcdefgh[bf;cg;dh;ef;fg;gh;he;bg;ch;de;eg],cdefgh[cg;dh;ef;fg;gh;he;ch;de;eg]).
+graph_with_triangle_removed(cdefgh[cg;dh;ef;fg;gh;he;ch;de;eg],defgh[dh;ef;fg;gh;he;de;eg]).
+graph_with_triangle_removed(defgh[dh;ef;fg;gh;he;de;eg],efgh[ef;fg;gh;he;eg]).
+graph_with_triangle_removed(efgh[ef;fg;gh;he;eg],egh[gh;he;eg]).
+
+
+
+

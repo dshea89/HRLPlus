@@ -1,0 +1,20 @@
+clickList("domain_list", "animals1.hrd", "true");
+clickCheckbox("disjunct_check", "false");
+clickCheckbox("embed_algebra_check", "false");
+clickCheckbox("embed_graph_check", "false");
+clickCheckbox("equal_check", "false");
+clickCheckbox("record_check", "false");
+clickList("split_values_list", "integer:1", "true");
+clickList("split_values_list", "integer:2", "true");
+clickList("conjecture_formatting_list", "ascii format", "false");
+clickList("conjecture_formatting_list", "simplified format", "true");
+clickCheckbox("make_implications_from_subsumptions_check", "false");
+clickCheckbox("teacher_requests_nonexists_check", "true");
+setText("conjecture_surprisingness_weight_text", "0.5");
+setText("conjecture_comprehensibility_weight_text", "0.5");
+setText("conjecture_applicability_weight_text", "0.5");
+setText("conjecture_plausibility_weight_text", "0.5");
+clickButton("start_button");
+clickButton("start_button");
+
+

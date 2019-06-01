@@ -1,0 +1,18 @@
+clickList("domain_list", "running_eg.hrd", "true");
+clickCheckbox("subobject_overlap_check", "false");
+clickCheckbox("make_equivalences_from_equality_check", "false");
+clickCheckbox("use_lemma_incorporation_check", "true");
+clickCheckbox("embed_algebra_check", "false");
+clickCheckbox("embed_graph_check", "false");
+clickCheckbox("equal_check", "false");
+clickCheckbox("entity_disjunct_check", "false");
+clickCheckbox("linear_constraint_check", "false");
+clickCheckbox("record_check", "false");
+clickList("split_values_list", "integer:1", "true");
+clickList("split_values_list", "integer:2", "true");
+clickCheckbox("arithmeticb_check", "true");
+clickCheckbox("disjunct_check", "false");
+clickCheckbox("numrelation_check", "false");
+clickCheckbox("make_non_exists_from_empty_check", "true");
+clickCheckbox("make_implications_from_subsumptions_check", "true");
+clickButton("start_button");

@@ -1,0 +1,128 @@
+% SMALL INTEGERS
+% By Simon Colton, 31 August 2001
+
+int001
+integer(I)
+ascii:@I@ is an integer
+integer(20).integer(21).integer(22).integer(23).integer(24).integer(25).
+integer(26).integer(27).integer(28).integer(29).integer(30).
+integer(31).integer(32).integer(33).integer(34).integer(35).
+integer(36).integer(37).integer(38).integer(39).integer(40).
+
+int003
+divisor(I,D)
+ascii:@D@|@I@
+divisor(I,D) -> integer(I)
+divisor(I,D) -> integer(D)
+divisor(I,D) -> leq(I,D)
+Code:
+if (!entity.equals("0")) 
+  {
+    Integer i = new Integer(entity);
+    double i2=i.intValue();
+    for(int j=1;j<=i2/2;j++)
+      {
+	double k=i2/j;
+	if(k==Math.floor(k)) 
+	  {
+	    Vector tuple = new Vector();
+	    tuple.addElement(Integer.toString(j));
+	    output.addElement(tuple);
+	  }
+      }
+    Vector tuple = new Vector();
+    tuple.addElement(i.toString());
+    output.addElement(tuple);
+  }
+
+int004
+digit(I,D)
+ascii:@D@ is a digit of @I@
+digit(I,D) -> integer(I)
+digit(I,D) -> integer(D)
+digit(I,D) -> leq(I,D)
+Code:
+int i=0;
+Vector digits = new Vector();
+while (i<entity.length())
+  {
+    if (!digits.contains(entity.substring(i,i+1)))
+      {
+        Vector tuple = new Vector();
+         tuple.addElement(entity.substring(i,i+1));
+         digits.addElement(entity.substring(i,i+1));
+         output.addElement(tuple);
+      }
+      i++;
+  }
+
+int005
+multiplication(I,A,B)
+ascii:@A@*@B@=@I@
+multiplication(I,A,B) -> integer(I)
+multiplication(I,A,B) -> integer(A)
+multiplication(I,A,B) -> integer(B)
+multiplication(I,A,B) -> leq(I,A)
+multiplication(I,A,B) -> leq(I,B)
+multiplication(I,A,B) -> divisor(I,A)
+multiplication(I,A,B) -> divisor(I,B)
+multiplication(I,A,B) -> multiplication(I,B,A)
+function: 0,1=2
+function: 0,2=1
+function: 1,2=0
+Code:
+Integer i = new Integer(entity);
+double i2=i.intValue();
+for(int j=0;j<=i2/2;j++)
+  {
+    double k = i2/j;
+    int k2 = (int)i2/j;
+    if(k==Math.floor(k))
+      {
+        Vector tuple = new Vector();
+        tuple.addElement(Integer.toString(j));
+        tuple.addElement(Integer.toString(k2));
+        output.addElement(tuple);
+      }
+  }
+Vector tuple = new Vector();
+tuple.addElement(i.toString());
+tuple.addElement("1");
+output.addElement(tuple);
+
+int018
+addition(I,A,B)
+ascii:@A@+@B@=@I@
+addition(I,A,B) -> integer(I)
+addition(I,A,B) -> integer(A)
+addition(I,A,B) -> integer(B)
+addition(I,A,B) -> leq(I,A)
+addition(I,A,B) -> leq(I,B)
+addition(I,A,B) -> addition(I,B,A)
+function: 0,1=2
+function: 0,2=1
+function: 1,2=0
+Code:
+int i = (new Integer(entity)).intValue();
+for(int j=0;j<i;j++)
+  {
+    String js = Integer.toString(j);
+    String js2 = Integer.toString(i-j);
+    Tuples tuple = new Tuples();
+    tuple.addElement(js);
+    tuple.addElement(js2);
+    output.addElement(tuple);
+  }
+
+int007
+binary(I,P,B)
+ascii:bin(@I@,@P@)=@B@
+binary(I,P,B) -> integer(I)
+binary(I,P,B) -> integer(P)
+binary(I,P,B) -> integer(B)
+binary(I,P,B) -> leq(I,B)
+function: 0,1=2
+Code:
+Maths maths = new Maths();
+output = maths.baseRepresentation(2,entity);
+

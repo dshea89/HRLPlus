@@ -1,0 +1,21 @@
+clickList("domain_list", "pr_test1.hrd", "true");
+clickCheckbox("make_equivalences_from_equality_check", "false")
+clickCheckbox("disjunct_check", "false");
+clickCheckbox("embed_algebra_check", "false");
+clickCheckbox("embed_graph_check", "false");
+clickCheckbox("equal_check", "false");
+clickCheckbox("record_check", "false");
+setText("compose_arity_limit_text", "10");
+setText("negate_arity_limit_text", "10");
+setText("negate_tier_text", "10");
+setText("forall_arity_limit_text", "10");
+clickCheckbox("subobject_overlap_check", "false");
+setText("match_arity_limit_text", "10");
+clickList("split_values_list", "integer:1", "true");
+clickList("split_values_list", "integer:2", "true");
+clickList("conjecture_formatting_list", "ascii format", "false");
+clickList("conjecture_formatting_list", "simplified format", "true");
+clickCheckbox("use_communal_piecemeal_exclusion_check", "true");
+clickCheckbox("use_monster_barring_check", "false");
+clickCheckbox("use_lemma_incorporation_check", "true");
+clickButton("start_button")

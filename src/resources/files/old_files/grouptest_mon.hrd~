@@ -1,0 +1,57 @@
+% GROUPS
+% By Simon Colton, 18th September 2001
+
+group001
+group(G)
+otter:@G@ is a group
+group(0).
+group(0110).
+group(012120201).
+group(0123103223013210).
+group(0123103223103201).
+group(0123412340234013401240123).
+group(012345120534201453345012453201534120).
+group(012345120453201534345012453120534201).
+group(0123456123456023456013456012456012356012346012345).
+group(0123456710325476230167453210765445670123547610326745230176543210).
+group(0123456710325476230167453210765445672301547632106745012376541032).
+group(0123456710325476230176543210674545670123547610326745321076542301).
+group(0123456710325476231076453201675445671032547601236754231076453201).
+group(0123456710325476231067543201764545672310547632016754103276450123).
+
+group002
+element(G,E)
+otter:@E@ in @G@
+element(G,E) -> group(G)
+code:
+
+group003
+*(G,A,B,C)
+otter:@A@*@B@=@C@
+tptp:equal(multiply(@A@,@B@),@C@)
+*(G,A,B,C) -> group(G)
+*(G,A,B,C) -> element(G,A)
+*(G,A,B,C) -> element(G,B)
+*(G,A,B,C) -> element(G,C)
+function: 0,1,2=3
+code:
+
+group004a
+id(G,I)
+otter:@I@=id
+tptp:equal(@I@,identity)
+id(G,I) -> group(G)
+id(G,I) -> element(G,I)
+function: 0=1
+code:
+
+group005a
+inv(G,A,B)
+otter:inv(@A@)=@B@
+tptp:equal(inverse(@A@),@B@)
+inv(G,A,B) -> group(G)
+inv(G,A,B) -> element(G,A)
+inv(G,A,B) -> element(G,B)
+function: 0,1=2
+code:
+

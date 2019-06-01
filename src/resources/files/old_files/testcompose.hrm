@@ -1,0 +1,22 @@
+clickList("domain_list", "testcompose.hrd", "true");
+clickCheckbox("subobject_overlap_check", "false");
+clickCheckbox("make_equivalences_from_equality_check", "false");
+clickCheckbox("embed_algebra_check", "false");
+clickCheckbox("embed_graph_check", "false");
+clickCheckbox("equal_check", "false");
+clickCheckbox("entity_disjunct_check", "false");
+clickCheckbox("linear_constraint_check", "false");
+clickCheckbox("record_check", "false");
+clickCheckbox("arithmeticb_check", "false");
+clickCheckbox("disjunct_check", "false");
+clickCheckbox("numrelation_check", "false");
+clickButton("start_button")
+clickList("force_primary_concept_list", "f001", "true");
+clickList("force_secondary_concept_list", "g001", "true");
+clickList("force_prodrule_list", "compose", "true");
+clickList("force_parameter_list", "[0, 1, 2]: [a, b, c] : a is a shape & b is a shape & f(a) equals b & c is an integer & g(b) equals c", "true");
+clickButton("force_button");
+clickList("force_primary_concept_list", "s5_0", "true");
+clickList("force_prodrule_list", "exists", "true");
+clickList("force_parameter_list", "[1]: [a, b] : a is a shape & b is an integer & exists c (c is a shape & f(a) equals c & g(c) equals b)", "true");
+clickButton("force_button");

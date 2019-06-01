@@ -1,0 +1,19 @@
+clickList("domain_list", "test_implication.hrd", "true");
+clickCheckbox("embed_algebra_check", "false");
+clickCheckbox("embed_graph_check", "false");
+clickCheckbox("equal_check", "false");
+clickCheckbox("entity_disjunct_check", "false");
+clickCheckbox("linear_constraint_check", "false");
+clickCheckbox("record_check", "false");
+clickCheckbox("arithmeticb_check", "false");
+clickCheckbox("disjunct_check", "false");
+clickCheckbox("numrelation_check", "false");
+clickCheckbox("use_lemma_incorporation_check", "false");
+
+clickCheckbox("make_non_exists_from_empty_check", "true");
+clickCheckbox("make_implications_from_subsumptions_check", "true");
+clickButton("start_button")
+
+//force the global and local conjectures
+setText("force_conjecture_text","{int001<->int001<={int004->int003}}");
+

@@ -1,0 +1,33 @@
+int001
+integer(I)
+otter:""
+ascii:@I@ is an integer
+integer(1).
+integer(2).
+integer(3).
+integer(4).
+integer(5).
+integer(6).
+integer(7).
+integer(8).
+
+poly001
+poly(X)
+otter:""
+ascii:@X@ is a polyhedron
+poly(hollow_cube).
+
+poly003
+euler_char_of_poly(X,Y)
+otter:""
+ascii:the euler char of the polyhredron @X@ is @Y@
+euler_char_of_poly(X,Y) -> poly(X)
+euler_char_of_poly(X,Y) -> integer(Y)
+euler_char_of_poly(hollow_cube,4).
+
+poly004
+euler_char_is_two(X)
+otter:""
+ascii:the euler char of @X@ is 2
+euler_char_is_two(X) -> poly(X)
+

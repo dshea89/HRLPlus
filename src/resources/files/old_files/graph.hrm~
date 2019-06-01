@@ -1,0 +1,16 @@
+clickList("domain_list", "graph.hrd", "true");
+clickCheckbox("disjunct_check", "false");
+clickCheckbox("embed_algebra_check", "false");
+clickCheckbox("embed_graph_check", "false");
+clickCheckbox("equal_check", "false");
+clickCheckbox("record_check", "false");
+clickList("split_values_list", "integer:1", "true");
+clickList("split_values_list", "integer:2", "true");
+clickList("conjecture_formatting_list", "ascii format", "false");
+clickList("conjecture_formatting_list", "simplified format", "true");
+clickCheckbox("make_near_equivalences_check", "false");
+clickCheckbox("use_surrender_check", "false");
+clickCheckbox("use_piecemeal_exclusion_check", "false");
+clickCheckbox("use_communal_piecemeal_exclusion_check", "true");
+clickCheckbox("use_strategic_withdrawal_check", "false");
+clickButton("start_button");

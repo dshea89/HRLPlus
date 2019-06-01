@@ -1,0 +1,80 @@
+int001
+integer(I)
+otter:""
+ascii:@I@ is an integer
+integer(1).
+integer(2).
+
+poly001
+poly(X)
+otter:""
+ascii:@X@ is a polyhedron
+poly(cube).
+
+poly002
+remove_a_face_and_stretch_flat(X,Y)
+otter:""
+ascii:remove a face from @X@ and stretch it flat to get @Y@
+remove_a_face_and_stretch_flat(X,Y) -> poly(X)
+remove_a_face_and_stretch_flat(X,Y) -> graph(Y)
+remove_a_face_and_stretch_flat(cube,abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he]).
+
+poly003
+euler_char_of_poly(X,Y)
+otter:""
+ascii:the euler char of the polyhredron @X@ is @Y@
+euler_char_of_poly(X,Y) -> poly(X)
+euler_char_of_poly(X,Y) -> integer(Y)
+euler_char_of_poly(cube,2).
+
+poly004
+euler_char_is_two(X)
+otter:""
+ascii:the euler char of @X@ is 2
+euler_char_is_two(X) -> poly(X)
+euler_char_is_two(cube).
+
+graph001
+graph(X)
+otter:""
+ascii:@X@ is a graph
+graph(abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he]).
+graph(abcde[ab;ac;ad;ae;bc;bd;be;cd;ce;de]).
+graph(abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+
+graph003
+euler_char_of_graph(X,Y)
+otter:""
+ascii:the euler char of the graph @X@ is @Y@
+euler_char_of_poly(X,Y) -> graph(X)
+euler_char_of_poly(X,Y) -> integer(Y)
+euler_char_of_poly(abcde[ab;ac;ad;ae;bc;bd;be;cd;ce;de],6).
+euler_char_of_poly(abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he],1).
+euler_char_of_poly(abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg],1).
+
+graph004
+euler_char_of_graph_is_one(X)
+otter:""
+ascii:the euler char of graph @X@ is 1
+euler_char_of_graph_is_one(X) -> graph(X)
+euler_char_of_graph_is_one(abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he]).
+euler_char_of_graph_is_one(abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+
+graph005
+isplanar(X)
+otter:""
+ascii:@X@ is planar
+isplanar(X) -> graph(X)
+isplanar(abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he]).
+isplanar(abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+
+graph006
+triangulated(N,T)
+ascii:@T@ is the triangulated version of @N@
+triangulated(N,T) -> graph(N)
+triangulated(N,T) -> graph(T)
+triangulated(abcde[ab;ac;ad;ae;bc;bd;be;cd;ce;de],abcde[ab;ac;ad;ae;bc;bd;be;cd;ce;de]).
+triangulated(abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he],abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+triangulated(abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg],abcdefgh[ab;bc;cd;da;ae;bf;cg;dh;ef;fg;gh;he;af;bg;ch;de;eg]).
+
+

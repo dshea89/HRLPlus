@@ -1,0 +1,27 @@
+clickList("domain_list", "testcauchy.hrd", "true");
+clickCheckbox("subobject_overlap_check", "false");
+clickCheckbox("make_equivalences_from_equality_check", "false");
+clickCheckbox("embed_algebra_check", "false");
+clickCheckbox("embed_graph_check", "false");
+clickCheckbox("equal_check", "false");
+clickCheckbox("entity_disjunct_check", "false");
+clickCheckbox("linear_constraint_check", "false");
+clickCheckbox("record_check", "false");
+clickCheckbox("arithmeticb_check", "false");
+clickCheckbox("disjunct_check", "false");
+clickCheckbox("numrelation_check", "false");
+clickButton("start_button")
+clickList("force_primary_concept_list", "shape002", "true");
+clickList("force_secondary_concept_list", "graph005", "true");
+clickList("force_prodrule_list", "compose", "true");
+clickList("force_parameter_list", "[0, 1]: [a, b] : a is a shape & b is a shape & remove a face from a and stretch it flat to get b & b is planar", "true");
+clickButton("force_button");
+clickList("force_primary_concept_list", "s8_0", "true");
+clickList("force_secondary_concept_list", "shape005", "true");
+clickList("force_prodrule_list", "compose", "true");
+clickList("force_parameter_list", "[0, 1]: [a, b] : a is a shape & b is a shape & remove a face from a and stretch it flat to get b & b is planar & the euler char of b is 1", "true");
+clickButton("force_button");
+clickList("force_primary_concept_list", "s9_0", "true");
+clickList("force_prodrule_list", "exists", "true");
+clickList("force_parameter_list", "[1]: [a] : a is a shape & exists b (b is a shape & remove a face from a and stretch it flat to get b & b is planar & the euler char of b is 1)", "true");
+clickButton("force_button");

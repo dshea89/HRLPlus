@@ -1,0 +1,5 @@
+%GRAPHS - ammended from Simon's graph.hrd to use Maple to generate  
+%By Alison Pease, 13th September 2004
+
+graph001a
+graph(G)

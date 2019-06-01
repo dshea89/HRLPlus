@@ -1,0 +1,45 @@
+% GROUPS
+% By Simon Colton, 18th September 2001
+
+group001
+group(G)
+otter:@G@ is a group
+group(133323333).
+group(0000012302020321).
+
+group002
+element(G,E)
+otter:@E@ in @G@
+element(G,E) -> group(G)
+code:
+
+group003
+*(G,A,B,C)
+otter:@A@*@B@=@C@
+tptp:equal(multiply(@A@,@B@),@C@)
+*(G,A,B,C) -> group(G)
+*(G,A,B,C) -> element(G,A)
+*(G,A,B,C) -> element(G,B)
+*(G,A,B,C) -> element(G,C)
+function: 0,1,2=3
+code:
+
+group004a
+id(G,I)
+otter:@I@=id
+tptp:equal(@I@,identity)
+id(G,I) -> group(G)
+id(G,I) -> element(G,I)
+function: 0=1
+code:
+
+group005a
+inv(G,A,B)
+otter:inv(@A@)=@B@
+tptp:equal(inverse(@A@),@B@)
+inv(G,A,B) -> group(G)
+inv(G,A,B) -> element(G,A)
+inv(G,A,B) -> element(G,B)
+function: 0,1=2
+code:
+

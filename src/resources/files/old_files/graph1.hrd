@@ -1,0 +1,31 @@
+%GRAPHS - ammended from Simon's graph.hrd to use Maple to generate the functions 
+%13th September 2004
+
+graph001m
+graph(G)
+ascii:@G@ is a connected graph
+graph(g1).
+Code:
+
+graph002m
+node(G,N)
+ascii:@N@ is a node of @G@
+node(G,N) -> graph(G)
+vertices_g1 :={a,b,c}
+Code:
+
+graph003m
+edge(G,E)
+ascii:@E@ is an edge of @G@
+edge(G,E) -> graph(G)
+connect({a},{b, c}, g1)
+connect({b},{a, c}, g1)
+connect({c},{a, b}, g1)
+Code:
+
+
+graph005m
+isplanar(G)
+ascii:@G@ is planar
+isplanar(G) -> graph(G)
+Code:

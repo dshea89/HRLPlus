@@ -1,0 +1,32 @@
+clickList("domain_list", "numtheory20-40.hrd", "true");
+clickCheckbox("make_near_equivalences_check", "true");
+setText("near_equivalence_percent_text", "60");
+clickCheckbox("disjunct_check", "false");
+clickCheckbox("embed_algebra_check", "false");
+clickCheckbox("embed_graph_check", "false");
+clickCheckbox("equal_check", "false");
+clickCheckbox("record_check", "false");
+clickList("split_values_list", "integer:1", "true");
+clickList("split_values_list", "integer:2", "true");
+clickList("conjecture_formatting_list", "ascii format", "false");
+clickList("conjecture_formatting_list", "simplified format", "true");
+clickCheckbox("make_implications_from_subsumptions_check", "false");
+clickCheckbox("teacher_requests_conjecture_check", "true");
+clickCheckbox("use_surrender_check", "true");
+clickCheckbox("use_monster_barring_check", "false");
+clickCheckbox("use_piecemeal_exclusion_check", "true");
+clickCheckbox("use_communal_piecemeal_exclusion_check", "false");
+clickCheckbox("use_strategic_withdrawal_check", "false");
+clickCheckbox("plausibility_threshold_check", "true");
+setText("plausibility_threshold_value_text", "0.9");
+clickCheckbox("test_num_independent_steps", "true");
+setText("num_independent_steps_value_text", "20");
+clickCheckbox("test_max_num_independent_work_stages", "true");
+setText("max_num_independent_work_stages_value_text", "10");
+setText("conjecture_surprisingness_weight_text", "0.5");
+setText("conjecture_comprehensibility_weight_text", "0.5");
+setText("conjecture_applicability_weight_text", "0.5");
+setText("conjecture_plausibility_weight_text", "0.5");
+clickButton("start_button");
+
+

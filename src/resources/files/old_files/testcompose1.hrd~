@@ -1,0 +1,28 @@
+int001
+integer(I)
+otter:""
+ascii:@I@ is an integer
+integer(1).
+integer(2).
+integer(3).
+
+f001
+f(X,Y)
+otter:""
+ascii:f(@X@) is @Y@
+f(X,Y) -> integer(X)
+f(X,Y) -> integer(Y)
+f(1,2).
+f(2,3).
+f(3,1).
+
+g001
+g(X,Y)
+otter:""
+ascii:g(@X@) is @Y@
+g(X,Y) -> integer(X)
+g(X,Y) -> integer(Y)
+g(1,2).
+g(2,3).
+g(3,1).
+

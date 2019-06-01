@@ -1,0 +1,20 @@
+
+shape001
+shape(S)
+otter:""
+ascii:@S@ is a shape
+shape(cube).
+
+
+var001
+var(X)
+otter:""
+ascii:@X@ is a variable
+var(x).
+
+
+f001
+f(X)
+otter:""
+ascii:@X@ is a variable
+shape(cube).

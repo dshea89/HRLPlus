@@ -1,0 +1,64 @@
+myc001
+plant(P)
+ascii:@P@ is a plant
+prolog:plant(@P@)
+plant(cabbage).plant(radish).plant(orchid).plant(pine).plant(fir).
+plant(spruce).plant(oak).plant(wildrose).plant(oldgardenrose).
+plant(moderngardenrose).plant(buckrose).plant(test).
+
+myc002
+class(C)
+ascii:@C@ is a class of plant
+prolog:class(@C@)
+class(rose).class(mustard).class(foresttimbertree).
+
+myc004
+rose(P)
+ascii:@P@ is in the rose family
+prolog:rose(@P@)
+rose(P) -> plant(P)
+rose(wildrose).
+rose(oldgardenrose).
+rose(moderngardenrose).
+rose(buckrose).
+
+myc005
+mustard(P)
+ascii:@P@ is in the mustard family
+prolog:mustard(@P@)
+mustard(P) -> plant(P)
+mustard(cabbage).
+mustard(radish).
+mustard(test).
+
+myc006
+foresttimbertree(P)
+ascii:@P@ is in the forest timbertree family
+prolog:foresttimbertree(@P@)
+foresttimbertree(P) -> plant(P)
+foresttimbertree(pine).
+foresttimbertree(fir).
+foresttimbertree(spruce).
+foresttimbertree(oak).
+
+
+myc007
+am(P)
+ascii:@P@ is arbuscular mycorrhizal
+prolog:am(@P@)
+am(P) -> plant(P)
+am(wildrose).am(oldgardenrose).am(moderngardenrose).am(buckrose).
+
+myc008
+ecto(P)
+ascii:@P@ is ectomycorrhizal
+prolog:ecto(@P@)
+ecto(P) -> plant(P)
+ecto(pine).ecto(fir).ecto(spruce).ecto(oak).
+
+
+
+
+
+
+

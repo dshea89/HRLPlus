@@ -1,0 +1,12 @@
+clickList("domain_list", "smallinteger+0.hrd", "true");
+clickButton("initial_entity_none_button");
+clickList("initial_entity_list", "integer:1", "true");
+clickList("initial_entity_list", "integer:2", "true");
+clickList("initial_entity_list", "integer:3", "true");
+clickList("initial_entity_list", "integer:4", "true");
+clickList("initial_entity_list", "integer:5", "true");
+clickList("initial_entity_list", "integer:6", "true");
+clickList("initial_entity_list", "integer:7", "true");
+clickList("initial_entity_list", "integer:8", "true");
+clickList("initial_entity_list", "integer:9", "true");
+clickList("initial_entity_list", "integer:10", "true");

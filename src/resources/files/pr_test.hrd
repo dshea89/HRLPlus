@@ -1,0 +1,64 @@
+% GROUPS
+% By Simon Colton, 18th September 2001
+
+algebra001
+group(G)
+otter:""
+ascii:@G@ is a group
+group(0).
+group(0100).
+group(012000000).
+group(0123000000000000).
+group(0123400000000000000000000).
+group(012345000000000000000000000000000000).
+group(0123456000000000000000000000000000000000000000000).
+group(0000).
+group(000000000).
+group(0000000000000000).
+group(0000000000000000000000000).
+group(000000000000000000000000000000000000).
+group(0000000000000000000000000000000000000000000000000).
+
+group002
+element(G,E)
+otter:@E@ in @G@
+element(G,E) -> group(G)
+code:
+
+group003
+*(G,A,B,C)
+otter:@A@*@B@=@C@
+tptp:equal(multiply(@A@,@B@),@C@)
+*(G,A,B,C) -> group(G)
+*(G,A,B,C) -> element(G,A)
+*(G,A,B,C) -> element(G,B)
+*(G,A,B,C) -> element(G,C)
+function: 0,1,2=3
+code:
+
+group004a
+id(G,I)
+otter:@I@=id
+tptp:equal(@I@,identity)
+id(G,I) -> group(G)
+id(G,I) -> element(G,I)
+function: 0=1
+code:
+
+group005a
+inv(G,A,B)
+otter:inv(@A@)=@B@
+tptp:equal(inverse(@A@),@B@)
+inv(G,A,B) -> group(G)
+inv(G,A,B) -> element(G,A)
+inv(G,A,B) -> element(G,B)
+function: 0,1=2
+code:
+
+group007
+associative(G)
+ascii:@G@ is associative
+otter:""
+associative(G) -> group(G)
+code:
+

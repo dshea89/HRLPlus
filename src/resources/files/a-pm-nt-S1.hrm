@@ -1,0 +1,50 @@
+clickList("domain_list", "numtheorytest0-20.hrd", "true");
+clickCheckbox("disjunct_check", "false");
+clickCheckbox("embed_algebra_check", "false");
+clickCheckbox("embed_graph_check", "false");
+clickCheckbox("equal_check", "false");
+clickCheckbox("record_check", "false");
+clickList("split_values_list", "integer:1", "true");
+clickList("split_values_list", "integer:2", "true");
+clickList("conjecture_formatting_list", "ascii format", "false");
+clickList("conjecture_formatting_list", "simplified format", "true");
+clickCheckbox("make_near_implications_check", "true");
+setText("near_implication_percent_text", "60");
+clickCheckbox("teacher_requests_nearimplication_check", "true");
+clickCheckbox("use_surrender_check", "false");
+clickCheckbox("use_monster_barring_check", "false");
+clickCheckbox("use_piecemeal_exclusion_check", "true");
+clickCheckbox("use_counterexample_barring_check", "true");
+clickCheckbox("use_communal_piecemeal_exclusion_check", "false");
+clickCheckbox("use_strategic_withdrawal_check", "false");
+clickCheckbox("make_implications_from_subsumptions_check", "true");
+clickButton("start_button");
+clickList("force_primary_concept_list", "int003", "true");
+clickList("force_prodrule_list", "split", "true");
+clickList("force_parameter_list", "[[1], [2]]: [a] : a is an integer & 2 is an integer & 2|a", "true");
+clickButton("force_button");
+clickList("force_primary_concept_list", "int003", "true");
+clickList("force_prodrule_list", "size", "true");
+clickList("force_parameter_list", "[1]: [a, b] : a is an integer & b is an integer & b=|{c: c is an integer & c|a}|", "true");
+clickButton("force_button");
+clickList("force_primary_concept_list", "i5_0", "true");
+clickList("force_secondary_concept_list", "i6_0", "true");
+clickList("force_prodrule_list", "compose", "true");
+clickList("force_parameter_list", "[s, 0, 1]: [a, b] : a is an integer & b is an integer & b=|{c: c is an integer & c|a}| & 2 is an integer & 2|b", "true");
+clickButton("force_button");
+clickList("force_primary_concept_list", "i7_0", "true");
+clickList("force_prodrule_list", "exists", "true");
+clickList("force_parameter_list", "[1]: [a] : a is an integer & exists b (b is an integer & b=|{c: c is an integer & c|a}| & 2 is an integer & 2|b)", "true");
+clickButton("force_button");
+clickList("force_primary_concept_list", "int005", "true");
+clickList("force_prodrule_list", "match", "true");
+clickList("force_parameter_list", "[0, 1, 1]: [a, b] : a is an integer & b is an integer & b|a & b*b=a", "true");
+clickButton("force_button");
+clickList("force_primary_concept_list", "i9_0", "true");
+clickList("force_prodrule_list", "exists", "true");
+clickList("force_parameter_list", "[1]: [a] : a is an integer & exists b (b is an integer & b|a & b*b=a)", "true");
+clickButton("force_button");
+
+
+
+

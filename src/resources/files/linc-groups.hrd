@@ -1,0 +1,131 @@
+% GROUPS
+% By Simon Colton, 18th September 2001
+
+group001
+group(G)
+otter:@G@ is a group
+group(0010).
+group(0).
+group(0110).
+
+group002
+element(G,E)
+otter:@E@ in @G@
+element(G,E) -> group(G)
+code:
+
+group003
+*(G,A,B,C)
+otter:@A@*@B@=@C@
+tptp:equal(multiply(@A@,@B@),@C@)
+*(G,A,B,C) -> group(G)
+*(G,A,B,C) -> element(G,A)
+*(G,A,B,C) -> element(G,B)
+*(G,A,B,C) -> element(G,C)
+function: 0,1,2=3
+code:
+
+group004a
+id(G,I)
+otter:@I@=id
+tptp:equal(@I@,identity)
+id(G,I) -> group(G)
+id(G,I) -> element(G,I)
+function: 0=1
+code:
+
+group005a
+inv(G,A,B)
+otter:inv(@A@)=@B@
+tptp:equal(inverse(@A@),@B@)
+inv(G,A,B) -> group(G)
+inv(G,A,B) -> element(G,A)
+inv(G,A,B) -> element(G,B)
+function: 0,1=2
+code:
+
+group007
+associative(G)
+ascii:@G@ is associative
+otter:""
+associative(G) -> group(G)
+code:
+
+group008
+left_hand_cancellation(G)
+ascii:the left hand cancellation law holds for @G@ 
+otter:""
+left_hand_cancellation(G) -> group(G)
+code:
+
+group009
+concept1(G,F,H,K)
+otter:""
+ascii:@F@ * @H@ = @F@ * @K@ 
+concept1(G,F,H,K) -> group(G)
+concept1(G,F,H,K) -> element(G,F)
+concept1(G,F,H,K) -> element(G,H)
+concept1(G,F,H,K) -> element(G,K)
+concept1(0010,0,0,0).
+concept1(0010,0,1,1).
+concept1(0010,1,0,0).
+concept1(0010,1,0,1).
+concept1(0010,1,1,0).
+concept1(0010,1,1,1).
+concept1(0,0,0,0).
+concept1(0110,0,0,0).
+concept1(0110,0,1,1).
+concept1(0110,1,0,0).
+concept1(0110,1,1,0).
+concept1(0110,1,1,1).
+
+group010
+concept2(G)
+otter:""
+ascii:for all elements g,h,k in @G@, inv(g)*(g*h) /= inv(g)*(g*k)
+concept2(G) -> group(G)
+
+
+group011
+concept3(G)
+otter:""
+ascii:for all elements h,k in @G@, id*h /= id*k
+concept3(G) -> group(G)
+
+
+group012
+concept4(G,H,K)
+otter:""
+ascii:@H@ = @K@
+concept4(G,H,K) -> group(G)
+concept4(G,H,K) -> element(G,H)
+concept4(G,H,K) -> element(G,K)
+concept4(0010,0,0).
+concept4(0010,1,1).
+concept4(0,0,0).
+concept4(0110,0,0).
+concept4(0110,1,1).
+
+group013
+concept5(G,F,H,K,L)
+otter:""
+ascii: @G@ is a group such that @F@ * (@H@ * @K@) /= @F@ * (@H@ * @L@)
+concept5(G,F,H,K,L) -> group(G)
+concept5(G,F,H,K,L) -> element(G,F)
+concept5(G,F,H,K,L) -> element(G,H)
+concept5(G,F,H,K,L) -> element(G,K)
+concept5(G,F,H,K,L) -> element(G,L)
+concept5(0010,0,0,0,1).
+concept5(0010,0,0,1,0).
+concept5(0110,0,0,0,1).
+concept5(0110,0,0,1,0).
+concept5(0110,0,1,0,1).
+concept5(0110,0,1,1,0).
+concept5(0110,1,0,0,1).
+concept5(0110,1,0,1,0).
+concept5(0110,1,1,0,1).
+concept5(0110,1,1,1,0).
+
+
+
+

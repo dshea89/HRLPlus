@@ -1,0 +1,84 @@
+clickList("domain_list", "linc-groups.hrd", "true");
+clickCheckbox("make_equivalences_from_equality_check", "false")
+clickCheckbox("disjunct_check", "false");
+clickCheckbox("embed_algebra_check", "false");
+clickCheckbox("embed_graph_check", "false");
+clickCheckbox("equal_check", "false");
+clickCheckbox("record_check", "false");
+setText("compose_arity_limit_text", "10");
+setText("negate_arity_limit_text", "10");
+setText("negate_tier_text", "10");
+setText("forall_arity_limit_text", "10");
+clickCheckbox("subobject_overlap_check", "false");
+setText("match_arity_limit_text", "10");
+clickList("split_values_list", "integer:1", "true");
+clickList("split_values_list", "integer:2", "true");
+clickList("conjecture_formatting_list", "ascii format", "false");
+clickList("conjecture_formatting_list", "simplified format", "true");
+clickCheckbox("use_communal_piecemeal_exclusion_check", "true");
+clickCheckbox("use_monster_barring_check", "false");
+clickCheckbox("use_lemma_incorporation_check", "true");
+clickButton("start_button")
+clickList("force_primary_concept_list", "group009", "true");
+clickList("force_prodrule_list", "exists", "true");
+clickList("force_parameter_list", "[1, 2, 3]: [a] : a is a group & exists b c d (b in a & c in a & d in a & b * c = b * d )", "true");
+clickButton("force_button");
+clickList("force_primary_concept_list", "group010", "true");
+clickList("force_secondary_concept_list", "group001", "true");
+clickList("force_prodrule_list", "negate", "true");
+clickList("force_parameter_list", "[]: [a] : a is a group & -(-exist elements g,h,k in a, such that inv(g)*(g*h) /= inv(g)*(g*k))", "true");
+clickButton("force_button");
+clickList("force_primary_concept_list", "group011", "true");
+clickList("force_secondary_concept_list", "group001", "true");
+clickList("force_prodrule_list", "negate", "true");
+clickList("force_parameter_list", "[]: [a] : a is a group & -(-exist elements h,k in a, such that  id*h /= id*h)", "true");
+clickButton("force_button");
+clickList("force_primary_concept_list", "group012", "true");
+clickList("force_prodrule_list", "exists", "true");
+clickList("force_parameter_list", "[1, 2]: [a] : a is a group & exists b c (b in a & c in a & b = c)", "true");
+clickButton("force_button");
+
+
+//force the global and local conjectures
+setText("force_conjecture_text", "{group001->group008<={g12_0->g13_0,g13_0->g14_0,g14_0->g15_0}}");
+clickList("force_primary_concept_list", "group013", "true");
+clickList("force_prodrule_list", "exists", "true");
+clickList("force_parameter_list", "[1, 2, 3, 4]: [a] : a is a group & exists b c d e (b in a & c in a & d in a & e in a &  a is a group such that b * (c * d) /= b * (c * e))", "true");
+clickButton("force_button");
+clickList("force_primary_concept_list", "group005a", "true");
+clickList("force_secondary_concept_list", "g17_0", "true");
+clickList("force_prodrule_list", "compose", "true");
+clickList("force_parameter_list", "[1, 0, 0]: [a, b, c] : a is a group & b in a & c in a & inv(b)=c & exists d e f g (d in a & e in a & f in a & g in a &  a is a group such that d * (e * f) /= d * (e * g))", "true");
+clickButton("force_button");
+clickList("force_primary_concept_list", "group013", "true");
+clickList("force_secondary_concept_list", "group005a", "true");
+clickList("force_prodrule_list", "compose", "true");
+clickList("force_parameter_list", "[1, 3, 2, 0, 0]: [a, b, c, d, e] : a is a group & b in a & c in a & d in a & e in a &  a is a group such that b * (c * d) /= b * (c * e) & inv(c)=b", "true");
+clickButton("force_button");
+clickList("force_primary_concept_list", "g19_0", "true");
+clickList("force_prodrule_list", "exists", "true");
+clickList("force_parameter_list", "[1, 2, 3, 4]: [a] : a is a group & exists b c d e (b in a & c in a & d in a & e in a &  a is a group such that b * (c * d) /= b * (c * e) & inv(c)=b)", "true");
+clickButton("force_button");
+clickList("force_primary_concept_list", "group003", "true");
+clickList("force_secondary_concept_list", "group003", "true");
+clickList("force_prodrule_list", "compose", "true");
+clickList("force_parameter_list", "[1, 0, 2, 3, 4]: [a, b, c, d, e] : a is a group & b in a & c in a & d in a & b*c=d & e in a & c*d=e", "true");
+clickButton("force_button");
+clickList("force_primary_concept_list", "group002", "true");
+clickList("force_secondary_concept_list", "group002", "true");
+clickList("force_prodrule_list", "compose", "true");
+clickList("force_parameter_list", "[1, 0, 2]: [a, b, c] : a is a group & b in a & c in a", "true");
+clickButton("force_button");
+clickList("force_primary_concept_list", "g22_0", "true");
+clickList("force_secondary_concept_list", "group002", "true");
+clickList("force_prodrule_list", "compose", "true");
+clickList("force_parameter_list", "[1, 0, 0, 2]: [a, b, c, d] : a is a group & b in a & c in a & d in a", "true");
+clickButton("force_button");
+clickList("force_primary_concept_list", "g23_0", "true");
+clickList("force_secondary_concept_list", "group002", "true");
+clickList("force_prodrule_list", "compose", "true");
+clickList("force_parameter_list", "[1, 0, 0, 0, 2]: [a, b, c, d, e] : a is a group & b in a & c in a & d in a & e in a", "true");
+clickButton("force_button");
+
+
+
