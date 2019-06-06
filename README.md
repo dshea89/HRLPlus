@@ -1,10 +1,10 @@
-## HRL Plus
+# HRL Plus
 
 The system **HRL** incorporates Simon Colton's program [**HR**](https://web.archive.org/web/20120930024411/http://www.doc.ic.ac.uk/~sgc/hr/index.html), which is named after mathematicians Godfrey Harold Hardy (1877 - 1947) and Srinivasa Aiyangar Ramanujan (1887 - 1920), and extends it by modeling Lakatos's methods and enabling dialogue between multiple copies of **HR**. Thus, the name **HRL** reflects its debt to **HR**, and highlights the importance of the philosopher Imre Lakatos (1922 - 1974) and the deep influence of his work on the system.
 
 The original code for this project appears to have been lost to the sands of time. Java class files were located and have been decompiled here, with some bug fixes and feature extensions made for ease of use. Hence, **HRL Plus**.
 
-### Background
+## Background
 
 **HRL** was developed for the following PhD thesis:
 
@@ -27,7 +27,7 @@ Alison Pease -- PhD student (A.Pease \_AT\_ sms.ed.ac.uk)
 
 This work was supported by EPSRC grant GR/M45030
 
-### Motivation
+## Motivation
 
 The fields of automated theorem generation and automated theorem proving are quite fascinating. Much of the work that has been done in this field is closed-source and, while written about extensively in academic publications, either does not offer much in the way of open-source code or is quite tedious to set up.
 
@@ -35,11 +35,11 @@ The fields of automated theorem generation and automated theorem proving are qui
 
 This repository seeks to provide a stable location for this large-scale project. As this code is built off of decompiled class files from a prior build of HRL, local variable names and comments have been lost. In the near future, more documentation will be provided in the way of features offered and how to use each, and hopefully extensions to supported theorem provers like Coq and Isabelle on top of the currently supported Otter and Mace.
 
-### How to Use
+## How to Use
 
 Due to the scope and breadth of this system, there will be much left out of this section at first. Ideally, detailed documentation will be provided in the future with regards to each nook and cranny of the system and how it can be used to augment conjecture generation and theorem proving. For now, instructions are provided for basic setup and execution using the provided example files.
 
-#### Configuration
+### Configuration
 
 A configuration file must be provided when launching students or a teacher. The default configuration file is found in `src/resources/hr_agency.cfg` and consists of a few different options:
 
@@ -50,17 +50,17 @@ A configuration file must be provided when launching students or a teacher. The 
 * `height`: The height of the student and teacher windows that are displayed when launched.
 * `default max steps`: The maximum number of steps to run before terminating when generating and reasoning about conjectures. Setting this to 0 or any negative number will indicate to run forever until manually stopped by the user.
 
-#### Launching
+### Launching
 
 There are a couple different ways that **HRL** can be launched.
 
-##### Less Ideal Approach
+#### Less Ideal Approach
 
 To launch via the existing runtime scripts, set `agency-1`, `agency-2`, `agency-3`, `agency-4`, `makestudent`, and `maketeacher` in `src/resources/` as executable, then run whichever `agency-` prefixed file you wish to launch that number of Student threads and one Teacher thread.
 
 Note that this approach has been less reliable in my experience and may be subject to issues. You will need to change the paths in `makestudent` and `maketeacher` as well as `hr_agency.cfg` when using this approach.
 
-##### *IDE*al Approach
+#### *IDE*al Approach
 
 This project has been structured with an IDE in mind, particularly IntelliJ IDEA. To set up each of the aforementioned agency files, several new runtime configurations will be needed: one application for each instance of Student wanted, one application for each invocation of Teacher wanted, and one compound runtime configuration for each agency instance wanted.
 
@@ -86,7 +86,7 @@ You may need to experiment with the `width` and `height` values in the configura
 
 ![Main Screen](imgs/setup_07.png "Main Screen")
 
-#### Interface
+### Interface
 
 Launching **HRL** will set off N copies of **HR** and a teacher, which will all come up on your screen. Load the macros. You need to do this individually for each student and the teacher. For instance, if you want to run the agency with three students in animals theory, launch the `Agency 3` run time configuration or `agency-3` from the command line, and then for Student 1 click on `a-mb-animals-S1.hrm` at the top of the left hand column, for Student 2 click on `a-mb-animals-S2.hrm`, and for Student 3 click on `a-mb-animals-S3.hrm`. For the teacher, click on `a-mb-animals-teacher.hrm`. Note that you can distinguish students from the teacher via the title bar. After highlighting the .hrm file, click on the red "Play macro" button in the top left hand corner for each agent. You should see "Played macro" at the bottom of the screen. For the teacher agent click the "Start" button on the bottom left hand corner, and this will start the agency running.
 
@@ -96,13 +96,13 @@ You can look at individual theories, for instance concepts and definitions, by c
 
 To end a run, click on the "Stop" button on the teacher's screen. Note that after each run, you should delete or move the files `8000`, `8100`, etc., as well as `group-file`, otherwise the old files will be read for a new run.
 
-#### Proving Deduced Conjectures
+### Proving Deduced Conjectures
 
 Otter and Mace are the currently supported interfaces for proving deduced conjectures as mathematical theorems.
 
 *More details coming soon™*
 
-### Examples
+## Examples
 
 The domain files for these examples are at the top of the left hand column (just underneath the red button "Play macro").
 
@@ -129,7 +129,7 @@ a-mb-nt-S2.hrm
 a-nt-teacher.hrm  
 in the first, second student and teacher, respectively.
 
-### To Do
+## To Do
 
 There is a lot that can be done to extend functionality beyond what is already here. Some of the biggest things that would improve usability, in order of significance:
 
@@ -138,11 +138,11 @@ There is a lot that can be done to extend functionality beyond what is already h
 3. Extend theorem proving support to Isabelle and Coq.
 4. Resolve compiler and IDE warnings (note that some IDE warnings are false positives that should be suppressed, as attempting to "fix" them will break the program, e.g. the IDE claiming that setValue in ConfigHandler is unused and can be safely removed when it in fact cannot).
 
-### Changelog
+## Changelog
 
 The original release that I was able to acquire was v2.2.2. As such, the numbering begins from there.
 
-#### v2.3.0
+### v2.3.0
 
 * Supports Java 11
 * Fixed a looping issue preventing the Teacher and Student threads from communicating with each other
@@ -152,6 +152,6 @@ The original release that I was able to acquire was v2.2.2. As such, the numberi
 * Added scrollbars for various windows that were not otherwise fully visible
 * Various miscellaneous runtime bug fixes
 
-#### v2.2.2
+### v2.2.2
 
 * Latest prior release
