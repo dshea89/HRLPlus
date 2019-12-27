@@ -5,6 +5,9 @@ import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 
+/**
+ * A class for debugging with.
+ */
 public class Debugger implements Serializable {
     public Debugger() {
     }

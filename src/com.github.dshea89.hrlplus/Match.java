@@ -4,24 +4,42 @@ import java.io.Serializable;
 import java.util.Enumeration;
 import java.util.Vector;
 
+/**
+ * A class representing the match production rule. This production rule takes an old datatable as input and a set of
+ * parameterisations, and extracts rows where certain columns match into the new datatable. The parameterisation dictates
+ * which columns have to match. For example parameters [0,1,1] state that columns 1 and 2 should match.
+ */
 public class Match extends ProductionRule implements Serializable {
     public Match() {
     }
 
+    /**
+     * Returns false as this is a unary production rule.
+     */
     public boolean isBinary() {
         return false;
     }
 
+    /**
+     * Whether or not this produces cumulative concepts. This is cumulative.
+     */
     public boolean isCumulative() {
         return false;
     }
 
+    /**
+     * Returns "match" as that is the name of this production rule.
+     */
     public String getName() {
         return "match";
     }
 
-    public Vector allParameters(Vector var1, Theory var2) {
-        Concept var3 = (Concept)var1.elementAt(0);
+    /**
+     * Given a vector of one concept, this will return all the parameterisations for this concept.
+     * It will return all possible ways to match the columns, noting that two columns of different types cannot be matched.
+     */
+    public Vector allParameters(Vector old_concepts, Theory theory) {
+        Concept var3 = (Concept) old_concepts.elementAt(0);
         int var4 = var3.arity;
         Vector var5 = var3.types;
         Vector var6 = new Vector();
@@ -76,9 +94,14 @@ public class Match extends ProductionRule implements Serializable {
         return var16;
     }
 
-    public Vector newSpecifications(Vector var1, Vector var2, Theory var3, Vector var4) {
+    /**
+     * This produces the new specifications for concepts output using the exists production rule. To do this,
+     * it performs the matching on the permutations of the previous specifications. Must be careful to change resulting
+     * permutations such as [0,0,2] to [0,0,1]. Note also that this may cause repeated specifications which should be removed.
+     */
+    public Vector newSpecifications(Vector input_concepts, Vector input_parameters, Theory theory, Vector new_functions) {
         Vector var5 = new Vector();
-        Concept var6 = (Concept)var1.elementAt(0);
+        Concept var6 = (Concept) input_concepts.elementAt(0);
         Vector var7 = var6.specifications;
         Enumeration var8 = var7.elements();
         Vector var9 = new Vector();
@@ -86,8 +109,8 @@ public class Match extends ProductionRule implements Serializable {
 
         int var11;
         int var13;
-        for(var11 = 0; var11 < var2.size(); ++var11) {
-            String var12 = (String)var2.elementAt(var11);
+        for(var11 = 0; var11 < input_parameters.size(); ++var11) {
+            String var12 = (String) input_parameters.elementAt(var11);
             if (new Integer(var12) == var11) {
                 var9.addElement(Integer.toString(var10));
                 ++var10;
@@ -132,10 +155,10 @@ public class Match extends ProductionRule implements Serializable {
         for(int var22 = 0; var22 < var6.functions.size(); ++var22) {
             Function var24 = (Function)var6.functions.elementAt(var22);
             Function var26 = var24.copy();
-            var26.matchPermute(var2);
+            var26.matchPermute(input_parameters);
             if (!var20.contains(var26.writeFunction())) {
                 if (!var26.outputAsInput()) {
-                    var4.addElement(var26);
+                    new_functions.addElement(var26);
                 }
 
                 var20.addElement(var26.writeFunction());
@@ -145,8 +168,13 @@ public class Match extends ProductionRule implements Serializable {
         return var5;
     }
 
-    public Datatable transformTable(Vector var1, Vector var2, Vector var3, Vector var4) {
-        Datatable var5 = (Datatable)var1.elementAt(0);
+    /**
+     * This produces the new datatable from the given datatable, using the parameters specified. This production rule
+     * extracts rows from the input datatable where the columns prescribed by the parameters match. It then optimises
+     * the rows by removing the latter of two matching columns.
+     */
+    public Datatable transformTable(Vector input_datatables, Vector input_concepts, Vector parameters, Vector all_concepts) {
+        Datatable var5 = (Datatable) input_datatables.elementAt(0);
         Datatable var6 = new Datatable();
 
         for(int var7 = 0; var7 < var5.size(); ++var7) {
@@ -161,14 +189,14 @@ public class Match extends ProductionRule implements Serializable {
                 boolean var14 = true;
 
                 for(int var15 = 0; var14 && var15 < var13.size(); ++var15) {
-                    int var16 = new Integer((String)var3.elementAt(var15));
+                    int var16 = new Integer((String) parameters.elementAt(var15));
                     if (!((String)var13.elementAt(var16)).equals((String)var13.elementAt(var15))) {
                         var14 = false;
                     }
                 }
 
                 if (var14) {
-                    Vector var18 = this.removeMatchedColumns(var13, var3);
+                    Vector var18 = this.removeMatchedColumns(var13, parameters);
                     var18.removeElementAt(0);
                     var11.addElement(var18);
                 }
@@ -181,9 +209,12 @@ public class Match extends ProductionRule implements Serializable {
         return var6;
     }
 
-    public Vector transformTypes(Vector var1, Vector var2) {
-        Vector var3 = (Vector)((Concept)var1.elementAt(0)).types.clone();
-        return this.removeMatchedColumns(var3, var2);
+    /**
+     * Returns the types of the objects in the columns of the new datatable.
+     */
+    public Vector transformTypes(Vector old_concepts, Vector parameters) {
+        Vector var3 = (Vector)((Concept) old_concepts.elementAt(0)).types.clone();
+        return this.removeMatchedColumns(var3, parameters);
     }
 
     private Vector removeMatchedColumns(Vector var1, Vector var2) {
@@ -199,8 +230,12 @@ public class Match extends ProductionRule implements Serializable {
         return var3;
     }
 
-    public int patternScore(Vector var1, Vector var2, Vector var3, Vector var4) {
-        Concept var5 = (Concept)var1.elementAt(0);
+    /**
+     * This assigns a score to a concept depending on whether the production rule can see any likelihood of a pattern.
+     * The pattern for the match production rule is that each of the entities has a row where entries in the tuples match.
+     */
+    public int patternScore(Vector concept_list, Vector all_concepts, Vector entity_list, Vector non_entity_list) {
+        Concept var5 = (Concept) concept_list.elementAt(0);
         if (var5.arity != 2 && var5.arity != 3) {
             return 0;
         } else {
@@ -208,9 +243,9 @@ public class Match extends ProductionRule implements Serializable {
             int var7 = 0;
 
             int var8;
-            for(var8 = 0; var8 < var3.size() && var6; ++var8) {
-                String var9 = (String)var3.elementAt(var8);
-                Row var10 = var5.calculateRow(var2, var9);
+            for(var8 = 0; var8 < entity_list.size() && var6; ++var8) {
+                String var9 = (String) entity_list.elementAt(var8);
+                Row var10 = var5.calculateRow(all_concepts, var9);
                 boolean var11 = false;
 
                 for(int var12 = 0; var12 < var10.tuples.size(); ++var12) {
@@ -227,14 +262,14 @@ public class Match extends ProductionRule implements Serializable {
                 }
             }
 
-            if (var7 != 0 && var7 != var3.size()) {
+            if (var7 != 0 && var7 != entity_list.size()) {
                 return 0;
             } else {
-                int var15 = var4.size();
+                int var15 = non_entity_list.size();
 
-                for(var8 = 0; var8 < var4.size(); ++var8) {
-                    String var16 = (String)var4.elementAt(var8);
-                    Row var17 = var5.calculateRow(var2, var16);
+                for(var8 = 0; var8 < non_entity_list.size(); ++var8) {
+                    String var16 = (String) non_entity_list.elementAt(var8);
+                    Row var17 = var5.calculateRow(all_concepts, var16);
                     boolean var18 = false;
 
                     for(int var19 = 0; var19 < var17.tuples.size(); ++var19) {

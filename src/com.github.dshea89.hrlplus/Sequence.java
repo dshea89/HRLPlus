@@ -3,22 +3,63 @@ package com.github.dshea89.hrlplus;
 import java.io.Serializable;
 import java.util.Vector;
 
+/**
+ * A class representing a integer sequence.
+ * It is basically a vector of integer sequences which can also calculate some values for the sequence.
+ */
 public class Sequence extends Vector implements Serializable {
+    /**
+     * If this is a cyclic sequence, then this is the length of the cycle.
+     */
     public int cycle_length = 0;
+
+    /**
+     * If this is a hill sequence, this is the offset of the top of the hill.
+     */
     public int hill_offset = 0;
+
+    /**
+     * If this is an arithmetic progression, then this is the common difference between terms.
+     */
     public int common_difference = 0;
+
+    /**
+     * If this is an geometric progression, then this is the common ratio between terms.
+     */
     public double common_ratio = 0.0D;
+
+    /**
+     * The largest integer in this sequence.
+     */
     public int top_integer = 0;
+
+    /**
+     * The smallest integer in this sequence.
+     */
     public int bottom_integer = 0;
+
+    /**
+     * The name of the sequence (in conjunction with the Encyclopedia of Integer Sequences).
+     */
     public String name = "";
+
+    /**
+     * The definition of the sequence (in conjunction with the Encyclopedia of Integer Sequences).
+     */
     public String definition = "";
 
+    /**
+     * Constructs an empty sequence.
+     */
     public Sequence() {
     }
 
-    public Sequence(String var1) {
+    /**
+     * Constructs a sequence out of a string like this: "1,5,8,9"
+     */
+    public Sequence(String st) {
         try {
-            int var2 = var1.indexOf(",");
+            int var2 = st.indexOf(",");
             String var3 = ",";
             if (var2 < 0) {
                 var3 = " ";
@@ -26,8 +67,8 @@ public class Sequence extends Vector implements Serializable {
 
             String var4 = "";
 
-            for(int var5 = 0; var5 < var1.length(); ++var5) {
-                String var6 = var1.substring(var5, var5 + 1);
+            for(int var5 = 0; var5 < st.length(); ++var5) {
+                String var6 = st.substring(var5, var5 + 1);
                 if (!var6.equals(var3)) {
                     var4 = var4 + var6;
                 }
@@ -54,17 +95,17 @@ public class Sequence extends Vector implements Serializable {
 
             this.bottom_integer = new Integer((String)this.elementAt(0));
         } catch (Exception var8) {
-            System.out.println("problem with: " + var1);
+            System.out.println("problem with: " + st);
         }
 
     }
 
-    public Vector asCategorisation(boolean var1) {
+    public Vector asCategorisation(boolean start_at_one) {
         Vector var2 = new Vector();
         Vector var3 = new Vector();
         Vector var4 = new Vector();
         int var5 = this.bottom_integer;
-        if (var1) {
+        if (start_at_one) {
             var5 = 1;
         }
 
@@ -93,6 +134,9 @@ public class Sequence extends Vector implements Serializable {
         return var2;
     }
 
+    /**
+     * Returns a concept in number theory representing this sequence. This returns a number type concept.
+     */
     public Concept asNumberTypeConcept() {
         Concept var1 = new Concept();
 
@@ -113,6 +157,9 @@ public class Sequence extends Vector implements Serializable {
         return var1;
     }
 
+    /**
+     * Reverses the sequence.
+     */
     public Sequence reversed() {
         Sequence var1 = new Sequence();
 
@@ -129,10 +176,13 @@ public class Sequence extends Vector implements Serializable {
         return var1;
     }
 
-    public String asString(boolean var1) {
+    /**
+     * Returns the sequence as a string.
+     */
+    public String asString(boolean with_commas) {
         String var2 = "";
         String var3 = "";
-        if (var1) {
+        if (with_commas) {
             var3 = ",";
         } else {
             var3 = " ";
@@ -148,6 +198,9 @@ public class Sequence extends Vector implements Serializable {
         return var2;
     }
 
+    /**
+     * The range of the sequence is the difference between its smallest and largest entries.
+     */
     public int range() {
         Vector var1 = (Vector)this.clone();
         int var2 = 0;
@@ -163,9 +216,12 @@ public class Sequence extends Vector implements Serializable {
         return var2;
     }
 
-    public boolean isSubsequenceOf(Sequence var1) {
+    /**
+     * This checks whether the given sequence is subsequence of this sequence.
+     */
+    public boolean isSubsequenceOf(Sequence s) {
         for(int var2 = 0; var2 < this.size(); ++var2) {
-            if (!var1.contains((String)this.elementAt(var2))) {
+            if (!s.contains((String)this.elementAt(var2))) {
                 return false;
             }
         }
@@ -173,13 +229,16 @@ public class Sequence extends Vector implements Serializable {
         return true;
     }
 
-    public int termOverlap(Sequence var1) {
+    /**
+     * The term overlap of two sequences is the number of distinct terms which are found in both sequences.
+     */
+    public int termOverlap(Sequence s) {
         int var2 = 0;
         Vector var3 = new Vector();
 
         for(int var4 = 0; var4 < this.size(); ++var4) {
             String var5 = (String)this.elementAt(var4);
-            if (var1.contains(var5) && !var3.contains(var5)) {
+            if (s.contains(var5) && !var3.contains(var5)) {
                 ++var2;
                 var3.addElement(var5);
             }
@@ -188,6 +247,9 @@ public class Sequence extends Vector implements Serializable {
         return var2;
     }
 
+    /**
+     * This checks whether the sequence is increasing or not.
+     */
     public boolean isIncreasing() {
         if (this.size() < 2) {
             return false;
@@ -209,6 +271,9 @@ public class Sequence extends Vector implements Serializable {
         }
     }
 
+    /**
+     * This checks whether the sequence is decreasing or not.
+     */
     public boolean isDecreasing() {
         if (this.size() < 2) {
             return false;
@@ -230,6 +295,9 @@ public class Sequence extends Vector implements Serializable {
         }
     }
 
+    /**
+     * This checks whether the sequence is non-decreasing.
+     */
     public boolean isNonDecreasing() {
         int var1 = new Integer((String)this.elementAt(0));
 
@@ -247,6 +315,9 @@ public class Sequence extends Vector implements Serializable {
         return true;
     }
 
+    /**
+     * This checks whether the sequence is a golomb ruler (ie. all the differences between entries are different).
+     */
     public boolean isGolomb() {
         Vector var1 = new Vector();
 
@@ -266,6 +337,9 @@ public class Sequence extends Vector implements Serializable {
         return true;
     }
 
+    /**
+     * If the sequence is an arithmetic progression, this returns true and sets the value common_difference correctly.
+     */
     public boolean isAP() {
         if (this.size() < 2) {
             return false;
@@ -292,6 +366,9 @@ public class Sequence extends Vector implements Serializable {
         }
     }
 
+    /**
+     * If the sequence is an arithmetic progression, this returns true and sets the value of common_ratio correctly.
+     */
     public boolean isGP() {
         if (this.size() < 2) {
             return false;
@@ -318,6 +395,10 @@ public class Sequence extends Vector implements Serializable {
         }
     }
 
+    /**
+     * Checks to see if the sequence follows a cycle, eg. 1,4,6,1,4,6.
+     * It can also check to see whether the cycle goes up and then down, eg. 1,4,6,4,1,4,6
+     */
     public boolean isCyclic() {
         int var1 = 0;
         boolean var2 = false;
@@ -366,6 +447,9 @@ public class Sequence extends Vector implements Serializable {
         }
     }
 
+    /**
+     * Construct a new sequence by taking successive differences between terms.
+     */
     public Sequence differenceSequence() {
         Sequence var1 = new Sequence();
 
@@ -387,12 +471,15 @@ public class Sequence extends Vector implements Serializable {
         return var1;
     }
 
-    public Sequence recordSequence(Concept var1) {
+    /**
+     * Construct a new sequence by taking those integers set the record for a function concept.
+     */
+    public Sequence recordSequence(Concept c) {
         Sequence var2 = new Sequence();
         int var3 = -1000000;
 
-        for(int var4 = 0; var4 < var1.datatable.size(); ++var4) {
-            Row var5 = (Row)var1.datatable.elementAt(var4);
+        for(int var4 = 0; var4 < c.datatable.size(); ++var4) {
+            Row var5 = (Row)c.datatable.elementAt(var4);
             if (!var5.tuples.isEmpty()) {
                 Vector var6 = (Vector)var5.tuples.elementAt(0);
                 int var7 = new Integer((String)var6.elementAt(0));

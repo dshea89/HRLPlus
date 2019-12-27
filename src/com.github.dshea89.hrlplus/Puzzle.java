@@ -3,26 +3,75 @@ package com.github.dshea89.hrlplus;
 import java.io.Serializable;
 import java.util.Vector;
 
+/**
+ * A superclass for Puzzle objects.
+ */
 public class Puzzle implements Serializable {
+    /**
+     * The starting number of the puzzle (when it's a next in sequence using a function,
+     * e.g. f(3), f(4), f(5), [solver needs to be told that the sequence starts with the function applied to 3.
+     */
     public String starting_number = "";
+
+    /**
+     * The tuple of choices for the puzzle.
+     */
     public Vector choices = new Vector();
+
+    /**
+     * The answer for the puzzle.
+     */
     public String answer = "";
+
+    /**
+     * The concept embedded in this puzzle.
+     */
     public Concept embedded_concept = new Concept();
+
+    /**
+     * The overall interestingness of this puzzle.
+     */
     public double interestingness = 0.0D;
+
+    /**
+     * The disguise measure of this puzzle.
+     */
     public double disguise = 0.0D;
+
+    /**
+     * The disguising concepts of this puzzle.
+     */
     public Vector disguising_concepts = new Vector();
+
+    /**
+     * The type of puzzle ("ooo" = odd one out, "nis" = next in sequence, "analogy" = analogy).
+     */
     public String type = "";
+
+    /**
+     * If this is an analogy puzzle, then the triple of clues is required. e.g., a is to b as c is to.... (a,b,c) is the triple.
+     */
     public Vector analogy_triple = new Vector();
+
+    /**
+     * If this is a next-in-sequence puzzle, then these are the initial integers.
+     */
     public Vector integer_sequence = new Vector();
 
+    /**
+     * The simple constructor
+     */
     public Puzzle() {
     }
 
-    public Puzzle(Vector var1, String var2, Concept var3, String var4) {
-        this.choices = (Vector)var1.clone();
-        this.answer = var2;
-        this.embedded_concept = var3;
-        this.type = var4;
+    /**
+     * The constructor for puzzles.
+     */
+    public Puzzle(Vector choices_in, String answer_entity, Concept concept, String puzzle_type) {
+        this.choices = (Vector)choices_in.clone();
+        this.answer = answer_entity;
+        this.embedded_concept = concept;
+        this.type = puzzle_type;
     }
 
     public void randomizeOrder() {
@@ -38,11 +87,11 @@ public class Puzzle implements Serializable {
 
     }
 
-    public Object chooseRandom(Vector var1) {
-        long var2 = Math.round(Math.random() * (double)(var1.size() - 1));
+    public Object chooseRandom(Vector choices) {
+        long var2 = Math.round(Math.random() * (double)(choices.size() - 1));
         int var4 = new Integer(Long.toString(var2));
-        Object var5 = var1.elementAt(var4);
-        var1.removeElementAt(var4);
+        Object var5 = choices.elementAt(var4);
+        choices.removeElementAt(var4);
         return var5;
     }
 
@@ -100,9 +149,9 @@ public class Puzzle implements Serializable {
         return var1 + "\n";
     }
 
-    public void calculateDisguiseMeasure(Vector var1) {
-        for(int var2 = 0; var2 < var1.size(); ++var2) {
-            Concept var3 = (Concept)var1.elementAt(var2);
+    public void calculateDisguiseMeasure(Vector concepts) {
+        for(int var2 = 0; var2 < concepts.size(); ++var2) {
+            Concept var3 = (Concept)concepts.elementAt(var2);
             if (var3.arity == 1) {
                 int var4 = 0;
 
@@ -123,15 +172,15 @@ public class Puzzle implements Serializable {
 
     }
 
-    public boolean hasAlternativeSolution(Vector var1) {
+    public boolean hasAlternativeSolution(Vector concepts) {
         boolean var2 = false;
         int var3;
         int var6;
         String var7;
         if (this.type.equals("ooo")) {
-            for(var3 = 0; var3 < var1.size() && !var2; ++var3) {
+            for(var3 = 0; var3 < concepts.size() && !var2; ++var3) {
                 int var4 = 0;
-                Concept var5 = (Concept)var1.elementAt(var3);
+                Concept var5 = (Concept)concepts.elementAt(var3);
                 if (var5 != this.embedded_concept && var5.arity == 1) {
                     for(var6 = 0; var6 < this.choices.size(); ++var6) {
                         var7 = (String)this.choices.elementAt(var6);
@@ -150,8 +199,8 @@ public class Puzzle implements Serializable {
         int var9;
         Concept var12;
         if (this.type.equals("analogy")) {
-            for(var3 = 0; var3 < var1.size() && !var2; ++var3) {
-                var12 = (Concept)var1.elementAt(var3);
+            for(var3 = 0; var3 < concepts.size() && !var2; ++var3) {
+                var12 = (Concept)concepts.elementAt(var3);
                 if (var12 != this.embedded_concept && var12.isGeneralisationOf(this.embedded_concept) < 0) {
                     for(int var13 = 0; var13 < var12.categorisation.size(); ++var13) {
                         Vector var15 = (Vector)var12.categorisation.elementAt(var13);
@@ -186,8 +235,8 @@ public class Puzzle implements Serializable {
         }
 
         if (this.type.equals("nis")) {
-            for(var3 = 0; var3 < var1.size(); ++var3) {
-                var12 = (Concept)var1.elementAt(var3);
+            for(var3 = 0; var3 < concepts.size(); ++var3) {
+                var12 = (Concept)concepts.elementAt(var3);
                 if (var12.arity < 2 && var12 != this.embedded_concept && this.embedded_concept.isGeneralisationOf(var12) < 0) {
                     Vector var14 = new Vector();
                     if (var12.arity == 1) {

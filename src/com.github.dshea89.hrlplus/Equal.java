@@ -17,8 +17,8 @@ public class Equal extends ProductionRule implements Serializable {
         return "equal";
     }
 
-    public Vector allParameters(Vector var1, Theory var2) {
-        Concept var3 = (Concept)var1.elementAt(0);
+    public Vector allParameters(Vector concept_list, Theory theory) {
+        Concept var3 = (Concept) concept_list.elementAt(0);
         if (var3.arity > this.arity_limit) {
             return new Vector();
         } else {
@@ -55,8 +55,8 @@ public class Equal extends ProductionRule implements Serializable {
         }
     }
 
-    public Vector newSpecifications(Vector var1, Vector var2, Theory var3, Vector var4) {
-        Concept var5 = (Concept)var1.elementAt(0);
+    public Vector newSpecifications(Vector concept_list, Vector parameters, Theory theory, Vector new_functions) {
+        Concept var5 = (Concept) concept_list.elementAt(0);
         Vector var6 = (Vector)var5.specifications.clone();
         Relation var7 = new Relation();
         String var8 = "a";
@@ -65,24 +65,24 @@ public class Equal extends ProductionRule implements Serializable {
         Vector var11 = new Vector();
         var11.addElement("0");
 
-        for(int var12 = 1; var12 < var2.size(); ++var12) {
+        for(int var12 = 1; var12 < parameters.size(); ++var12) {
             var8 = var8 + var10[var12];
             var9 = var9 + "=@" + var10[var12] + "@";
             var11.addElement(Integer.toString(var12));
         }
 
         var7.addDefinition(var8, var9, "ascii");
-        var7.name = "equal" + var2.toString();
+        var7.name = "equal" + parameters.toString();
         Specification var13 = new Specification();
         var13.addRelation(var11, var7);
-        var13.permutation = (Vector)var2.clone();
+        var13.permutation = (Vector) parameters.clone();
         var6.addElement(var13);
         return var6;
     }
 
-    public Datatable transformTable(Vector var1, Vector var2, Vector var3, Vector var4) {
+    public Datatable transformTable(Vector old_datatables, Vector old_concepts, Vector parameters, Vector all_concepts) {
         Datatable var5 = new Datatable();
-        Datatable var6 = (Datatable)var1.elementAt(0);
+        Datatable var6 = (Datatable) old_datatables.elementAt(0);
 
         for(int var7 = 0; var7 < var6.size(); ++var7) {
             Row var8 = (Row)var6.elementAt(var7);
@@ -93,8 +93,8 @@ public class Equal extends ProductionRule implements Serializable {
                 Vector var12 = (Vector)var8.tuples.elementAt(var10);
                 String var13 = "";
 
-                for(int var14 = 0; var14 < var3.size() && var11; ++var14) {
-                    String var15 = (String)var3.elementAt(var14);
+                for(int var14 = 0; var14 < parameters.size() && var11; ++var14) {
+                    String var15 = (String) parameters.elementAt(var14);
                     String var16 = "";
                     if (var15.equals("0")) {
                         var16 = var8.entity;
@@ -123,12 +123,12 @@ public class Equal extends ProductionRule implements Serializable {
         return var5;
     }
 
-    public Vector transformTypes(Vector var1, Vector var2) {
-        Vector var3 = (Vector)((Concept)var1.elementAt(0)).types.clone();
+    public Vector transformTypes(Vector old_concepts, Vector parameters) {
+        Vector var3 = (Vector)((Concept) old_concepts.elementAt(0)).types.clone();
         return var3;
     }
 
-    public int patternScore(Vector var1, Vector var2, Vector var3, Vector var4) {
+    public int patternScore(Vector concept_list, Vector all_concepts, Vector entity_list, Vector non_entity_list) {
         byte var5 = 0;
         return var5;
     }

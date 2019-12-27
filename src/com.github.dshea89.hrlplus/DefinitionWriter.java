@@ -3,42 +3,58 @@ package com.github.dshea89.hrlplus;
 import java.io.Serializable;
 import java.util.Vector;
 
+/**
+ * A class for writing definitions.
+ */
 public class DefinitionWriter implements Serializable {
+    /**
+     * Whether to remove existence variables by writing them as the output of a function.
+     */
     public boolean remove_existence_variables = false;
+
+    /**
+     * Whether or not to surround each letter by the @ sign. This is in order to tell which letters have been added in.
+     */
     public boolean surround_by_at_sign = false;
 
     public DefinitionWriter() {
     }
 
-    public String writeDefinitionWithStartLetters(Concept var1, String var2) {
-        Vector var3 = this.lettersForTypes(var1.types, var2, new Vector());
-        return var2.equals("prolog") ? var3.toString().toUpperCase() + " : " + this.writeDefinition(var1, var2) : var3.toString() + " : " + this.writeDefinition(var1, var2);
+    /**
+     * This will write the definition for the given concept in the given language.
+     */
+    public String writeDefinitionWithStartLetters(Concept concept, String language) {
+        Vector var3 = this.lettersForTypes(concept.types, language, new Vector());
+        return language.equals("prolog") ? var3.toString().toUpperCase() + " : " + this.writeDefinition(concept, language) : var3.toString() + " : " + this.writeDefinition(concept, language);
     }
 
-    public String writeDefinition(Concept var1, String var2, Vector var3) {
+    /**
+     * This will write the definition in the given language, omitting the initial letters and using the letters supplied.
+     */
+    public String writeDefinition(Concept concept, String language, Vector letters) {
         String var4 = "";
-        Vector var5 = (Vector)var3.clone();
+        Vector var5 = (Vector)letters.clone();
         String var6 = "";
-        if (var2.equals("ascii") || var2.equals("otter") || var2.equals("tptp")) {
+        if (language.equals("ascii") || language.equals("otter") || language.equals("tptp")) {
             var6 = " & ";
         }
 
-        if (var2.equals("otter_demod")) {
+        if (language.equals("otter_demod")) {
             var6 = ".\n";
         }
 
-        if (var2.equals("prolog")) {
+        if (language.equals("prolog")) {
             var6 = ", ";
         }
 
         new Vector();
-        Vector var7 = var1.specifications;
+        Vector var7 = concept.specifications;
         Vector var8 = new Vector();
 
         int var9;
         for(var9 = 0; var9 < var7.size(); ++var9) {
             Specification var10 = (Specification)var7.elementAt(var9);
-            String var11 = this.writeSpecification(var10, var3, var5, var2, var1);
+            String var11 = this.writeSpecification(var10, letters, var5, language, concept);
             if (!var11.equals("")) {
                 var8.addElement(var11);
             }
@@ -55,31 +71,34 @@ public class DefinitionWriter implements Serializable {
         return var4;
     }
 
-    public String writeDefinition(Concept var1, String var2) {
+    /**
+     * This will write the definition for this concept in the given language, but will omit the initial letters (in the square brackets).
+     */
+    public String writeDefinition(Concept concept, String language) {
         String var3 = "";
-        Vector var4 = this.lettersForTypes(var1.types, var2, new Vector());
+        Vector var4 = this.lettersForTypes(concept.types, language, new Vector());
         Vector var5 = (Vector)var4.clone();
         String var6 = "";
-        if (var2.equals("ascii") || var2.equals("otter") || var2.equals("tptp")) {
+        if (language.equals("ascii") || language.equals("otter") || language.equals("tptp")) {
             var6 = " & ";
         }
 
-        if (var2.equals("otter_demod")) {
+        if (language.equals("otter_demod")) {
             var6 = ".\n";
         }
 
-        if (var2.equals("prolog")) {
+        if (language.equals("prolog")) {
             var6 = ", ";
         }
 
         new Vector();
-        Vector var7 = var1.specifications;
+        Vector var7 = concept.specifications;
         Vector var8 = new Vector();
 
         int var9;
         for(var9 = 0; var9 < var7.size(); ++var9) {
             Specification var10 = (Specification)var7.elementAt(var9);
-            String var11 = this.writeSpecification(var10, var4, var5, var2, var1);
+            String var11 = this.writeSpecification(var10, var4, var5, language, concept);
             if (!var11.equals("")) {
                 var8.addElement(var11);
             }
@@ -93,67 +112,67 @@ public class DefinitionWriter implements Serializable {
             var3 = var3 + (String)var8.lastElement();
         }
 
-        if (var2.equals("otter_demod")) {
+        if (language.equals("otter_demod")) {
             var3 = var3 + ".";
         }
 
         return var3;
     }
 
-    private String writeSpecification(Specification var1, Vector var2, Vector var3, String var4, Concept var5) {
+    private String writeSpecification(Specification specification, Vector letters, Vector all_letters, String language, Concept concept) {
         String var6 = "";
         String var7 = "";
         String var8 = " & ";
         String var9 = " -> ";
         String var10 = " | ";
         String var11 = "-";
-        if (var4.equals("prolog")) {
+        if (language.equals("prolog")) {
             var8 = ", ";
             var10 = "; ";
             var11 = " \\+ ";
         }
 
-        if (var4.equals("tptp")) {
+        if (language.equals("tptp")) {
             var11 = "~";
             var9 = " => ";
         }
 
-        if (var1.isMultiple()) {
+        if (specification.isMultiple()) {
             Vector var12 = new Vector();
 
             int var14;
-            for(int var13 = 0; var13 < var1.permutation.size(); ++var13) {
-                var14 = new Integer((String)var1.permutation.elementAt(var13));
-                String var15 = (String)var2.elementAt(var14);
+            for(int var13 = 0; var13 < specification.permutation.size(); ++var13) {
+                var14 = new Integer((String)specification.permutation.elementAt(var13));
+                String var15 = (String)letters.elementAt(var14);
                 var12.addElement(var15);
             }
 
-            if (var1.type.length() > 10 && var1.type.substring(0, 11).equals("embed graph")) {
-                var6 = "graph_embeded_by_concept" + var1.type.substring(11, var1.type.length()) + "(" + (String)var12.elementAt(0) + ", " + (String)var12.elementAt(1) + ")";
+            if (specification.type.length() > 10 && specification.type.substring(0, 11).equals("embed graph")) {
+                var6 = "graph_embeded_by_concept" + specification.type.substring(11, specification.type.length()) + "(" + (String)var12.elementAt(0) + ", " + (String)var12.elementAt(1) + ")";
                 return var6;
             }
 
             Vector var32 = new Vector();
-            if (!var1.type.equals("split")) {
-                var32 = this.lettersForTypes(var1.multiple_types, var4, var3);
+            if (!specification.type.equals("split")) {
+                var32 = this.lettersForTypes(specification.multiple_types, language, all_letters);
             }
 
             var14 = 0;
             int var33 = 0;
 
             String var19;
-            for(int var16 = 0; var33 < var1.multiple_types.size() + var1.redundant_columns.size(); ++var14) {
+            for(int var16 = 0; var33 < specification.multiple_types.size() + specification.redundant_columns.size(); ++var14) {
                 String var17 = Integer.toString(var14);
-                if (var1.redundant_columns.contains(var17)) {
+                if (specification.redundant_columns.contains(var17)) {
                     ++var33;
                     var12.insertElementAt("%", var14 + var16);
                 }
 
-                int var18 = var1.multiple_variable_columns.indexOf(var17);
+                int var18 = specification.multiple_variable_columns.indexOf(var17);
                 var19 = "";
                 if (var18 >= 0) {
-                    if (var1.type.equals("split")) {
-                        var19 = (String)var1.fixed_values.elementAt(var18);
+                    if (specification.type.equals("split")) {
+                        var19 = (String)specification.fixed_values.elementAt(var18);
                     } else {
                         var19 = (String)var32.elementAt(var18);
                     }
@@ -164,18 +183,18 @@ public class DefinitionWriter implements Serializable {
                 }
             }
 
-            if (var1.type.equals("exists") && this.remove_existence_variables && (var4.equals("otter") || var4.equals("otter_demod"))) {
-                var6 = this.writeSpecificationRemovingExistenceVariables(var1, var12, var3, var4, var5);
+            if (specification.type.equals("exists") && this.remove_existence_variables && (language.equals("otter") || language.equals("otter_demod"))) {
+                var6 = this.writeSpecificationRemovingExistenceVariables(specification, var12, all_letters, language, concept);
             }
 
             if (!var6.equals("")) {
                 return var6;
             }
 
-            int var34 = var1.rh_starts;
+            int var34 = specification.rh_starts;
             Vector var35 = new Vector();
 
-            for(int var36 = 0; var36 < var1.previous_specifications.size(); ++var36) {
+            for(int var36 = 0; var36 < specification.previous_specifications.size(); ++var36) {
                 var35.addElement(Integer.toString(var36));
             }
 
@@ -191,8 +210,8 @@ public class DefinitionWriter implements Serializable {
 
             String var30;
             for(int var28 = 0; var28 < var35.size(); ++var28) {
-                Specification var29 = (Specification)var1.previous_specifications.elementAt(new Integer((String)var35.elementAt(var28)));
-                var30 = this.writeSpecification(var29, var12, var3, var4, var5);
+                Specification var29 = (Specification)specification.previous_specifications.elementAt(new Integer((String)var35.elementAt(var28)));
+                var30 = this.writeSpecification(var29, var12, all_letters, language, concept);
                 if (!var30.equals("")) {
                     if (var23.isEmpty() && var29.previous_specifications.size() > 1) {
                         var26 = var29.type;
@@ -202,23 +221,23 @@ public class DefinitionWriter implements Serializable {
                         var27 = var29.type;
                     }
 
-                    if (!var4.equals("otter") && !var4.equals("otter_demod") || !var1.type.equals("forall") || !var23.contains(var30)) {
+                    if (!language.equals("otter") && !language.equals("otter_demod") || !specification.type.equals("forall") || !var23.contains(var30)) {
                         var23.addElement(var30);
                     }
                 }
 
-                if (var30.equals("") && var28 < var1.rh_starts) {
+                if (var30.equals("") && var28 < specification.rh_starts) {
                     --var34;
                 }
             }
 
             boolean var37 = false;
-            if (var4.equals("ascii") && var1.type.equals("forall")) {
+            if (language.equals("ascii") && specification.type.equals("forall")) {
                 var7 = var7 + "(";
             }
 
             int var38;
-            if ((var4.equals("otter") || var4.equals("otter_demod")) && var1.type.equals("forall")) {
+            if ((language.equals("otter") || language.equals("otter_demod")) && specification.type.equals("forall")) {
                 if (var34 == 0) {
                     var21 = true;
                 }
@@ -233,7 +252,7 @@ public class DefinitionWriter implements Serializable {
                 var37 = true;
             }
 
-            if (var4.equals("tptp") && var1.type.equals("forall")) {
+            if (language.equals("tptp") && specification.type.equals("forall")) {
                 if (var34 == 0) {
                     var21 = true;
                 }
@@ -251,12 +270,12 @@ public class DefinitionWriter implements Serializable {
 
             for(var38 = 0; var38 < var23.size() - 1; ++var38) {
                 var19 = var8;
-                if (var1.type.equals("forall") && var38 == var34 - 1 && !var21) {
+                if (specification.type.equals("forall") && var38 == var34 - 1 && !var21) {
                     var19 = ")" + var9 + "(";
                     var21 = true;
                 }
 
-                if (var1.type.equals("disjunct") && var38 == var34 - 1 && !var22) {
+                if (specification.type.equals("disjunct") && var38 == var34 - 1 && !var22) {
                     var19 = var10;
                     if (var34 > 1 || var26.equals("split")) {
                         var19 = ")" + var10;
@@ -283,15 +302,15 @@ public class DefinitionWriter implements Serializable {
             }
 
             if (!var23.isEmpty()) {
-                if (var1.type.equals("split")) {
+                if (specification.type.equals("split")) {
                     var6 = var7;
                 }
 
-                if (var1.type.equals("size")) {
-                    var38 = new Integer((String)var1.permutation.lastElement());
-                    var30 = (String)var2.elementAt(var38);
-                    if (var4.equals("ascii") || var4.equals("prolog") || var4.equals("otter") || var4.equals("otter_demod") || var4.equals("tptp")) {
-                        var6 = var6 + var2.elementAt(var38) + "=|{";
+                if (specification.type.equals("size")) {
+                    var38 = new Integer((String)specification.permutation.lastElement());
+                    var30 = (String)letters.elementAt(var38);
+                    if (language.equals("ascii") || language.equals("prolog") || language.equals("otter") || language.equals("otter_demod") || language.equals("tptp")) {
+                        var6 = var6 + letters.elementAt(var38) + "=|{";
                         if (var32.size() > 1) {
                             var6 = var6 + "(";
                         }
@@ -311,31 +330,31 @@ public class DefinitionWriter implements Serializable {
                     }
                 }
 
-                if (var1.type.equals("exists")) {
-                    if (var4.equals("otter")) {
+                if (specification.type.equals("exists")) {
+                    if (language.equals("otter")) {
                         var6 = var6 + "(";
                     }
 
-                    if (var4.equals("otter_demod")) {
+                    if (language.equals("otter_demod")) {
                         var6 = var6 + "(";
                     }
 
-                    if (var4.equals("ascii") || var4.equals("otter") || var4.equals("otter_demod")) {
+                    if (language.equals("ascii") || language.equals("otter") || language.equals("otter_demod")) {
                         var6 = var6 + "exists ";
                     }
 
-                    if (var4.equals("tptp")) {
+                    if (language.equals("tptp")) {
                         var6 = var6 + "? [";
                     }
 
                     String var40 = " ";
-                    if (var4.equals("tptp")) {
+                    if (language.equals("tptp")) {
                         var40 = ",";
                     }
 
-                    if (!var4.equals("prolog")) {
+                    if (!language.equals("prolog")) {
                         for(int var39 = 0; var39 < var32.size(); ++var39) {
-                            if (var4.equals("tptp") && var39 == var32.size() - 1) {
+                            if (language.equals("tptp") && var39 == var32.size() - 1) {
                                 var40 = "";
                             }
 
@@ -343,30 +362,30 @@ public class DefinitionWriter implements Serializable {
                         }
                     }
 
-                    if (var4.equals("tptp")) {
+                    if (language.equals("tptp")) {
                         var6 = var6 + "] : ";
                     }
 
-                    if (!var4.equals("prolog")) {
+                    if (!language.equals("prolog")) {
                         var6 = var6 + "(" + var7 + ")";
                     } else {
                         var6 = var7;
                     }
 
-                    if (var4.equals("otter")) {
+                    if (language.equals("otter")) {
                         var6 = var6 + ")";
                     }
 
-                    if (var4.equals("otter_demod")) {
+                    if (language.equals("otter_demod")) {
                         var6 = var6 + ")";
                     }
                 }
 
-                if (var1.type.equals("forall")) {
+                if (specification.type.equals("forall")) {
                     var6 = var6 + "(" + var7 + "))";
                 }
 
-                if (var1.type.equals("disjunct")) {
+                if (specification.type.equals("disjunct")) {
                     var6 = var6 + "(" + var7 + ")";
                     if (var24) {
                         var6 = "(" + var6;
@@ -377,39 +396,40 @@ public class DefinitionWriter implements Serializable {
                     }
                 }
 
-                if (var1.type.equals("negate")) {
+                if (specification.type.equals("negate")) {
                     var6 = var6 + var11 + "(" + var7 + ")";
                 }
 
-                if (var1.type.equals("record")) {
-                    var6 = var6 + (String)var2.elementAt(0) + " sets record for: (" + var7 + ")";
+                if (specification.type.equals("record")) {
+                    var6 = var6 + (String)letters.elementAt(0) + " sets record for: (" + var7 + ")";
                 }
             }
         } else {
-            var6 = var6 + var1.writeDefinition(var4, var2);
+            var6 = var6 + specification.writeDefinition(language, letters);
         }
 
         return var6;
     }
 
-    public String writeSpecificationRemovingExistenceVariables(Specification var1, Vector var2, Vector var3, String var4, Concept var5) {
+    public String writeSpecificationRemovingExistenceVariables(Specification specification, Vector letters, Vector all_letters,
+                                                               String language, Concept concept) {
         boolean var6 = false;
         Vector var7 = new Vector();
-        Vector var8 = (Vector)var2.clone();
+        Vector var8 = (Vector)letters.clone();
         Vector var9 = new Vector();
         Vector var10 = new Vector();
 
         String var13;
         int var14;
-        for(int var11 = 0; var11 < var1.multiple_variable_columns.size(); ++var11) {
+        for(int var11 = 0; var11 < specification.multiple_variable_columns.size(); ++var11) {
             Vector var12 = new Vector();
             var9.addElement(var12);
-            var13 = (String)var1.multiple_variable_columns.elementAt(var11);
+            var13 = (String)specification.multiple_variable_columns.elementAt(var11);
             var14 = new Integer(var13);
             boolean var15 = false;
 
-            for(int var16 = 0; var16 < var1.previous_specifications.size() && !var15; ++var16) {
-                Specification var17 = (Specification)var1.previous_specifications.elementAt(var16);
+            for(int var16 = 0; var16 < specification.previous_specifications.size() && !var15; ++var16) {
+                Specification var17 = (Specification)specification.previous_specifications.elementAt(var16);
                 if (!var17.isMultiple()) {
                     Vector var18 = var17.permutation;
                     Vector var19 = new Vector();
@@ -452,7 +472,7 @@ public class DefinitionWriter implements Serializable {
                             }
 
                             if (!var37.contains(var13) && var23.size() == 1 && ((String)var23.elementAt(0)).equals(var13)) {
-                                String var38 = this.writeSpecification(var17, var8, var3, var4, var5);
+                                String var38 = this.writeSpecification(var17, var8, all_letters, language, concept);
                                 Relation var39 = (Relation)var17.relations.elementAt(0);
                                 Definition var40 = (Definition)var39.definitions.elementAt(0);
                                 int var41 = var40.text.indexOf("=");
@@ -484,11 +504,11 @@ public class DefinitionWriter implements Serializable {
         } else {
             String var30 = "";
 
-            for(int var31 = 0; var31 < var1.multiple_variable_columns.size(); ++var31) {
-                var13 = (String)var1.multiple_variable_columns.elementAt(var31);
+            for(int var31 = 0; var31 < specification.multiple_variable_columns.size(); ++var31) {
+                var13 = (String)specification.multiple_variable_columns.elementAt(var31);
                 if (!var10.contains(var13)) {
                     var14 = new Integer(var13);
-                    String var33 = (String)var2.elementAt(var14);
+                    String var33 = (String)letters.elementAt(var14);
                     var30 = var30 + var33 + " ";
                 }
             }
@@ -500,10 +520,10 @@ public class DefinitionWriter implements Serializable {
 
             var13 = "";
 
-            for(var14 = 0; var14 < var1.previous_specifications.size(); ++var14) {
-                Specification var34 = (Specification)var1.previous_specifications.elementAt(var14);
+            for(var14 = 0; var14 < specification.previous_specifications.size(); ++var14) {
+                Specification var34 = (Specification)specification.previous_specifications.elementAt(var14);
                 if (!var7.contains(var34)) {
-                    String var35 = this.writeSpecification(var34, var8, var3, var4, var5);
+                    String var35 = this.writeSpecification(var34, var8, all_letters, language, concept);
                     if (!var35.equals("") && var14 > 0 && !var13.equals("")) {
                         var13 = var13 + " & ";
                     }
@@ -521,7 +541,10 @@ public class DefinitionWriter implements Serializable {
         }
     }
 
-    public Vector lettersForTypes(Vector var1, String var2, Vector var3) {
+    /**
+     * Returns correct letters for the given types, choice of language and letters already used.
+     */
+    public Vector lettersForTypes(Vector input_types, String language, Vector letters_already) {
         String var4 = "";
         if (this.surround_by_at_sign) {
             var4 = "@";
@@ -529,10 +552,10 @@ public class DefinitionWriter implements Serializable {
 
         Vector var5 = new Vector();
 
-        for(int var6 = 0; var6 < var1.size(); ++var6) {
-            String var7 = (String)var1.elementAt(var6);
+        for(int var6 = 0; var6 < input_types.size(); ++var6) {
+            String var7 = (String)input_types.elementAt(var6);
             String var8 = "";
-            if (var2.equals("ascii") || var2.equals("otter") || var2.equals("prolog") || var2.equals("tptp") || var2.equals("otter_demod")) {
+            if (language.equals("ascii") || language.equals("otter") || language.equals("prolog") || language.equals("tptp") || language.equals("otter_demod")) {
                 String[] var9 = new String[]{"", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"};
                 String[] var10 = new String[]{"", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"};
                 boolean var11 = false;
@@ -541,18 +564,18 @@ public class DefinitionWriter implements Serializable {
                 for(int var13 = 0; var13 < var9.length && !var12; ++var13) {
                     for(int var14 = 1; var14 < var9.length && !var12; ++var14) {
                         var8 = var9[var13] + var9[var14];
-                        if (var2.equals("tptp") || var2.equals("prolog")) {
+                        if (language.equals("tptp") || language.equals("prolog")) {
                             var8 = var10[var13] + var10[var14];
                         }
 
-                        if (!var3.contains(var8)) {
+                        if (!letters_already.contains(var8)) {
                             var12 = true;
                         }
                     }
                 }
             }
 
-            var3.addElement(var8);
+            letters_already.addElement(var8);
             var5.addElement(var4 + var8 + var4);
         }
 

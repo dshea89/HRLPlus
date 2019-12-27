@@ -17,10 +17,10 @@ public class Disjunct extends ProductionRule implements Serializable {
         return "disjunct";
     }
 
-    public Vector allParameters(Vector var1, Theory var2) {
+    public Vector allParameters(Vector concept_list, Theory theory) {
         Vector var3 = new Vector();
-        Concept var4 = (Concept)var1.elementAt(0);
-        Concept var5 = (Concept)var1.elementAt(1);
+        Concept var4 = (Concept) concept_list.elementAt(0);
+        Concept var5 = (Concept) concept_list.elementAt(1);
         if (var4 == var5) {
             return var3;
         } else if (var4.arity > this.arity_limit) {
@@ -36,10 +36,10 @@ public class Disjunct extends ProductionRule implements Serializable {
         }
     }
 
-    public Vector newSpecifications(Vector var1, Vector var2, Theory var3, Vector var4) {
+    public Vector newSpecifications(Vector concept_list, Vector parameters, Theory theory, Vector new_functions) {
         Vector var5 = new Vector();
-        Concept var6 = (Concept)var1.elementAt(0);
-        Concept var7 = (Concept)var1.elementAt(1);
+        Concept var6 = (Concept) concept_list.elementAt(0);
+        Concept var7 = (Concept) concept_list.elementAt(1);
         Vector var8 = (Vector)var6.specifications.clone();
         Vector var9 = (Vector)var7.specifications.clone();
 
@@ -89,10 +89,10 @@ public class Disjunct extends ProductionRule implements Serializable {
         return var5;
     }
 
-    public Datatable transformTable(Vector var1, Vector var2, Vector var3, Vector var4) {
+    public Datatable transformTable(Vector old_datatables, Vector old_concepts, Vector parameters, Vector all_concepts) {
         Datatable var5 = new Datatable();
-        Datatable var6 = (Datatable)var1.elementAt(0);
-        Datatable var7 = (Datatable)var1.elementAt(1);
+        Datatable var6 = (Datatable) old_datatables.elementAt(0);
+        Datatable var7 = (Datatable) old_datatables.elementAt(1);
 
         for(int var8 = 0; var8 < var6.size(); ++var8) {
             Row var9 = (Row)var6.elementAt(var8);
@@ -127,25 +127,25 @@ public class Disjunct extends ProductionRule implements Serializable {
         return var3;
     }
 
-    public Vector transformTypes(Vector var1, Vector var2) {
-        Concept var3 = (Concept)var1.elementAt(0);
+    public Vector transformTypes(Vector old_concepts, Vector parameters) {
+        Concept var3 = (Concept) old_concepts.elementAt(0);
         return var3.types;
     }
 
-    public int patternScore(Vector var1, Vector var2, Vector var3, Vector var4) {
-        Concept var5 = (Concept)var1.elementAt(0);
-        Concept var6 = (Concept)var1.elementAt(1);
-        String var7 = (String)var3.elementAt(0);
+    public int patternScore(Vector concept_list, Vector all_concepts, Vector entity_list, Vector non_entity_list) {
+        Concept var5 = (Concept) concept_list.elementAt(0);
+        Concept var6 = (Concept) concept_list.elementAt(1);
+        String var7 = (String) entity_list.elementAt(0);
         Row var8 = var5.datatable.rowWithEntity(var7);
         Row var9 = var6.datatable.rowWithEntity(var7);
         Tuples var10 = this.makeDisjunctRow(var8, var9);
-        int var11 = var4.size();
+        int var11 = non_entity_list.size();
 
         for(int var12 = 1; var11 > 0 && var12 < var10.size(); ++var12) {
             Vector var13 = (Vector)var10.elementAt(var12);
 
-            for(int var14 = 1; var11 > 0 && var14 < var3.size(); ++var14) {
-                String var15 = (String)var3.elementAt(var14);
+            for(int var14 = 1; var11 > 0 && var14 < entity_list.size(); ++var14) {
+                String var15 = (String) entity_list.elementAt(var14);
                 Row var16 = var5.datatable.rowWithEntity(var15);
                 if (!var16.tuples.contains(var13)) {
                     Row var17 = var5.datatable.rowWithEntity(var15);

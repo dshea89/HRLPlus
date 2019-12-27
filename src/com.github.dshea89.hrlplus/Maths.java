@@ -5,15 +5,23 @@ import java.io.FileReader;
 import java.io.Serializable;
 import java.util.Vector;
 
+/**
+ * A class for performing all the calcualations associated with known (core) mathematical concepts. For example,
+ * it can calculated the divisors of an integer and so on. Any concept supplied here with java code will be fully functional
+ * in HR, and it will be possible to fullly explore it. I hope users will want to add more and more functions to this package.
+ */
 public class Maths implements Serializable {
     public Maths() {
     }
 
-    public Vector nonIsomorphicFromFile(String var1) {
+    /**
+     * As nonIsomorphic below, but reading the algebras from the given file.
+     */
+    public Vector nonIsomorphicFromFile(String file_name) {
         Vector var2 = new Vector();
 
         try {
-            BufferedReader var3 = new BufferedReader(new FileReader(var1));
+            BufferedReader var3 = new BufferedReader(new FileReader(file_name));
 
             for(String var4 = var3.readLine(); var4 != null; var4 = var3.readLine()) {
                 var2.addElement(var4);
@@ -27,8 +35,11 @@ public class Maths implements Serializable {
         return this.nonIsomorphic(var2);
     }
 
-    public Vector nonIsomorphic(Vector var1) {
-        Vector var2 = (Vector)var1.clone();
+    /**
+     * This reduces a set of possibly isomorphic algebras to those which are not isomorphic.
+     */
+    public Vector nonIsomorphic(Vector algebras) {
+        Vector var2 = (Vector)algebras.clone();
         int var3 = 0;
         String var4 = (String)var2.elementAt(0);
         int var5 = (new Double(Math.sqrt((double)var4.length()))).intValue();
@@ -55,39 +66,43 @@ public class Maths implements Serializable {
         return var2;
     }
 
-    public boolean isIsomorphic(int var1, Vector var2, String var3, String var4) {
-        if (var3.equals(var4)) {
+    /**
+     * Checks whether two flattened Cayley tables (e.g. abba, abcbcaabc) are isomorphic.
+     * Must be the letters a,b,c, etc., not numbers, and they must be of size 9 or less.
+     */
+    public boolean isIsomorphic(int size, Vector isomorphisms, String algebra1, String algebra2) {
+        if (algebra1.equals(algebra2)) {
             return true;
-        } else if (var3.length() != var4.length()) {
+        } else if (algebra1.length() != algebra2.length()) {
             return false;
         } else {
             int var5 = 0;
 
             boolean var6;
-            for(var6 = false; !var6 && var5 < var2.size(); ++var5) {
-                var6 = this.isIsomorphism((Vector)var2.elementAt(var5), var3, var4, var1);
+            for(var6 = false; !var6 && var5 < isomorphisms.size(); ++var5) {
+                var6 = this.isIsomorphism((Vector)isomorphisms.elementAt(var5), algebra1, algebra2, size);
             }
 
             return var6;
         }
     }
 
-    public boolean isIsomorphism(Vector var1, String var2, String var3, int var4) {
+    public boolean isIsomorphism(Vector phi_map, String algebra1, String algebra2, int size) {
         String var5 = "";
 
-        for(int var6 = 0; var6 < var1.size(); ++var6) {
-            var5 = var5 + (String)var1.elementAt(var6);
+        for(int var6 = 0; var6 < phi_map.size(); ++var6) {
+            var5 = var5 + (String)phi_map.elementAt(var6);
         }
 
         String var20 = "0123456789";
-        if (var2.indexOf("a") >= 0) {
+        if (algebra1.indexOf("a") >= 0) {
             var20 = "abcdefghijklmnopqrst";
         }
 
         Vector var7 = new Vector();
 
         int var8;
-        for(var8 = 0; var8 < var4; ++var8) {
+        for(var8 = 0; var8 < size; ++var8) {
             var7.addElement(var20.substring(var8, var8 + 1));
         }
 
@@ -95,15 +110,15 @@ public class Maths implements Serializable {
 
         for(int var9 = 0; var9 < var7.size(); ++var9) {
             for(int var10 = 0; var10 < var7.size(); ++var10) {
-                String var11 = var2.substring(var8, var8 + 1);
+                String var11 = algebra1.substring(var8, var8 + 1);
                 int var12 = var7.indexOf(var11);
                 String var13 = var5.substring(var12, var12 + 1);
                 String var14 = var5.substring(var9, var9 + 1);
                 String var15 = var5.substring(var10, var10 + 1);
                 int var16 = var7.indexOf(var14);
                 int var17 = var7.indexOf(var15);
-                int var18 = var16 * var4 + var17;
-                String var19 = var3.substring(var18, var18 + 1);
+                int var18 = var16 * size + var17;
+                String var19 = algebra2.substring(var18, var18 + 1);
                 if (!var19.equals(var13)) {
                     return false;
                 }
@@ -149,14 +164,14 @@ public class Maths implements Serializable {
         return var4;
     }
 
-    public Tuples baseRepresentation(int var1, String var2) {
+    public Tuples baseRepresentation(int base, String entity) {
         Tuples var3 = new Tuples();
-        int var4 = new Integer(var2);
+        int var4 = new Integer(entity);
         int var5 = 1;
         int var6 = 0;
 
         String var7;
-        for(var7 = ""; var5 * var1 <= var4; var5 *= var1) {
+        for(var7 = ""; var5 * base <= var4; var5 *= base) {
             ++var6;
         }
 
@@ -174,7 +189,7 @@ public class Maths implements Serializable {
                 var4 -= var5;
             }
 
-            var5 /= var1;
+            var5 /= base;
             --var6;
             var3.insertElementAt(var8, 0);
         }
@@ -182,17 +197,22 @@ public class Maths implements Serializable {
         return var3;
     }
 
-    public Vector bellPartitions(int var1) {
+    /**
+     * This generates the set of Bell partitions of a set of integers. eg. given input 3 it returns a vector of vectors:
+     *  [[[1,2,3]],[[1,2],3],[[1,3],2],[[1],[2,3]],[[1],[2],[3]]]
+     * The number of partitions is equals to the bell number.
+     */
+    public Vector bellPartitions(int num) {
         Vector var2 = new Vector();
         Vector var3 = new Vector();
-        var3.addElement(Integer.toString(var1));
+        var3.addElement(Integer.toString(num));
         Vector var4 = new Vector();
         var4.addElement(var3);
         var2.addElement(var4);
-        if (var1 == 1) {
+        if (num == 1) {
             return var2;
         } else {
-            Vector var5 = (Vector)this.bellPartitions(var1 - 1).clone();
+            Vector var5 = (Vector)this.bellPartitions(num - 1).clone();
             var2 = new Vector();
 
             int var6;
@@ -212,7 +232,7 @@ public class Maths implements Serializable {
                     for(int var10 = 0; var10 < var7.size(); ++var10) {
                         Vector var11 = (Vector)((Vector)var7.elementAt(var10)).clone();
                         if (var10 == var8) {
-                            var11.addElement(Integer.toString(var1));
+                            var11.addElement(Integer.toString(num));
                         }
 
                         var9.addElement(var11);
@@ -226,18 +246,18 @@ public class Maths implements Serializable {
         }
     }
 
-    public boolean isSquare(String var1) {
-        double var2 = new Double(var1);
+    public boolean isSquare(String int_string) {
+        double var2 = new Double(int_string);
         return Math.floor(Math.sqrt(var2)) == Math.sqrt(var2);
     }
 
-    public boolean isOdd(String var1) {
-        double var2 = new Double(var1);
+    public boolean isOdd(String int_string) {
+        double var2 = new Double(int_string);
         return Math.floor(var2 / 2.0D) != var2 / 2.0D;
     }
 
-    public boolean isEven(String var1) {
-        double var2 = new Double(var1);
+    public boolean isEven(String int_string) {
+        double var2 = new Double(int_string);
         return Math.floor(var2 / 2.0D) == var2 / 2.0D;
     }
 }

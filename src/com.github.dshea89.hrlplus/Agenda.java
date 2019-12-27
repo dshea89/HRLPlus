@@ -4,46 +4,208 @@ import java.io.Serializable;
 import java.util.Hashtable;
 import java.util.Vector;
 
+/**
+ * A class representing an agenda of theory formation tasks to do. At present the only tasks are theory formation steps.
+ */
 public class Agenda implements Serializable {
+    /**
+     * The current step number.
+     */
     public int step_number = 0;
+
+    /**
+     * Whether or not to use a segregated search.
+     */
     public boolean use_segregated_search = false;
+
+    /**
+     * The segregation categorisation for this agenda.
+     */
     public Categorisation segregation_categorisation = new Categorisation();
+
+    /**
+     * Whether to keep a record of the steps which weren't allowed for limit reasons.
+     */
     public boolean keep_not_allowed_steps = false;
+
+    /**
+     * The hashtable of concepts in the theory, with the key being the id of the concept.
+     */
     public Hashtable concept_hashtable = new Hashtable();
+
+    /**
+     * A vector of forced ids which resulted in a non-existence conjecture.
+     */
     public Vector non_existent_concept_ids = new Vector();
+
+    /**
+     * A hashtable to stop repeated steps being carried out (when forced).
+     */
     public Hashtable repeated_forced_steps = new Hashtable();
+
+    /**
+     * The list of steps which have been forced (conjecture driven concept formation).
+     */
     public Vector forced_steps = new Vector();
+
+    /**
+     * A hashtable for looking up a concept which was given an id by the theory forcing that step.
+     */
     public Hashtable concept_forced_names = new Hashtable();
+
+    /**
+     * The set of steps to force the theory to produce instead of the normal theory formation step (conjecture-driven concept formation).
+     * These are not steps, but strings of the form: "NewConcept = PR OldConcept (OldConcept2) Parameterisation" and the agenda records the id of the new concept which is produced,
+     * for use in later forced steps (or the id of a re-invented concept).
+     */
     public Vector steps_to_force = new Vector();
+
+    /**
+     * A flag to tell the addConcept function that the concept is being added for a second time because the agenda is not being expanded automatically.
+     */
     public boolean second_addition = false;
+
+    /**
+     * Whether to expand the agenda or not. If running in a breadth first search, then there is no need to put all pairs of concepts on the agenda,
+     * rather this can be done when the concept reaches the top. This reduces the memory allocation required for the agenda.
+     */
     public boolean expand_agenda = true;
+
+    /**
+     * Which tier of the agenda is currently being used
+     */
     public int current_tier = 0;
+
+    /**
+     * Whether or not the search is tiered (in terms of the production rules)
+     */
     public boolean is_tiered = false;
+
+    /**
+     * The list of tiers in the agenda.
+     */
     public Vector agenda_tiers = new Vector();
+
+    /**
+     * The limit for the complexity of any concept which will be produced.
+     */
     public int complexity_limit = 1000;
+
+    /**
+     * The limit for the number of items which can be stored on the agenda.
+     */
     public int agenda_size_limit = 10000;
+
+    /**
+     * A search strategy - randomly permute the concepts.
+     */
     public boolean random = false;
+
+    /**
+     * The type of objects of interest in the categorisation to be learned.
+     */
     public String object_types_to_learn = "";
+
+    /**
+     * The list of entities which must be learned, eg. 2,3,5,7,...
+     */
     public Vector positives_for_forward_lookahead = new Vector();
+
+    /**
+     * The list of entities which are not to be learned.
+     */
     public Vector negatives_for_forward_lookahead = new Vector();
+
+    /**
+     * Whether or not to use the patterns heuristic (for identifyint a particular concept).
+     */
     public boolean use_forward_lookahead = false;
+
+    /**
+     * Whether or not to use the scores for placing pattern-suggested items in the agenda.
+     */
     public boolean use_scores = false;
+
+    /**
+     * A set of concepts, such as integer, which it is not worth using in a compose step with any other concept.
+     * Usually the entity concepts.
+     */
     public Vector dont_compose_with = new Vector();
+
+    /**
+     * The unary steps still to do in the agenda.
+     */
     public Vector unary_steps = new Vector();
+
+    /**
+     * The binary steps still to do in the agenda.
+     */
     public Vector binary_steps = new Vector();
+
+    /**
+     * The exhaustive list of steps in the agenda.
+     */
     public Vector exhaustive_steps = new Vector();
+
+    /**
+     * The urgent unary steps still to do in the agenda.
+     */
     public Vector urgent_unary_steps = new Vector();
+
+    /**
+     * The urgent binary steps still to do in the agenda.
+     */
     public Vector urgent_binary_steps = new Vector();
+
+    /**
+     * The list of steps not allowed because of it breaking some limit.
+     */
     public Vector not_allowed_steps = new Vector();
+
+    /**
+     * Whether or not to use a delayed best first search.
+     */
     public boolean best_first_delayed = false;
+
+    /**
+     * The number of steps to delay the best first search for.
+     */
     public int best_first_delay_steps = 0;
+
+    /**
+     * Whether or not to use the interestingness of concepts to order the agenda line in the lists to complete (i.e., a best first search).
+     */
     public boolean best_first = false;
+
+    /**
+     * Whether to do a depth first search - each new concept is explored fully before moving on to the next one.
+     * If this is set to false, HR assumes a depth first (or best first) search.
+     */
     public boolean depth_first = false;
+
+    /**
+     * The list of concepts ordered in terms of their overall interestingness measure (those which have agenda items left).
+     */
     public Vector live_ordered_concepts = new Vector();
+
+    /**
+     * The list of concepts ordered in terms of their overall interestingness measure (those which have agenda items left).
+     */
     public Vector all_ordered_concepts = new Vector();
+
+    /**
+     * The construction step to be forced next.
+     */
     public Step forced_step = new Step();
+
+    /**
+     * Whether to allow the use of unary rules. The unary rules may be turned off in an agency environment to stop the repetition of steps.
+     */
     public boolean use_unary_rules = true;
 
+    /**
+     * Default constructor - adds 20 tiers to the agenda
+     */
     public Agenda() {
         for(int var1 = 0; var1 < 20; ++var1) {
             this.agenda_tiers.addElement(new Vector());
@@ -51,20 +213,23 @@ public class Agenda implements Serializable {
 
     }
 
-    public void addConcept(Concept var1, Vector var2, Theory var3) {
-        this.concept_hashtable.put(var1.id, var1);
-        if (!var1.dont_develop) {
+    /**
+     * Adds all possible steps involving the given concept to the agenda.
+     */
+    public void addConcept(Concept concept, Vector all_concepts, Theory theory) {
+        this.concept_hashtable.put(concept.id, concept);
+        if (!concept.dont_develop) {
             if (!this.second_addition) {
-                this.addConceptToOrderedList(this.all_ordered_concepts, var1);
+                this.addConceptToOrderedList(this.all_ordered_concepts, concept);
             }
 
             Step var4;
             Vector var5;
-            if (var1.complexity >= this.complexity_limit) {
+            if (concept.complexity >= this.complexity_limit) {
                 if (this.keep_not_allowed_steps) {
                     var4 = new Step();
                     var5 = new Vector();
-                    var5.addElement(var1);
+                    var5.addElement(concept);
                     var4.addElement(var5);
                     this.not_allowed_steps.addElement(var4);
                     var4.trimToSize();
@@ -73,7 +238,7 @@ public class Agenda implements Serializable {
 
             } else {
                 if (!this.second_addition) {
-                    this.addConceptToOrderedList(this.live_ordered_concepts, var1);
+                    this.addConceptToOrderedList(this.live_ordered_concepts, concept);
                 }
 
                 int var7;
@@ -82,7 +247,7 @@ public class Agenda implements Serializable {
                     if (this.use_unary_rules && !this.second_addition) {
                         var4 = new Step();
                         var5 = new Vector();
-                        var5.addElement(var1);
+                        var5.addElement(concept);
                         var4.addElement(var5);
                         var5.trimToSize();
                         var4.trimToSize();
@@ -109,8 +274,8 @@ public class Agenda implements Serializable {
                         var8 = new Step();
                         Vector var9 = new Vector();
                         Concept var10 = (Concept)this.all_ordered_concepts.elementAt(var7);
-                        if (!this.dont_compose_with.contains(var10.id) && !var10.dont_develop && !this.conceptsAreSegregated(var1, var10)) {
-                            var9.addElement(var1);
+                        if (!this.dont_compose_with.contains(var10.id) && !var10.dont_develop && !this.conceptsAreSegregated(concept, var10)) {
+                            var9.addElement(concept);
                             var9.addElement(var10);
                             var9.trimToSize();
                             if (!this.live_ordered_concepts.contains(var10)) {
@@ -119,11 +284,11 @@ public class Agenda implements Serializable {
 
                             var8.addElement(var9);
                             var8.trimToSize();
-                            if (var1.complexityWith(var10) >= this.complexity_limit && this.keep_not_allowed_steps) {
+                            if (concept.complexityWith(var10) >= this.complexity_limit && this.keep_not_allowed_steps) {
                                 this.not_allowed_steps.addElement(var8);
                             }
 
-                            if (var1.complexityWith(var10) < this.complexity_limit && var1.position_in_theory >= var10.position_in_theory) {
+                            if (concept.complexityWith(var10) < this.complexity_limit && concept.position_in_theory >= var10.position_in_theory) {
                                 if (this.second_addition) {
                                     this.exhaustive_steps.insertElementAt(var8, 1 + var6);
                                     ++var6;
@@ -139,15 +304,15 @@ public class Agenda implements Serializable {
 
                 if (this.use_forward_lookahead) {
                     Vector var18 = new Vector();
-                    var18.addElement(var1);
-                    var5 = var3.unary_rules;
-                    Vector var20 = var3.binary_rules;
+                    var18.addElement(concept);
+                    var5 = theory.unary_rules;
+                    Vector var20 = theory.binary_rules;
 
                     for(var7 = 0; var7 < var5.size(); ++var7) {
                         var8 = new Step();
                         var8.addElement(var18);
                         ProductionRule var22 = (ProductionRule)var5.elementAt(var7);
-                        int var24 = var22.patternScore(var18, var2, this.positives_for_forward_lookahead, this.negatives_for_forward_lookahead, this.object_types_to_learn);
+                        int var24 = var22.patternScore(var18, all_concepts, this.positives_for_forward_lookahead, this.negatives_for_forward_lookahead, this.object_types_to_learn);
                         if (var24 < this.negatives_for_forward_lookahead.size() && !this.use_scores) {
                             var24 = 0;
                         }
@@ -164,23 +329,23 @@ public class Agenda implements Serializable {
                     }
 
                     var7 = this.itemsInAgenda();
-                    int var21 = var2.size();
-                    if (var7 + var2.size() > this.agenda_size_limit) {
+                    int var21 = all_concepts.size();
+                    if (var7 + all_concepts.size() > this.agenda_size_limit) {
                         var21 = this.agenda_size_limit - var7;
                     }
 
                     for(int var23 = 0; var23 < var21; ++var23) {
                         Vector var25 = new Vector();
-                        Concept var11 = (Concept)var2.elementAt(var23);
+                        Concept var11 = (Concept)all_concepts.elementAt(var23);
                         if (!this.dont_compose_with.contains(var11.id)) {
-                            var25.addElement(var1);
+                            var25.addElement(concept);
                             var25.addElement(var11);
-                            if (var1.complexityWith(var11) < this.complexity_limit && var1.position_in_theory >= var11.position_in_theory) {
+                            if (concept.complexityWith(var11) < this.complexity_limit && concept.position_in_theory >= var11.position_in_theory) {
                                 for(int var26 = 0; var26 < var20.size(); ++var26) {
                                     ProductionRule var13 = (ProductionRule)var20.elementAt(var26);
                                     Step var14 = new Step();
                                     var14.addElement(var25);
-                                    int var15 = var13.patternScore(var25, var2, this.positives_for_forward_lookahead, this.negatives_for_forward_lookahead, this.object_types_to_learn);
+                                    int var15 = var13.patternScore(var25, all_concepts, this.positives_for_forward_lookahead, this.negatives_for_forward_lookahead, this.object_types_to_learn);
                                     Vector var16 = new Vector();
                                     if (var15 < this.negatives_for_forward_lookahead.size() && !this.use_scores) {
                                         var15 = 0;
@@ -203,22 +368,25 @@ public class Agenda implements Serializable {
         }
     }
 
-    public boolean conceptsAreSegregated(Concept var1, Concept var2) {
+    /**
+     * This checks whether the two given concepts have segregated ancestors.
+     */
+    public boolean conceptsAreSegregated(Concept c1, Concept c2) {
         Vector var3 = new Vector();
 
         int var4;
         String var5;
         String var6;
-        for(var4 = 0; var4 < var1.ancestor_ids.size(); ++var4) {
-            var5 = (String)var1.ancestor_ids.elementAt(var4);
+        for(var4 = 0; var4 < c1.ancestor_ids.size(); ++var4) {
+            var5 = (String)c1.ancestor_ids.elementAt(var4);
             var6 = this.segregationPosition(var5);
             if (!var3.contains(var6) && !var6.equals("")) {
                 var3.addElement(var6);
             }
         }
 
-        for(var4 = 0; var4 < var2.ancestor_ids.size(); ++var4) {
-            var5 = (String)var2.ancestor_ids.elementAt(var4);
+        for(var4 = 0; var4 < c2.ancestor_ids.size(); ++var4) {
+            var5 = (String)c2.ancestor_ids.elementAt(var4);
             var6 = this.segregationPosition(var5);
             if (!var3.contains(var6) && !var6.equals("")) {
                 var3.addElement(var6);
@@ -243,17 +411,20 @@ public class Agenda implements Serializable {
         return "";
     }
 
-    public Step nextStep(Vector var1, Vector var2, Theory var3) {
+    /**
+     * Returns the next valid step at the top of the agenda.
+     */
+    public Step nextStep(Vector unary_rules, Vector binary_rules, Theory theory) {
         if (!this.steps_to_force.isEmpty()) {
             String var15 = (String)this.steps_to_force.elementAt(0);
             this.steps_to_force.removeElementAt(0);
             boolean var17 = true;
-            Step var19 = this.getStepFromString(var15, var3);
+            Step var19 = this.getStepFromString(var15, theory);
             this.forced_steps.addElement(var15);
             if (var19 == null) {
                 String var20 = var15.substring(0, var15.indexOf(" ="));
                 this.non_existent_concept_ids.addElement(var20);
-                return this.nextStep(var1, var2, var3);
+                return this.nextStep(unary_rules, binary_rules, theory);
             } else {
                 Concept var18 = (Concept)this.repeated_forced_steps.get(var19.asString());
                 if (var18 != null) {
@@ -261,7 +432,7 @@ public class Agenda implements Serializable {
                         this.concept_forced_names.put(var19.concept_arising_name, var18);
                     }
 
-                    return this.nextStep(var1, var2, var3);
+                    return this.nextStep(unary_rules, binary_rules, theory);
                 } else {
                     var19.forced = true;
                     var19.trimToSize();
@@ -281,7 +452,7 @@ public class Agenda implements Serializable {
                 var5 = this.exhaustive_steps;
             }
 
-            Vector var7 = var3.concepts;
+            Vector var7 = theory.concepts;
             Vector var9;
             int var16;
             if (var5.isEmpty()) {
@@ -353,7 +524,7 @@ public class Agenda implements Serializable {
 
                     if (!var12) {
                         this.live_ordered_concepts.removeElementAt(0);
-                        return this.nextStep(var1, var2, var3);
+                        return this.nextStep(unary_rules, binary_rules, theory);
                     }
                 }
 
@@ -363,15 +534,15 @@ public class Agenda implements Serializable {
                         if (!this.expand_agenda) {
                             this.expand_agenda = true;
                             this.second_addition = true;
-                            this.addConcept(var11, var7, var3);
+                            this.addConcept(var11, var7, theory);
                             this.second_addition = false;
                             this.expand_agenda = false;
                         }
 
-                        if (var1.size() == 0) {
+                        if (unary_rules.size() == 0) {
                             var5.removeElementAt(var10);
                         } else {
-                            this.putIntoTiers(var21, var9, var1);
+                            this.putIntoTiers(var21, var9, unary_rules);
                             if (var21.size() == 1) {
                                 var5.removeElementAt(var10);
                             }
@@ -379,17 +550,17 @@ public class Agenda implements Serializable {
                     }
 
                     if (var9.size() == 2) {
-                        if (var2.size() == 0) {
+                        if (binary_rules.size() == 0) {
                             var5.removeElementAt(var10);
                         } else {
-                            this.putIntoTiers(var21, var9, var2);
+                            this.putIntoTiers(var21, var9, binary_rules);
                             if (var21.size() == 1) {
                                 var5.removeElementAt(var10);
                             }
                         }
                     }
 
-                    return this.nextStep(var1, var2, var3);
+                    return this.nextStep(unary_rules, binary_rules, theory);
                 } else {
                     Vector var23;
                     ProductionRule var24;
@@ -397,7 +568,7 @@ public class Agenda implements Serializable {
                     if (var21.size() == 2) {
                         var23 = (Vector)var21.elementAt(1);
                         var24 = (ProductionRule)var23.elementAt(0);
-                        var25 = var24.allParameters(var9, var3);
+                        var25 = var24.allParameters(var9, theory);
                         if (var25.size() > 0) {
                             var21.addElement(var25);
                         } else {
@@ -408,7 +579,7 @@ public class Agenda implements Serializable {
                             var5.removeElementAt(var10);
                         }
 
-                        return this.nextStep(var1, var2, var3);
+                        return this.nextStep(unary_rules, binary_rules, theory);
                     } else {
                         if (var21.size() == 3) {
                             var23 = (Vector)var21.elementAt(1);
@@ -438,9 +609,12 @@ public class Agenda implements Serializable {
         }
     }
 
-    public void putIntoTiers(Vector var1, Vector var2, Vector var3) {
+    /**
+     * This splits the agenda items into tiers.
+     */
+    public void putIntoTiers(Vector agenda_line, Vector concept_list, Vector pr_list) {
         int var4 = 0;
-        Vector var5 = (Vector)var3.clone();
+        Vector var5 = (Vector)pr_list.clone();
 
         while(var4 < var5.size()) {
             ProductionRule var6 = (ProductionRule)var5.elementAt(var4);
@@ -449,7 +623,7 @@ public class Agenda implements Serializable {
                 Vector var8 = new Vector();
                 var8.addElement(var6);
                 Step var9 = new Step();
-                var9.addElement(var2);
+                var9.addElement(concept_list);
                 var9.addElement(var8);
                 var7.addElement(var9);
                 var5.removeElementAt(var4);
@@ -459,11 +633,14 @@ public class Agenda implements Serializable {
         }
 
         if (!var5.isEmpty()) {
-            var1.addElement(var5);
+            agenda_line.addElement(var5);
         }
 
     }
 
+    /**
+     * Counts how many agenda items there are in the set of lists to complete.
+     */
     public int itemsInAgenda() {
         int var1 = this.unary_steps.size();
         var1 += this.binary_steps.size();
@@ -500,6 +677,9 @@ public class Agenda implements Serializable {
         var1.trimToSize();
     }
 
+    /**
+     * To force the agenda to order its concepts - after a new concept has been added.
+     */
     public void orderConcepts() {
         if (this.best_first || this.best_first_delayed) {
             Vector var1 = new Vector();
@@ -521,27 +701,30 @@ public class Agenda implements Serializable {
         this.live_ordered_concepts.trimToSize();
     }
 
-    public Vector listToComplete(boolean var1, int var2) {
+    /**
+     * This collates the top n agenda items into one vector.
+     */
+    public Vector listToComplete(boolean look_at_not_allowed, int vector_size) {
         Vector var3 = new Vector();
         int var4 = 0;
-        if (var1) {
-            while(var3.size() < var2 && var4 < this.not_allowed_steps.size()) {
-                this.addSteps(var3, (Step)this.not_allowed_steps.elementAt(var4), var2);
+        if (look_at_not_allowed) {
+            while(var3.size() < vector_size && var4 < this.not_allowed_steps.size()) {
+                this.addSteps(var3, (Step)this.not_allowed_steps.elementAt(var4), vector_size);
                 ++var4;
             }
         }
 
-        if (!var1) {
-            while(var3.size() < var2 && var4 < this.exhaustive_steps.size()) {
-                this.addSteps(var3, (Step)this.exhaustive_steps.elementAt(var4), var2);
+        if (!look_at_not_allowed) {
+            while(var3.size() < vector_size && var4 < this.exhaustive_steps.size()) {
+                this.addSteps(var3, (Step)this.exhaustive_steps.elementAt(var4), vector_size);
                 ++var4;
             }
         }
 
-        if (!var1) {
+        if (!look_at_not_allowed) {
             for(int var5 = 0; var5 < this.agenda_tiers.size(); ++var5) {
-                for(Vector var6 = (Vector)this.agenda_tiers.elementAt(var5); var3.size() < var2 && var4 < var6.size(); ++var4) {
-                    this.addSteps(var3, (Step)var6.elementAt(var4), var2);
+                for(Vector var6 = (Vector)this.agenda_tiers.elementAt(var5); var3.size() < vector_size && var4 < var6.size(); ++var4) {
+                    this.addSteps(var3, (Step)var6.elementAt(var4), vector_size);
                 }
             }
         }
@@ -592,6 +775,10 @@ public class Agenda implements Serializable {
 
     }
 
+    /**
+     * When a change has been made to the search settings, some not-allowed steps may be allowed now, so they are added to the agenda.
+     * Other changes also need to be made.
+     */
     public void makeChanges() {
         Vector var1 = new Vector();
 
@@ -624,55 +811,58 @@ public class Agenda implements Serializable {
         this.not_allowed_steps = var1;
     }
 
-    public Step getStepFromString(String var1, Theory var2) {
+    /**
+     * Given a string of the form "Newconcept = PR oldconcept (oldconcept2) parameters", this function turns it into a step.
+     */
+    public Step getStepFromString(String step, Theory theory) {
         try {
             Step var3 = new Step();
-            String var4 = var1.substring(0, var1.indexOf(" ="));
-            var1 = var1.substring(var1.indexOf("=") + 2, var1.length());
+            String var4 = step.substring(0, step.indexOf(" ="));
+            step = step.substring(step.indexOf("=") + 2, step.length());
             String var5 = "";
-            if (var1.indexOf(":") >= 0) {
-                var5 = var1.substring(var1.indexOf(":"), var1.length());
-                var1 = var1.substring(0, var1.indexOf(":") - 1);
+            if (step.indexOf(":") >= 0) {
+                var5 = step.substring(step.indexOf(":"), step.length());
+                step = step.substring(0, step.indexOf(":") - 1);
             }
 
-            String var6 = var1.substring(var1.indexOf("["), var1.length());
-            var1 = var1.substring(0, var1.indexOf("["));
-            String var7 = var1.substring(0, var1.indexOf(" "));
-            var1 = var1.substring(var1.indexOf(" ") + 1, var1.length());
-            String var8 = var1.substring(0, var1.indexOf(" "));
-            var1 = var1.substring(var1.indexOf(" "), var1.length());
+            String var6 = step.substring(step.indexOf("["), step.length());
+            step = step.substring(0, step.indexOf("["));
+            String var7 = step.substring(0, step.indexOf(" "));
+            step = step.substring(step.indexOf(" ") + 1, step.length());
+            String var8 = step.substring(0, step.indexOf(" "));
+            step = step.substring(step.indexOf(" "), step.length());
             Vector var9 = new Vector();
             new ProductionRule();
             ProductionRule var10;
-            if (!var1.equals(" ")) {
-                String var11 = var1.substring(1, var1.length() - 1);
-                Concept var12 = this.getConcept(var7, var2);
+            if (!step.equals(" ")) {
+                String var11 = step.substring(1, step.length() - 1);
+                Concept var12 = this.getConcept(var7, theory);
                 if (var12 == null) {
                     return null;
                 }
 
                 var9.addElement(var12);
-                Concept var13 = this.getConcept(var8, var2);
+                Concept var13 = this.getConcept(var8, theory);
                 if (var13 == null) {
                     return null;
                 }
 
                 var9.addElement(var13);
-                var10 = var2.productionRuleFromName(var11);
+                var10 = theory.productionRuleFromName(var11);
             } else {
-                Concept var14 = this.getConcept(var7, var2);
+                Concept var14 = this.getConcept(var7, theory);
                 if (var14 == null) {
                     System.out.println("getStepFromString - 3");
                     return null;
                 }
 
                 var9.addElement(var14);
-                var10 = var2.productionRuleFromName(var8);
+                var10 = theory.productionRuleFromName(var8);
             }
 
             var3.addElement(var9);
             var3.addElement(var10);
-            var3.addElement(this.getVector(var6, var10.getName(), var2));
+            var3.addElement(this.getVector(var6, var10.getName(), theory));
             if (var5.indexOf("dont_develop") >= 0) {
                 var3.dont_develop = true;
             }
@@ -685,22 +875,22 @@ public class Agenda implements Serializable {
         }
     }
 
-    public Concept getConcept(String var1, Theory var2) {
-        Concept var3 = var2.getConcept(var1);
+    public Concept getConcept(String id, Theory theory) {
+        Concept var3 = theory.getConcept(id);
         if (var3.id.equals("")) {
-            return this.non_existent_concept_ids.contains(var1) ? null : (Concept)this.concept_forced_names.get(var1);
+            return this.non_existent_concept_ids.contains(id) ? null : (Concept)this.concept_forced_names.get(id);
         } else {
             return var3;
         }
     }
 
-    public Concept getConcept(String var1) {
-        if (this.non_existent_concept_ids.contains(var1)) {
+    public Concept getConcept(String id) {
+        if (this.non_existent_concept_ids.contains(id)) {
             return null;
-        } else if (this.concept_forced_names.containsKey(var1)) {
-            return (Concept)this.concept_forced_names.get(var1);
+        } else if (this.concept_forced_names.containsKey(id)) {
+            return (Concept)this.concept_forced_names.get(id);
         } else {
-            return this.concept_hashtable.containsKey(var1) ? (Concept)this.concept_hashtable.get(var1) : null;
+            return this.concept_hashtable.containsKey(id) ? (Concept)this.concept_hashtable.get(id) : null;
         }
     }
 
@@ -741,28 +931,32 @@ public class Agenda implements Serializable {
         }
     }
 
-    public void recordNonExistentConcept(Step var1) {
-        if (!var1.concept_arising_name.equals("")) {
-            this.non_existent_concept_ids.addElement(var1.concept_arising_name);
+    public void recordNonExistentConcept(Step step) {
+        if (!step.concept_arising_name.equals("")) {
+            this.non_existent_concept_ids.addElement(step.concept_arising_name);
         }
 
     }
 
-    public void recordForcedName(Step var1, Concept var2) {
-        if (!var1.concept_arising_name.equals("")) {
-            this.concept_forced_names.put(var1.concept_arising_name, var2);
-            System.out.println("step.concept_arising_name is " + var1.concept_arising_name);
-            System.out.println("putting " + var1.asString() + ", " + var2.writeDefinition());
-            this.repeated_forced_steps.put(var1.asString(), var2);
+    public void recordForcedName(Step step, Concept concept) {
+        if (!step.concept_arising_name.equals("")) {
+            this.concept_forced_names.put(step.concept_arising_name, concept);
+            System.out.println("step.concept_arising_name is " + step.concept_arising_name);
+            System.out.println("putting " + step.asString() + ", " + concept.writeDefinition());
+            this.repeated_forced_steps.put(step.asString(), concept);
         }
 
     }
 
-    public void addForcedStep(String var1, boolean var2) {
-        if (var2) {
-            this.steps_to_force.insertElementAt(var1, 0);
+    /**
+     * This adds a forced step to the agenda, unless the step has already been forced, in which case it add to the concepts and names hashtable,
+     * so that the result of performing the step can be found.
+     */
+    public void addForcedStep(String step_string, boolean to_top) {
+        if (to_top) {
+            this.steps_to_force.insertElementAt(step_string, 0);
         }
 
-        this.steps_to_force.addElement(var1);
+        this.steps_to_force.addElement(step_string);
     }
 }

@@ -15,8 +15,8 @@ public class Negate extends ProductionRule implements Serializable {
         return "negate";
     }
 
-    public Vector allParameters(Vector var1, Theory var2) {
-        return this.allParameters(var1);
+    public Vector allParameters(Vector concept_list, Theory theory) {
+        return this.allParameters(concept_list);
     }
 
     public Vector allParameters(Vector var1) {
@@ -38,11 +38,11 @@ public class Negate extends ProductionRule implements Serializable {
         }
     }
 
-    public Vector newSpecifications(Vector var1, Vector var2, Theory var3, Vector var4) {
+    public Vector newSpecifications(Vector concept_list, Vector parameters, Theory theory, Vector new_functions) {
         Vector var5 = new Vector();
-        Concept var6 = (Concept)var1.elementAt(0);
+        Concept var6 = (Concept) concept_list.elementAt(0);
         Vector var7 = var6.specifications;
-        Concept var8 = (Concept)var1.elementAt(1);
+        Concept var8 = (Concept) concept_list.elementAt(1);
         Vector var9 = var8.specifications;
         Specification var10 = new Specification();
         var10.type = "negate";
@@ -96,7 +96,7 @@ public class Negate extends ProductionRule implements Serializable {
                 var13 = (Specification)var5.elementAt(var12);
 
                 for(var14 = 0; var14 < var13.functions.size(); ++var14) {
-                    var4.addElement(var13.functions.elementAt(var14));
+                    new_functions.addElement(var13.functions.elementAt(var14));
                 }
             }
 
@@ -105,17 +105,17 @@ public class Negate extends ProductionRule implements Serializable {
         }
     }
 
-    public Datatable transformTable(Vector var1, Vector var2, Vector var3, Vector var4) {
-        Concept var5 = (Concept)var2.elementAt(0);
+    public Datatable transformTable(Vector old_datatables, Vector old_concepts, Vector parameters, Vector all_concepts) {
+        Concept var5 = (Concept) old_concepts.elementAt(0);
         Datatable var6 = new Datatable();
-        Concept var7 = (Concept)var2.elementAt(1);
-        Datatable var8 = (Datatable)var1.elementAt(0);
+        Concept var7 = (Concept) old_concepts.elementAt(1);
+        Datatable var8 = (Datatable) old_datatables.elementAt(0);
 
         for(int var9 = 0; var9 < var8.size(); ++var9) {
             Row var10 = new Row();
             Row var11 = (Row)var8.elementAt(var9);
             var10.entity = var11.entity;
-            Row var12 = var7.calculateRow(var4, var11.entity);
+            Row var12 = var7.calculateRow(all_concepts, var11.entity);
 
             for(int var13 = 0; var13 < var12.tuples.size(); ++var13) {
                 Vector var14 = (Vector)var12.tuples.elementAt(var13);
@@ -137,21 +137,21 @@ public class Negate extends ProductionRule implements Serializable {
         return var6;
     }
 
-    public Vector transformTypes(Vector var1, Vector var2) {
-        return ((Concept)var1.elementAt(0)).types;
+    public Vector transformTypes(Vector old_concepts, Vector parameters) {
+        return ((Concept) old_concepts.elementAt(0)).types;
     }
 
-    public int patternScore(Vector var1, Vector var2, Vector var3, Vector var4) {
-        Concept var5 = (Concept)var1.elementAt(0);
-        if (this.allParameters(var1).isEmpty()) {
+    public int patternScore(Vector concept_list, Vector all_concepts, Vector entity_list, Vector non_entity_list) {
+        Concept var5 = (Concept) concept_list.elementAt(0);
+        if (this.allParameters(concept_list).isEmpty()) {
             return 0;
         } else {
             int var6 = 0;
 
             boolean var7;
-            for(var7 = true; var7 && var6 < var3.size(); ++var6) {
-                String var8 = (String)var3.elementAt(var6);
-                Row var9 = var5.calculateRow(var2, var8);
+            for(var7 = true; var7 && var6 < entity_list.size(); ++var6) {
+                String var8 = (String) entity_list.elementAt(var6);
+                Row var9 = var5.calculateRow(all_concepts, var8);
                 if (var9.tuples.size() > 0) {
                     var7 = false;
                 }
@@ -160,11 +160,11 @@ public class Negate extends ProductionRule implements Serializable {
             if (!var7) {
                 return 0;
             } else {
-                int var11 = var4.size();
+                int var11 = non_entity_list.size();
 
-                for(var6 = 0; var6 < var4.size(); ++var6) {
-                    String var12 = (String)var4.elementAt(var6);
-                    Row var10 = var5.calculateRow(var2, var12);
+                for(var6 = 0; var6 < non_entity_list.size(); ++var6) {
+                    String var12 = (String) non_entity_list.elementAt(var6);
+                    Row var10 = var5.calculateRow(all_concepts, var12);
                     if (var10.tuples.size() == 0) {
                         --var11;
                     }

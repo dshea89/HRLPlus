@@ -153,8 +153,8 @@ public class Examples extends ProductionRule implements Serializable {
         return var2;
     }
 
-    public Vector allParameters(Vector var1, Theory var2) {
-        Concept var3 = (Concept)var1.elementAt(0);
+    public Vector allParameters(Vector concept_list, Theory theory) {
+        Concept var3 = (Concept) concept_list.elementAt(0);
         Vector var4 = var3.types;
         if (!this.extracted_split_values_from.contains(var3.id)) {
             this.extracted_split_values_from.addElement(var3.id);
@@ -206,15 +206,15 @@ public class Examples extends ProductionRule implements Serializable {
         return var14;
     }
 
-    public Vector newSpecifications(Vector var1, Vector var2, Theory var3, Vector var4) {
+    public Vector newSpecifications(Vector concept_list, Vector parameters, Theory theory, Vector new_functions) {
         Vector var5 = new Vector();
-        Vector var6 = ((Concept)var1.elementAt(0)).specifications;
-        Concept var7 = (Concept)var1.elementAt(0);
+        Vector var6 = ((Concept) concept_list.elementAt(0)).specifications;
+        Concept var7 = (Concept) concept_list.elementAt(0);
         Vector var8 = var7.types;
         Vector var9 = new Vector();
         Vector var10 = new Vector();
-        Vector var11 = (Vector)var2.elementAt(0);
-        Vector var12 = (Vector)var2.elementAt(1);
+        Vector var11 = (Vector) parameters.elementAt(0);
+        Vector var12 = (Vector) parameters.elementAt(1);
         Specification var14;
         Vector var39;
         if (var11.size() == 1 && var11.elementAt(0).equals("0")) {
@@ -415,7 +415,7 @@ public class Examples extends ProductionRule implements Serializable {
                         }
 
                         if (!var30.contains(var52)) {
-                            var4.addElement(var22);
+                            new_functions.addElement(var22);
                             var30.addElement(var52);
                         }
                     }
@@ -501,7 +501,7 @@ public class Examples extends ProductionRule implements Serializable {
 
                 var42 = var44.writeFunction();
                 if (!var30.contains(var42)) {
-                    var4.addElement(var44);
+                    new_functions.addElement(var44);
                     var30.addElement(var42);
                 }
             }
@@ -510,10 +510,10 @@ public class Examples extends ProductionRule implements Serializable {
         }
     }
 
-    public Datatable transformTable(Vector var1, Vector var2, Vector var3, Vector var4) {
-        Vector var5 = (Vector)var3.elementAt(0);
-        Vector var6 = (Vector)var3.elementAt(1);
-        Datatable var7 = (Datatable)var1.elementAt(0);
+    public Datatable transformTable(Vector old_datatables, Vector old_concepts, Vector parameters, Vector all_concepts) {
+        Vector var5 = (Vector) parameters.elementAt(0);
+        Vector var6 = (Vector) parameters.elementAt(1);
+        Datatable var7 = (Datatable) old_datatables.elementAt(0);
         Datatable var8 = new Datatable();
         int var10;
         Row var18;
@@ -565,10 +565,10 @@ public class Examples extends ProductionRule implements Serializable {
         }
     }
 
-    public Vector transformTypes(Vector var1, Vector var2) {
-        Concept var3 = (Concept)var1.elementAt(0);
-        Vector var4 = (Vector)var2.elementAt(0);
-        Vector var5 = (Vector)var2.elementAt(1);
+    public Vector transformTypes(Vector old_concepts, Vector parameters) {
+        Concept var3 = (Concept) old_concepts.elementAt(0);
+        Vector var4 = (Vector) parameters.elementAt(0);
+        Vector var5 = (Vector) parameters.elementAt(1);
         if (var4.size() == 1 && var4.elementAt(0).equals("0")) {
             return var3.types;
         } else {
@@ -577,8 +577,8 @@ public class Examples extends ProductionRule implements Serializable {
         }
     }
 
-    public int patternScore(Vector var1, Vector var2, Vector var3, Vector var4) {
-        return this.patternScore2(var1, var2, var4, var3) == var3.size() ? var4.size() : this.patternScore2(var1, var2, var3, var4);
+    public int patternScore(Vector concept_list, Vector all_concepts, Vector entity_list, Vector non_entity_list) {
+        return this.patternScore2(concept_list, all_concepts, non_entity_list, entity_list) == entity_list.size() ? non_entity_list.size() : this.patternScore2(concept_list, all_concepts, entity_list, non_entity_list);
     }
 
     private int patternScore2(Vector var1, Vector var2, Vector var3, Vector var4) {

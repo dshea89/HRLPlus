@@ -5,6 +5,9 @@ import java.awt.TextField;
 import java.io.Serializable;
 import java.util.Vector;
 
+/**
+ * A class for extending a sequence of objects of interest
+ */
 public class SequenceCalculationThread extends Thread implements Serializable {
     public int bottom_limit = 0;
     public int top_limit = 0;
@@ -17,13 +20,14 @@ public class SequenceCalculationThread extends Thread implements Serializable {
     public SequenceCalculationThread() {
     }
 
-    public SequenceCalculationThread(int var1, int var2, Concept var3, TextField var4, Button var5, Vector var6) {
-        this.bottom_limit = var1;
-        this.top_limit = var2;
-        this.concept = var3;
-        this.calculate_output_text = var4;
-        this.calculate_button = var5;
-        this.concepts = var6;
+    public SequenceCalculationThread(int bottom_int, int top_int, Concept sequence_concept, TextField output_text,
+                                     Button calc_button, Vector concepts_in) {
+        this.bottom_limit = bottom_int;
+        this.top_limit = top_int;
+        this.concept = sequence_concept;
+        this.calculate_output_text = output_text;
+        this.calculate_button = calc_button;
+        this.concepts = concepts_in;
     }
 
     public void run() {

@@ -19,8 +19,8 @@ public class Record extends ProductionRule implements Serializable {
         return "record";
     }
 
-    public Datatable transformTable(Vector var1, Vector var2, Vector var3, Vector var4) {
-        Datatable var5 = (Datatable)var1.elementAt(0);
+    public Datatable transformTable(Vector old_datatables, Vector old_concepts, Vector parameters, Vector all_concepts) {
+        Datatable var5 = (Datatable) old_datatables.elementAt(0);
         Datatable var6 = new Datatable();
         int var7 = -1000000;
 
@@ -43,9 +43,9 @@ public class Record extends ProductionRule implements Serializable {
         return var6;
     }
 
-    public Vector allParameters(Vector var1, Theory var2) {
+    public Vector allParameters(Vector concept_list, Theory theory) {
         Vector var3 = new Vector();
-        Concept var4 = (Concept)var1.elementAt(0);
+        Concept var4 = (Concept) concept_list.elementAt(0);
         if (!var4.domain.equals("number")) {
             return var3;
         } else {
@@ -60,9 +60,9 @@ public class Record extends ProductionRule implements Serializable {
         }
     }
 
-    public Vector newSpecifications(Vector var1, Vector var2, Theory var3, Vector var4) {
+    public Vector newSpecifications(Vector concept_list, Vector parameters, Theory theory, Vector new_functions) {
         Vector var5 = new Vector();
-        Vector var6 = ((Concept)var1.elementAt(0)).specifications;
+        Vector var6 = ((Concept) concept_list.elementAt(0)).specifications;
         Specification var7 = new Specification();
         var7.previous_specifications = var6;
         var7.type = "record";
@@ -73,14 +73,14 @@ public class Record extends ProductionRule implements Serializable {
         return var5;
     }
 
-    public Vector transformTypes(Vector var1, Vector var2) {
-        Vector var3 = (Vector)((Concept)var1.elementAt(0)).types.clone();
+    public Vector transformTypes(Vector old_concepts, Vector parameters) {
+        Vector var3 = (Vector)((Concept) old_concepts.elementAt(0)).types.clone();
         Vector var4 = new Vector();
         var4.addElement((String)var3.elementAt(0));
         return var4;
     }
 
-    public int patternScore(Vector var1, Vector var2, Vector var3, Vector var4) {
+    public int patternScore(Vector concept_list, Vector all_concepts, Vector entity_list, Vector non_entity_list) {
         byte var5 = 0;
         return var5;
     }

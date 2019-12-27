@@ -17,10 +17,10 @@ public class EmbedGraph extends ProductionRule implements Serializable {
         return "embed_graph";
     }
 
-    public Vector allParameters(Vector var1, Theory var2) {
+    public Vector allParameters(Vector concept_list, Theory theory) {
         Vector var3 = new Vector();
-        Concept var4 = (Concept)var1.elementAt(0);
-        Concept var5 = (Concept)var1.elementAt(1);
+        Concept var4 = (Concept) concept_list.elementAt(0);
+        Concept var5 = (Concept) concept_list.elementAt(1);
         if (var4.arity == 3 && var5.id.equals("G01")) {
             String var6 = (String)var4.types.elementAt(1);
             String var7 = (String)var4.types.elementAt(2);
@@ -32,20 +32,20 @@ public class EmbedGraph extends ProductionRule implements Serializable {
         return var3;
     }
 
-    public Vector newSpecifications(Vector var1, Vector var2, Theory var3, Vector var4) {
+    public Vector newSpecifications(Vector concept_list, Vector parameters, Theory theory, Vector new_functions) {
         Specification var5 = new Specification();
         var5.permutation.addElement("0");
         var5.permutation.addElement("1");
-        Concept var6 = (Concept)var1.elementAt(0);
+        Concept var6 = (Concept) concept_list.elementAt(0);
         var5.type = "embed graph " + var6.id;
         Vector var7 = new Vector();
         var7.addElement(var5);
         return var7;
     }
 
-    public Datatable transformTable(Vector var1, Vector var2, Vector var3, Vector var4) {
+    public Datatable transformTable(Vector old_datatables, Vector old_concepts, Vector parameters, Vector all_concepts) {
         Datatable var5 = new Datatable();
-        Datatable var6 = (Datatable)var1.elementAt(0);
+        Datatable var6 = (Datatable) old_datatables.elementAt(0);
 
         for(int var7 = 0; var7 < var6.size(); ++var7) {
             Row var8 = (Row)var6.elementAt(var7);
@@ -104,15 +104,15 @@ public class EmbedGraph extends ProductionRule implements Serializable {
         return var5;
     }
 
-    public Vector transformTypes(Vector var1, Vector var2) {
+    public Vector transformTypes(Vector old_concepts, Vector parameters) {
         Vector var3 = new Vector();
-        Concept var4 = (Concept)var1.elementAt(0);
+        Concept var4 = (Concept) old_concepts.elementAt(0);
         var3.addElement(var4.domain);
         var3.addElement("graph");
         return var3;
     }
 
-    public int patternScore(Vector var1, Vector var2, Vector var3, Vector var4) {
+    public int patternScore(Vector concept_list, Vector all_concepts, Vector entity_list, Vector non_entity_list) {
         return 0;
     }
 }

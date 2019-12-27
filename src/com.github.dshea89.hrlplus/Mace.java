@@ -183,7 +183,7 @@ public class Mace extends DataGenerator implements Serializable {
         return var6;
     }
 
-    public Vector counterexamplesFor(Conjecture var1, Theory var2, int var3) {
+    public Vector counterexamplesFor(Conjecture conj, Theory theory, int num_required) {
         String var4 = this.executionParameter("size_limit");
         String var5 = this.executionParameter("time_limit");
         Vector var6 = new Vector();
@@ -192,14 +192,14 @@ public class Mace extends DataGenerator implements Serializable {
         boolean var9 = false;
         boolean var10 = false;
         this.operating_system = "york_unix";
-        if (var1 instanceof NonExists) {
-            NonExists var11 = (NonExists)var1;
+        if (conj instanceof NonExists) {
+            NonExists var11 = (NonExists) conj;
             if (var11.concept.is_object_of_interest_concept) {
                 var10 = true;
             }
         }
 
-        String var22 = this.conjectureStatement(var1);
+        String var22 = this.conjectureStatement(conj);
 
         try {
             PrintWriter var12 = new PrintWriter(new BufferedWriter(new FileWriter("delmodel.in")));
@@ -246,10 +246,10 @@ public class Mace extends DataGenerator implements Serializable {
             Hashtable var28 = this.readModelFromMace("delmodel.out");
             if (!var28.isEmpty()) {
                 var7.concept_data = var28;
-                var7.conjecture = var1;
+                var7.conjecture = conj;
                 var6.addElement(var7);
-                var1.counterexamples.addElement(var7);
-                var1.proof_status = "disproved";
+                conj.counterexamples.addElement(var7);
+                conj.proof_status = "disproved";
             }
 
             Enumeration var29 = var28.keys();
@@ -275,7 +275,7 @@ public class Mace extends DataGenerator implements Serializable {
             if (!var31) {
                 var7.name = var30;
             } else {
-                var7.name = "new_" + Integer.toString(var2.entities.size());
+                var7.name = "new_" + Integer.toString(theory.entities.size());
             }
         } catch (Exception var21) {
             System.out.println("Having trouble running MACE");

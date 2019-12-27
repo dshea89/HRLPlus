@@ -28,8 +28,8 @@ public class EmbedAlgebra extends ProductionRule implements Serializable {
         return "embed_algebra";
     }
 
-    public Vector allParameters(Vector var1, Theory var2) {
-        Concept var3 = (Concept)var1.elementAt(0);
+    public Vector allParameters(Vector concept_list, Theory theory) {
+        Concept var3 = (Concept) concept_list.elementAt(0);
         Vector var4 = new Vector();
         if (var3.arity == 4) {
             for(int var5 = 0; var5 < this.algebras_to_check_for.size(); ++var5) {
@@ -42,9 +42,9 @@ public class EmbedAlgebra extends ProductionRule implements Serializable {
         return var4;
     }
 
-    public Vector newSpecifications(Vector var1, Vector var2, Theory var3, Vector var4) {
-        Concept var5 = (Concept)var1.elementAt(0);
-        String var6 = (String)var2.elementAt(0);
+    public Vector newSpecifications(Vector concept_list, Vector parameters, Theory theory, Vector new_functions) {
+        Concept var5 = (Concept) concept_list.elementAt(0);
+        String var6 = (String) parameters.elementAt(0);
         Relation var7 = new Relation();
         var7.addDefinition("ab", var5.id + " forms " + var6 + " @b@ for @a@", "ascii");
         var7.name = var5.id + var6;
@@ -60,10 +60,10 @@ public class EmbedAlgebra extends ProductionRule implements Serializable {
         return var10;
     }
 
-    public Datatable transformTable(Vector var1, Vector var2, Vector var3, Vector var4) {
+    public Datatable transformTable(Vector old_datatables, Vector old_concepts, Vector parameters, Vector all_concepts) {
         Datatable var5 = new Datatable();
-        String var6 = (String)var3.elementAt(0);
-        Datatable var7 = (Datatable)var1.elementAt(0);
+        String var6 = (String) parameters.elementAt(0);
+        Datatable var7 = (Datatable) old_datatables.elementAt(0);
 
         for(int var8 = 0; var8 < var7.size(); ++var8) {
             Hashtable var9 = new Hashtable();
@@ -204,16 +204,16 @@ public class EmbedAlgebra extends ProductionRule implements Serializable {
         }
     }
 
-    public Vector transformTypes(Vector var1, Vector var2) {
-        Vector var3 = (Vector)((Concept)var1.elementAt(0)).types.clone();
+    public Vector transformTypes(Vector old_concepts, Vector parameters) {
+        Vector var3 = (Vector)((Concept) old_concepts.elementAt(0)).types.clone();
         Vector var4 = new Vector();
-        String var5 = (String)var2.elementAt(0);
+        String var5 = (String) parameters.elementAt(0);
         var4.addElement((String)var3.elementAt(0));
         var4.addElement(var5);
         return var4;
     }
 
-    public int patternScore(Vector var1, Vector var2, Vector var3, Vector var4) {
+    public int patternScore(Vector concept_list, Vector all_concepts, Vector entity_list, Vector non_entity_list) {
         byte var5 = 0;
         return var5;
     }

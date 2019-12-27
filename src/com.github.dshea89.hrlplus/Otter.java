@@ -9,16 +9,28 @@ import java.io.Serializable;
 import java.util.Hashtable;
 import java.util.Vector;
 
+/**
+ * A super class for the otter theorem prover.
+ */
 public class Otter extends Prover implements Serializable {
+    /**
+     * The vector of demodulators for the axioms in the theory.
+     */
     public Vector demodulators = new Vector();
 
+    /**
+     * The standard constructor.
+     */
     public Otter() {
     }
 
-    public String conjectureStatement(Conjecture var1) {
+    /**
+     * Returns a string for the conjecture statement (in Otter's format).
+     */
+    public String conjectureStatement(Conjecture conjecture) {
         String var2 = this.executionParameter("time_limit");
         String var3 = this.executionParameter("memory_limit");
-        String var4 = var1.writeConjecture("otter");
+        String var4 = conjecture.writeConjecture("otter");
         if (var4.equals("")) {
             return "";
         } else {
@@ -45,20 +57,23 @@ public class Otter extends Prover implements Serializable {
         }
     }
 
-    public boolean prove(Conjecture var1, Theory var2) {
-        var1.use_entity_letter = this.use_entity_letter;
+    /**
+     * The method for attempting to prove the given conjecture.
+     */
+    public boolean prove(Conjecture conjecture, Theory theory) {
+        conjecture.use_entity_letter = this.use_entity_letter;
         boolean var3 = false;
-        String var4 = this.conjectureStatement(var1);
+        String var4 = this.conjectureStatement(conjecture);
         boolean var5 = false;
-        if (var1 instanceof NonExists) {
-            NonExists var6 = (NonExists)var1;
+        if (conjecture instanceof NonExists) {
+            NonExists var6 = (NonExists)conjecture;
             if (var6.concept.is_object_of_interest_concept) {
                 var5 = true;
             }
         }
 
         if (var4.trim().equals("") && !var5) {
-            var1.is_trivially_true = true;
+            conjecture.is_trivially_true = true;
             return true;
         } else if (this.use_mathweb) {
             try {
@@ -70,22 +85,22 @@ public class Otter extends Prover implements Serializable {
 
                 try {
                     Hashtable var25 = (Hashtable)var26;
-                    var1.proof_status = (String)var25.get("state");
-                    if (var1.proof_status.equals("proof")) {
-                        var1.proof_status = "proved";
+                    conjecture.proof_status = (String)var25.get("state");
+                    if (conjecture.proof_status.equals("proof")) {
+                        conjecture.proof_status = "proved";
                     }
 
-                    if (var1.proof_status.equals("timeout")) {
-                        var1.proof_status = "time";
+                    if (conjecture.proof_status.equals("timeout")) {
+                        conjecture.proof_status = "time";
                     }
 
-                    if (var1.proof_status.equals("search-exhausted")) {
-                        var1.proof_status = "sos";
+                    if (conjecture.proof_status.equals("search-exhausted")) {
+                        conjecture.proof_status = "sos";
                     }
 
-                    var1.proof_time = new Double((String)var25.get("time"));
+                    conjecture.proof_time = new Double((String)var25.get("time"));
                 } catch (Exception var12) {
-                    var1.proof_status = var26.toString();
+                    conjecture.proof_status = var26.toString();
                     System.out.println(var12);
                 }
             } catch (Exception var13) {
@@ -160,7 +175,7 @@ public class Otter extends Prover implements Serializable {
                             }
 
                             if (var10) {
-                                var1.proof = var1.proof + "\n" + var22;
+                                conjecture.proof = conjecture.proof + "\n" + var22;
                             }
 
                             if (var22.indexOf("PROOF") > -1) {
@@ -170,29 +185,29 @@ public class Otter extends Prover implements Serializable {
 
                             if (var22.indexOf("Length of proof is ") > -1) {
                                 var3 = true;
-                                var1.proof_status = "proved";
-                                var1.proof_length = new Double(var22.substring(19, var22.indexOf(".")));
-                                var1.proof_level = new Double(var22.substring(var22.lastIndexOf(" "), var22.length() - 1));
+                                conjecture.proof_status = "proved";
+                                conjecture.proof_length = new Double(var22.substring(19, var22.indexOf(".")));
+                                conjecture.proof_level = new Double(var22.substring(var22.lastIndexOf(" "), var22.length() - 1));
                             }
 
                             if (var22.indexOf("user CPU time") > -1) {
-                                var1.proof_time = new Double(var22.substring(23, var22.indexOf(" ", 23)));
+                                conjecture.proof_time = new Double(var22.substring(23, var22.indexOf(" ", 23)));
                             }
 
                             if (var22.indexOf("wall-clock time") > -1) {
-                                var1.wc_proof_time = new Double(var22.substring(23, var22.indexOf(" ", 23)));
+                                conjecture.wc_proof_time = new Double(var22.substring(23, var22.indexOf(" ", 23)));
                                 break;
                             }
 
                             if (var22.indexOf("Search stopped because sos empty") > -1) {
                                 var3 = false;
-                                var1.proof_status = "sos";
+                                conjecture.proof_status = "sos";
                                 break;
                             }
 
                             if (var22.indexOf("ERROR") > -1) {
                                 var3 = false;
-                                var1.proof_status = "syntax error";
+                                conjecture.proof_status = "syntax error";
                                 break;
                             }
 
@@ -206,15 +221,18 @@ public class Otter extends Prover implements Serializable {
                 }
             }
 
-            var1.proof_attempts_information.addElement(this.name + "(" + this.setup_name + "): " + Double.toString(var1.proof_time * 1000.0D) + ":" + var1.proof_status);
-            if (var1.proof_status.equals("open")) {
-                var1.proof_status = "time";
+            conjecture.proof_attempts_information.addElement(this.name + "(" + this.setup_name + "): " + Double.toString(conjecture.proof_time * 1000.0D) + ":" + conjecture.proof_status);
+            if (conjecture.proof_status.equals("open")) {
+                conjecture.proof_status = "time";
             }
 
             return var3;
         }
     }
 
+    /**
+     * This uses otter to generate the demodulators for the axioms of the theory.
+     */
     public void getDemodulators() {
         String var1 = "set(knuth_bendix).\n";
         var1 = var1 + "set(print_lists_at_end).\n";
@@ -273,21 +291,27 @@ public class Otter extends Prover implements Serializable {
 
     }
 
-    public boolean proveUsingKnuthBendix(Implicate var1) {
+    /**
+     * This attempts to prove the conjecture using only Knuth-Bendix completion.
+     */
+    public boolean proveUsingKnuthBendix(Implicate implicate) {
         if (this.demodulators.isEmpty()) {
             this.getDemodulators();
         }
 
-        if (var1.premise_concept.specification_strings_from_knuth_bendix.isEmpty()) {
-            this.getSpecificationStringsFromKnuthBendix(var1.premise_concept);
+        if (implicate.premise_concept.specification_strings_from_knuth_bendix.isEmpty()) {
+            this.getSpecificationStringsFromKnuthBendix(implicate.premise_concept);
         }
 
-        String var2 = var1.writeConjecture("otter");
+        String var2 = implicate.writeConjecture("otter");
         String var3 = var2.substring(var2.indexOf("->") + 4, var2.length() - 3);
-        return var1.premise_concept.specification_strings_from_knuth_bendix.contains(var3);
+        return implicate.premise_concept.specification_strings_from_knuth_bendix.contains(var3);
     }
 
-    public void getSpecificationStringsFromKnuthBendix(Concept var1) {
+    /**
+     * This uses otter to get the additional specifications (as strings) using otter's paramodulation rules.
+     */
+    public void getSpecificationStringsFromKnuthBendix(Concept concept) {
         Vector var2 = new Vector();
 
         try {
@@ -305,7 +329,7 @@ public class Otter extends Prover implements Serializable {
 
             var3.write("end_of_list.\n");
             var3.write("list(sos).\n");
-            var3.write(var1.writeDefinition("otter_demod"));
+            var3.write(concept.writeDefinition("otter_demod"));
             var3.write("\nend_of_list.\n");
             var3.close();
             if (this.operating_system.equals("windows")) {
@@ -333,7 +357,7 @@ public class Otter extends Prover implements Serializable {
             ;
         }
 
-        var1.specification_strings_from_knuth_bendix = var2;
+        concept.specification_strings_from_knuth_bendix = var2;
     }
 
     private String removeSpaces(String var1) {

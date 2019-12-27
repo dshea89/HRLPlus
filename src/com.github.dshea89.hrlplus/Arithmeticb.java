@@ -21,9 +21,9 @@ public class Arithmeticb extends ProductionRule implements Serializable {
         return "arithmeticb";
     }
 
-    public Vector allParameters(Vector var1, Theory var2) {
-        Concept var3 = (Concept)var1.elementAt(0);
-        Concept var4 = (Concept)var1.elementAt(1);
+    public Vector allParameters(Vector concept_list, Theory theory) {
+        Concept var3 = (Concept) concept_list.elementAt(0);
+        Concept var4 = (Concept) concept_list.elementAt(1);
         if (var3 == var4 && !this.use_same_concept_twice) {
             return new Vector();
         } else if (var3.arity == 2 && var4.arity == 2) {
@@ -88,10 +88,10 @@ public class Arithmeticb extends ProductionRule implements Serializable {
         }
     }
 
-    public Vector newSpecifications(Vector var1, Vector var2, Theory var3, Vector var4) {
-        String var5 = (String)var2.elementAt(0);
-        Concept var6 = (Concept)var1.elementAt(0);
-        Concept var7 = (Concept)var1.elementAt(1);
+    public Vector newSpecifications(Vector concept_list, Vector parameters, Theory theory, Vector new_functions) {
+        String var5 = (String) parameters.elementAt(0);
+        Concept var6 = (Concept) concept_list.elementAt(0);
+        Concept var7 = (Concept) concept_list.elementAt(1);
         Vector var8 = new Vector();
         Vector var9 = new Vector();
         var8.addElement(var6);
@@ -100,7 +100,7 @@ public class Arithmeticb extends ProductionRule implements Serializable {
         var10.addElement("1");
         var10.addElement("0");
         var10.addElement("2");
-        Vector var11 = this.compose.newSpecifications(var1, var10, var3, new Vector());
+        Vector var11 = this.compose.newSpecifications(concept_list, var10, theory, new Vector());
         Relation var12 = new Relation();
         Vector var13 = new Vector();
         var13.addElement("1");
@@ -112,7 +112,7 @@ public class Arithmeticb extends ProductionRule implements Serializable {
             var12.addDefinition("abc", "@c@=(f" + var6.id + ",f" + var7.id + ")(@a@,@b@)", "ascii");
         }
 
-        var12.name = var5 + var2.toString();
+        var12.name = var5 + parameters.toString();
         Specification var14 = new Specification();
         Vector var15 = new Vector();
         var15.addElement("0");
@@ -133,25 +133,25 @@ public class Arithmeticb extends ProductionRule implements Serializable {
         Vector var18 = new Vector();
         var18.addElement("1");
         var18.addElement("2");
-        Vector var19 = this.exists.newSpecifications(var17, var18, var3, new Vector());
+        Vector var19 = this.exists.newSpecifications(var17, var18, theory, new Vector());
         Specification var20 = (Specification)var19.elementAt(0);
         Vector var21 = new Vector();
         var21.addElement("0");
         Vector var22 = new Vector();
         var22.addElement("1");
         Function var23 = new Function("fa" + Integer.toString(this.number_of_new_functions++), var21, var22);
-        var4.addElement(var23);
+        new_functions.addElement(var23);
         var20.functions.addElement(var23);
         return var19;
     }
 
-    public Datatable transformTable(Vector var1, Vector var2, Vector var3, Vector var4) {
-        Datatable var5 = (Datatable)var1.elementAt(0);
-        Datatable var6 = (Datatable)var1.elementAt(1);
-        Concept var7 = (Concept)var2.elementAt(0);
-        Concept var8 = (Concept)var2.elementAt(1);
+    public Datatable transformTable(Vector old_datatables, Vector old_concepts, Vector parameters, Vector all_concepts) {
+        Datatable var5 = (Datatable) old_datatables.elementAt(0);
+        Datatable var6 = (Datatable) old_datatables.elementAt(1);
+        Concept var7 = (Concept) old_concepts.elementAt(0);
+        Concept var8 = (Concept) old_concepts.elementAt(1);
         Datatable var9 = new Datatable();
-        String var10 = (String)var3.elementAt(0);
+        String var10 = (String) parameters.elementAt(0);
 
         for(int var11 = 0; var11 < var5.size(); ++var11) {
             Row var12 = (Row)var5.elementAt(var11);
@@ -182,7 +182,7 @@ public class Arithmeticb extends ProductionRule implements Serializable {
                     }
 
                     if (var10.equals("d")) {
-                        var22 = (double)this.dirichletConvolution(var7, var8, var11 + 1, var4);
+                        var22 = (double)this.dirichletConvolution(var7, var8, var11 + 1, all_concepts);
                     }
 
                     String var24 = Double.toString(var22);
@@ -234,12 +234,12 @@ public class Arithmeticb extends ProductionRule implements Serializable {
         }
     }
 
-    public Vector transformTypes(Vector var1, Vector var2) {
-        Vector var3 = (Vector)((Concept)var1.elementAt(0)).types.clone();
+    public Vector transformTypes(Vector old_concepts, Vector parameters) {
+        Vector var3 = (Vector)((Concept) old_concepts.elementAt(0)).types.clone();
         return var3;
     }
 
-    public int patternScore(Vector var1, Vector var2, Vector var3, Vector var4) {
+    public int patternScore(Vector concept_list, Vector all_concepts, Vector entity_list, Vector non_entity_list) {
         byte var5 = 0;
         return var5;
     }

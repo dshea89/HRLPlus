@@ -19,8 +19,8 @@ public class Exists extends ProductionRule implements Serializable {
         return "exists";
     }
 
-    public Vector allParameters(Vector var1, Theory var2) {
-        Concept var3 = (Concept)var1.elementAt(0);
+    public Vector allParameters(Vector concept_list, Theory theory) {
+        Concept var3 = (Concept) concept_list.elementAt(0);
         Vector var4 = super.allColumnTuples(var3.arity);
         Vector var5 = new Vector();
 
@@ -34,20 +34,20 @@ public class Exists extends ProductionRule implements Serializable {
         return var5;
     }
 
-    public Vector newSpecifications(Vector var1, Vector var2, Theory var3, Vector var4) {
+    public Vector newSpecifications(Vector concept_list, Vector parameters, Theory theory, Vector new_functions) {
         Vector var5 = new Vector();
-        Concept var6 = (Concept)var1.elementAt(0);
+        Concept var6 = (Concept) concept_list.elementAt(0);
         new Vector();
         Vector var7 = var6.specifications;
         Vector var8 = var6.types;
         Vector var9 = new Vector();
         Specification var10 = new Specification();
         var10.type = "exists";
-        var10.multiple_variable_columns = (Vector)var2.clone();
+        var10.multiple_variable_columns = (Vector) parameters.clone();
 
         int var11;
-        for(var11 = 0; var11 < var2.size(); ++var11) {
-            var10.multiple_types.addElement(var8.elementAt(new Integer((String)var2.elementAt(var11))));
+        for(var11 = 0; var11 < parameters.size(); ++var11) {
+            var10.multiple_types.addElement(var8.elementAt(new Integer((String) parameters.elementAt(var11))));
         }
 
         int var16;
@@ -56,7 +56,7 @@ public class Exists extends ProductionRule implements Serializable {
         int var26;
         for(var11 = 0; var11 < var7.size(); ++var11) {
             Specification var12 = (Specification)var7.elementAt(var11);
-            boolean var13 = var12.involvesColumns(var2);
+            boolean var13 = var12.involvesColumns(parameters);
             if (!var13) {
                 Specification var14 = var12.copy();
                 var14.permutation = new Vector();
@@ -71,8 +71,8 @@ public class Exists extends ProductionRule implements Serializable {
                     var16 = 0;
                     var17 = new Integer((String)var12.permutation.elementAt(var15));
 
-                    for(int var18 = 0; var18 < var2.size(); ++var18) {
-                        var19 = new Integer((String)var2.elementAt(var18));
+                    for(int var18 = 0; var18 < parameters.size(); ++var18) {
+                        var19 = new Integer((String) parameters.elementAt(var18));
                         if (var19 < var17) {
                             ++var16;
                         }
@@ -100,19 +100,19 @@ public class Exists extends ProductionRule implements Serializable {
         int var22;
         for(var22 = 0; var22 < var8.size(); ++var22) {
             String var23 = Integer.toString(var22);
-            if (var9.contains(var23) && !var2.contains(var23)) {
+            if (var9.contains(var23) && !parameters.contains(var23)) {
                 var10.permutation.addElement(Integer.toString(var11));
                 ++var11;
             }
 
-            if (!var2.contains(var23) && !var9.contains(var23)) {
+            if (!parameters.contains(var23) && !var9.contains(var23)) {
                 var10.redundant_columns.addElement(Integer.toString(var11));
                 ++var11;
             }
         }
 
         if (this.merge_previous_exists) {
-            var22 = var6.arity - var2.size() + var10.multiple_variable_columns.size();
+            var22 = var6.arity - parameters.size() + var10.multiple_variable_columns.size();
             Hashtable var24 = new Hashtable();
 
             for(var26 = 0; var26 < var10.previous_specifications.size(); ++var26) {
@@ -172,41 +172,41 @@ public class Exists extends ProductionRule implements Serializable {
         for(var22 = 0; var22 < var6.functions.size(); ++var22) {
             Function var25 = (Function)var6.functions.elementAt(var22);
             Function var29 = var25.copy();
-            if (!var29.containsAColumnFrom(var2)) {
-                var29.removeHoles(var2);
-                var4.addElement(var29);
+            if (!var29.containsAColumnFrom(parameters)) {
+                var29.removeHoles(parameters);
+                new_functions.addElement(var29);
             }
         }
 
         return var5;
     }
 
-    public Datatable transformTable(Vector var1, Vector var2, Vector var3, Vector var4) {
-        Datatable var5 = (Datatable)var1.elementAt(0);
-        return super.removeColumns(var5, var3);
+    public Datatable transformTable(Vector old_datatables, Vector old_concepts, Vector parameters, Vector all_concepts) {
+        Datatable var5 = (Datatable) old_datatables.elementAt(0);
+        return super.removeColumns(var5, parameters);
     }
 
-    public Vector transformTypes(Vector var1, Vector var2) {
-        Vector var3 = (Vector)((Concept)var1.elementAt(0)).types.clone();
-        return super.removeColumns(var3, var2);
+    public Vector transformTypes(Vector old_concepts, Vector parameters) {
+        Vector var3 = (Vector)((Concept) old_concepts.elementAt(0)).types.clone();
+        return super.removeColumns(var3, parameters);
     }
 
-    public int patternScore(Vector var1, Vector var2, Vector var3, Vector var4) {
-        Concept var5 = (Concept)var1.elementAt(0);
+    public int patternScore(Vector concept_list, Vector all_concepts, Vector entity_list, Vector non_entity_list) {
+        Concept var5 = (Concept) concept_list.elementAt(0);
         int var6 = 0;
         boolean var7 = false;
         boolean var8 = false;
-        String var9 = (String)var3.elementAt(0);
-        Row var10 = var5.calculateRow(var2, var9);
+        String var9 = (String) entity_list.elementAt(0);
+        Row var10 = var5.calculateRow(all_concepts, var9);
         if (var10.tuples.size() == 0) {
             var7 = true;
         } else {
             var8 = true;
         }
 
-        for(; (var8 || var7) && var6 < var3.size(); ++var6) {
-            var9 = (String)var3.elementAt(var6);
-            var10 = var5.calculateRow(var2, var9);
+        for(; (var8 || var7) && var6 < entity_list.size(); ++var6) {
+            var9 = (String) entity_list.elementAt(var6);
+            var10 = var5.calculateRow(all_concepts, var9);
             if (var10.tuples.size() == 0) {
                 var8 = false;
             } else {
@@ -217,11 +217,11 @@ public class Exists extends ProductionRule implements Serializable {
         if (!var8 && !var7) {
             return 0;
         } else {
-            int var11 = var4.size();
+            int var11 = non_entity_list.size();
 
-            for(var6 = 0; var6 < var4.size(); ++var6) {
-                var9 = (String)var4.elementAt(var6);
-                var10 = var5.calculateRow(var2, var9);
+            for(var6 = 0; var6 < non_entity_list.size(); ++var6) {
+                var9 = (String) non_entity_list.elementAt(var6);
+                var10 = var5.calculateRow(all_concepts, var9);
                 if (var10.tuples.size() > 0 && var8) {
                     --var11;
                 }

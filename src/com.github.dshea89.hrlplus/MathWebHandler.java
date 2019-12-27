@@ -9,18 +9,31 @@ import java.net.Socket;
 import java.util.Hashtable;
 import java.util.Vector;
 
+/**
+ * A Java class for the access of MathWeb services.
+ */
 public class MathWebHandler implements Serializable {
+    /**
+     * Whether or not the results from all the Mathweb provers is required (if not, just the result from the first is supplied).
+     */
     public boolean require_all = false;
+
     private InputStream in;
     private OutputStream out;
     private Socket mathweb_socket;
 
+    /**
+     * The simple constructor
+     */
     public MathWebHandler() {
     }
 
-    public MathWebHandler(InetAddress var1, int var2) {
+    /**
+     * Constructor requiring an InetAddress and a port number
+     */
+    public MathWebHandler(InetAddress host, int mathweb_port) {
         try {
-            this.mathweb_socket = new Socket(var1, var2);
+            this.mathweb_socket = new Socket(host, mathweb_port);
             this.in = this.mathweb_socket.getInputStream();
             this.out = this.mathweb_socket.getOutputStream();
             String var3 = null;
@@ -38,8 +51,8 @@ public class MathWebHandler implements Serializable {
         return this.in;
     }
 
-    public String getService(String var1, String var2) {
-        String var3 = "enter('" + var1 + "'" + this.getOptionalArgString("mode", var2) + ")";
+    public String getService(String serviceName, String mode) {
+        String var3 = "enter('" + serviceName + "'" + this.getOptionalArgString("mode", mode) + ")";
         Object var4 = this.sendMessage(var3, true);
         return var4 instanceof String ? (String)var4 : null;
     }
@@ -48,10 +61,10 @@ public class MathWebHandler implements Serializable {
         return var2 == null ? "" : " " + var1 + ": " + var2;
     }
 
-    public Object applyMethod(String var1, String var2, String var3, Integer var4) {
-        String var5 = "applyMethod('" + var1 + "' " + var2 + this.getOptionalArgString("id", var3) + this.getOptionalArgString("timeout", var4) + ")";
+    public Object applyMethod(String service, String method, String id, Integer timeout) {
+        String var5 = "applyMethod('" + service + "' " + method + this.getOptionalArgString("id", id) + this.getOptionalArgString("timeout", timeout) + ")";
         boolean var6 = true;
-        if (var3 != null) {
+        if (id != null) {
             var6 = false;
         }
 
@@ -179,18 +192,18 @@ public class MathWebHandler implements Serializable {
         return var4;
     }
 
-    public String leaveService(String var1) {
-        String var2 = "leave('" + var1 + "')";
+    public String leaveService(String service) {
+        String var2 = "leave('" + service + "')";
         Object var3 = this.sendMessage(var2, true);
         return var3 instanceof String ? (String)var3 : null;
     }
 
-    public static void main(String[] var0) {
+    public static void main(String[] args) {
         try {
-            if (var0 != null && var0.length == 4 && "--mathweb_service".equals(var0[0])) {
-                String var2 = var0[1];
-                int var3 = Integer.parseInt(var0[2]);
-                int var4 = Integer.parseInt(var0[3]);
+            if (args != null && args.length == 4 && "--mathweb_service".equals(args[0])) {
+                String var2 = args[1];
+                int var3 = Integer.parseInt(args[2]);
+                int var4 = Integer.parseInt(args[3]);
                 InetAddress var6 = InetAddress.getByName(var2);
                 new Socket(var6, var3);
                 MathWebHandler var5 = new MathWebHandler(var6, var4);

@@ -3,12 +3,21 @@ package com.github.dshea89.hrlplus;
 import java.io.Serializable;
 import java.util.Vector;
 
+/**
+ * A class representing the data for a given concept. It is a vector of rows.
+ */
 public class Datatable extends Vector implements Serializable {
+    /**
+     * The number of tuples in the datatable.
+     */
     public int number_of_tuples = 0;
 
     public Datatable() {
     }
 
+    /**
+     * Calculates the number of tuples
+     */
     public void setNumberOfTuples() {
         for(int var1 = 0; var1 < this.size(); ++var1) {
             Row var2 = (Row)this.elementAt(var1);
@@ -17,6 +26,9 @@ public class Datatable extends Vector implements Serializable {
 
     }
 
+    /**
+     * Writes the table neatly.
+     */
     public String toTable() {
         String var1 = new String();
 
@@ -30,6 +42,9 @@ public class Datatable extends Vector implements Serializable {
         return var1;
     }
 
+    /**
+     * Sorts the datatable using a lexicographic ordering of the entities which each row represents.
+     */
     public void sort() {
         this.quickSort(0, this.size() - 1);
     }
@@ -95,6 +110,9 @@ public class Datatable extends Vector implements Serializable {
         this.setElementAt(var3, var2);
     }
 
+    /**
+     * Returns a clone of the datatable.
+     */
     public Datatable copy() {
         Datatable var1 = new Datatable();
 
@@ -114,33 +132,47 @@ public class Datatable extends Vector implements Serializable {
         return var1;
     }
 
-    public Row rowWithEntity(String var1) {
+    /**
+     * Finds the row which corresponds to the given entity.
+     */
+    public Row rowWithEntity(String entity) {
         int var2;
-        for(var2 = 0; var2 < this.size() && !((Row)this.elementAt(var2)).entity.equals(var1); ++var2) {
+        for(var2 = 0; var2 < this.size() && !((Row)this.elementAt(var2)).entity.equals(entity); ++var2) {
             ;
         }
 
-        return var2 < this.size() ? (Row)this.elementAt(var2) : new Row(var1, new Tuples());
+        return var2 < this.size() ? (Row)this.elementAt(var2) : new Row(entity, new Tuples());
     }
 
-    private Row rowWithEntityNoTuples(String var1) {
+    /**
+     * Finds the row which corresponds to the given entity. Does not return a row with the entity if the count is less
+     * than the size of the data table.
+     */
+    private Row rowWithEntityNoTuples(String entity) {
         int var2;
-        for(var2 = 0; var2 < this.size() && !((Row)this.elementAt(var2)).entity.equals(var1); ++var2) {
+        for(var2 = 0; var2 < this.size() && !((Row)this.elementAt(var2)).entity.equals(entity); ++var2) {
             ;
         }
 
         return var2 < this.size() ? (Row)this.elementAt(var2) : new Row("", new Tuples());
     }
 
-    public boolean hasEntity(String var1) {
+    /**
+     * Checks to see if the given entity is in the datatable.
+     */
+    public boolean hasEntity(String entity) {
         int var2;
-        for(var2 = 0; var2 < this.size() && !((Row)this.elementAt(var2)).entity.equals(var1); ++var2) {
+        for(var2 = 0; var2 < this.size() && !((Row)this.elementAt(var2)).entity.equals(entity); ++var2) {
             ;
         }
 
         return var2 < this.size();
     }
 
+    /**
+     * Writes the datatable not as a vector of rows, but as a vector of tuples each starting with the entity of the row
+     * the tuple was taken from.
+     */
     public Vector toFlatTable() {
         Vector var1 = new Vector();
 
@@ -162,6 +194,9 @@ public class Datatable extends Vector implements Serializable {
         return var1;
     }
 
+    /**
+     * Writes a flat table back as a vector of rows.
+     */
     public Datatable fromFlatTable() {
         Datatable var1 = new Datatable();
 
@@ -180,25 +215,28 @@ public class Datatable extends Vector implements Serializable {
         return var1;
     }
 
-    public boolean isIdenticalTo(Theory var1, Datatable var2) {
-        if (!var1.pseudo_entities.isEmpty()) {
+    /**
+     * Checks whether this datatable is identical to the other given datatable.
+     */
+    public boolean isIdenticalTo(Theory theory, Datatable other_table) {
+        if (!theory.pseudo_entities.isEmpty()) {
             ;
         }
 
         boolean var3 = true;
         int var4 = 0;
-        if (var1.pseudo_entities.isEmpty() && var2.size() != this.size()) {
+        if (theory.pseudo_entities.isEmpty() && other_table.size() != this.size()) {
             var3 = false;
         }
 
-        if (!var1.pseudo_entities.isEmpty() && var2.size() != this.size() && (var2.size() > this.size() + var1.pseudo_entities.size() || this.size() > var2.size() + var1.pseudo_entities.size())) {
+        if (!theory.pseudo_entities.isEmpty() && other_table.size() != this.size() && (other_table.size() > this.size() + theory.pseudo_entities.size() || this.size() > other_table.size() + theory.pseudo_entities.size())) {
             var3 = false;
         }
 
         for(; var4 < this.size() && var3; ++var4) {
             Row var5 = (Row)this.elementAt(var4);
-            Row var6 = (Row)var2.elementAt(var4);
-            if (!var1.pseudo_entities.contains(var5.entity.toString()) && !var1.pseudo_entities.contains(var6.entity.toString())) {
+            Row var6 = (Row)other_table.elementAt(var4);
+            if (!theory.pseudo_entities.contains(var5.entity.toString()) && !theory.pseudo_entities.contains(var6.entity.toString())) {
                 if (!var5.entity.equals(var6.entity)) {
                     var3 = false;
                     break;
@@ -215,6 +253,9 @@ public class Datatable extends Vector implements Serializable {
         return var3;
     }
 
+    /**
+     * Returns a string representation of the first tuple for each row
+     */
     public String firstTuples() {
         String var1 = "";
 
@@ -230,29 +271,38 @@ public class Datatable extends Vector implements Serializable {
         return var1;
     }
 
-    public void addRow(String var1) {
+    /**
+     * Adds a row to the datatable
+     */
+    public void addRow(String entity) {
         Tuples var2 = new Tuples();
         var2.addElement(new Vector());
-        Row var3 = new Row(var1, var2);
+        Row var3 = new Row(entity, var2);
         this.addElement(var3);
     }
 
-    public void addEmptyRow(String var1) {
+    /**
+     * Adds an empty row to the datatable
+     */
+    public void addEmptyRow(String entity) {
         Tuples var2 = new Tuples();
-        Row var3 = new Row(var1, var2);
+        Row var3 = new Row(entity, var2);
         this.addElement(var3);
     }
 
-    public void addRow(String var1, String var2) {
+    /**
+     * Adds a row to the datatable
+     */
+    public void addRow(String entity, String elements) {
         String var3 = "";
         Tuples var4 = new Tuples();
-        if (!var2.equals("")) {
-            for(int var5 = 0; var5 < var2.length(); ++var5) {
-                if (!var2.substring(var5, var5 + 1).equals(",") && var5 != var2.length() - 1) {
-                    var3 = var3 + var2.substring(var5, var5 + 1);
+        if (!elements.equals("")) {
+            for(int var5 = 0; var5 < elements.length(); ++var5) {
+                if (!elements.substring(var5, var5 + 1).equals(",") && var5 != elements.length() - 1) {
+                    var3 = var3 + elements.substring(var5, var5 + 1);
                 } else {
-                    if (var5 == var2.length() - 1) {
-                        var3 = var3 + var2.substring(var5, var5 + 1);
+                    if (var5 == elements.length() - 1) {
+                        var3 = var3 + elements.substring(var5, var5 + 1);
                     }
 
                     Vector var6 = new Vector();
@@ -263,16 +313,19 @@ public class Datatable extends Vector implements Serializable {
             }
         }
 
-        Row var7 = new Row(var1, var4);
+        Row var7 = new Row(entity, var4);
         this.addElement(var7);
     }
 
-    public void addTwoRow(String var1, String var2, String var3) {
+    /**
+     * Adds a row to the datatable
+     */
+    public void addTwoRow(String entity, String element1, String element2) {
         new Tuples();
         Vector var5 = new Vector();
-        var5.addElement(var2);
-        var5.addElement(var3);
-        Row var6 = this.rowWithEntity(var1);
+        var5.addElement(element1);
+        var5.addElement(element2);
+        Row var6 = this.rowWithEntity(entity);
         var6.tuples.addElement(var5);
         if (var6.tuples.size() == 1) {
             this.addElement(var6);
@@ -280,9 +333,12 @@ public class Datatable extends Vector implements Serializable {
 
     }
 
-    public void addTuple(Vector var1) {
-        String var2 = (String)var1.elementAt(0);
-        Vector var3 = (Vector)var1.clone();
+    /**
+     * Adds a row to the datatable
+     */
+    public void addTuple(Vector tuple) {
+        String var2 = (String)tuple.elementAt(0);
+        Vector var3 = (Vector)tuple.clone();
         var3.removeElementAt(0);
         Row var4 = this.rowWithEntity(var2);
         var4.tuples.addElement(var3);
@@ -290,6 +346,9 @@ public class Datatable extends Vector implements Serializable {
         var4.tuples.sort();
     }
 
+    /**
+     * Checks whether the datatable has all empty rows.
+     */
     public boolean allEmptyTuples(Theory var1) {
         int var2 = 0;
 
@@ -304,6 +363,9 @@ public class Datatable extends Vector implements Serializable {
         return var3;
     }
 
+    /**
+     * This returns the number of ground objects (inside all the tuples inside the rows) in the datatable.
+     */
     public double fullSize() {
         double var1 = 0.0D;
 
@@ -318,6 +380,9 @@ public class Datatable extends Vector implements Serializable {
         return var1;
     }
 
+    /**
+     * This returns the proportion of entities in the datatable which have something in their row.
+     */
     public double applicability() {
         if (this.size() == 0) {
             return 0.0D;
@@ -335,7 +400,10 @@ public class Datatable extends Vector implements Serializable {
         }
     }
 
-    public double applicability(Vector var1) {
+    /**
+     * This returns the proportion of entities in the datatable which have something in their row.
+     */
+    public double applicability(Vector entities) {
         if (this.size() == 0) {
             return 0.0D;
         } else {
@@ -343,12 +411,12 @@ public class Datatable extends Vector implements Serializable {
 
             for(int var4 = 0; var4 < this.size(); ++var4) {
                 Row var5 = (Row)this.elementAt(var4);
-                if (!var5.tuples.isEmpty() && var1.contains(var5.entity)) {
+                if (!var5.tuples.isEmpty() && entities.contains(var5.entity)) {
                     ++var2;
                 }
             }
 
-            return var2 / (double)var1.size();
+            return var2 / (double)entities.size();
         }
     }
 
@@ -369,11 +437,14 @@ public class Datatable extends Vector implements Serializable {
         }
     }
 
-    public double coverage(Categorisation var1) {
+    /**
+     * This returns the proportion of categories containing an entity which has a non-empty row.
+     */
+    public double coverage(Categorisation cat) {
         double var2 = 0.0D;
 
-        for(int var4 = 0; var4 < var1.size(); ++var4) {
-            Vector var5 = (Vector)var1.elementAt(var4);
+        for(int var4 = 0; var4 < cat.size(); ++var4) {
+            Vector var5 = (Vector)cat.elementAt(var4);
             boolean var6 = false;
 
             for(int var7 = 0; !var6 && var7 < var5.size(); ++var7) {
@@ -386,9 +457,12 @@ public class Datatable extends Vector implements Serializable {
             }
         }
 
-        return var2 / (double)var1.size();
+        return var2 / (double)cat.size();
     }
 
+    /**
+     * Returns the entities in the rows, as they appear in the table.
+     */
     public Vector getEntities() {
         Vector var1 = new Vector();
 
@@ -399,13 +473,16 @@ public class Datatable extends Vector implements Serializable {
         return var1;
     }
 
-    public double percentageMatchWith(Datatable var1) {
+    /**
+     * Returns the percentage number of tuples of this table which are also tuples of the given table.
+     */
+    public double percentageMatchWith(Datatable other_table) {
         double var2 = 0.0D;
         double var4 = 0.0D;
 
         for(int var6 = 0; var6 < this.size(); ++var6) {
             Row var7 = (Row)this.elementAt(var6);
-            Row var8 = (Row)var1.elementAt(var6);
+            Row var8 = (Row)other_table.elementAt(var6);
             String var9 = var8.tuples.toString();
             if (var9.equals("[]")) {
                 ++var4;
@@ -437,21 +514,25 @@ public class Datatable extends Vector implements Serializable {
         return var13;
     }
 
-    public double quickPercentageMatchWith(Theory var1, Datatable var2, Vector var3) {
+    /**
+     * Does a quick comparison (based on entities, rather than tuples) of the number of matches this table has with the given one.
+     * Altered by alisonp on 12/4 to record counter-examples
+     */
+    public double quickPercentageMatchWith(Theory theory, Datatable other_table, Vector counterexamples) {
         double var4 = (double)this.size();
 
         for(int var6 = 0; var6 < this.size(); ++var6) {
             Row var7 = (Row)this.elementAt(var6);
-            Row var8 = (Row)var2.elementAt(var6);
-            if (!var1.pseudo_entities.contains(var7.entity)) {
+            Row var8 = (Row)other_table.elementAt(var6);
+            if (!theory.pseudo_entities.contains(var7.entity)) {
                 if (var8.tuples.isEmpty() && !var7.tuples.isEmpty()) {
                     --var4;
-                    var3.addElement(new Entity(var7.entity));
+                    counterexamples.addElement(new Entity(var7.entity));
                 }
 
                 if (!var8.tuples.isEmpty() && var7.tuples.isEmpty()) {
                     --var4;
-                    var3.addElement(new Entity(var7.entity));
+                    counterexamples.addElement(new Entity(var7.entity));
                 }
 
                 if (!var8.tuples.isEmpty() && !var7.tuples.isEmpty()) {
@@ -459,7 +540,7 @@ public class Datatable extends Vector implements Serializable {
                     String var10 = var8.tuples.toString();
                     if (!var9.equals(var10)) {
                         --var4;
-                        var3.addElement(new Entity(var7.entity));
+                        counterexamples.addElement(new Entity(var7.entity));
                     }
                 }
             }
@@ -469,17 +550,23 @@ public class Datatable extends Vector implements Serializable {
         return var11;
     }
 
-    public void removeRow(String var1) {
+    /**
+     * Removes the rows with the given entities
+     */
+    public void removeRow(String entity) {
         for(int var2 = 0; var2 < this.size(); ++var2) {
             Row var3 = (Row)this.elementAt(var2);
-            if (var3.entity.equals(var1)) {
+            if (var3.entity.equals(entity)) {
                 this.removeElementAt(var2);
                 --var2;
             }
         }
-
     }
 
+    /**
+     * This function uses the trimToSize() method from Vector to trim both itself and the tuples in the rows.
+     * This should reduce the size of the memory required to store the datatable.
+     */
     public void trimRowsToSize() {
         this.trimToSize();
 
@@ -490,17 +577,20 @@ public class Datatable extends Vector implements Serializable {
 
     }
 
-    public boolean sameExampleForEveryEntity(Theory var1, String var2, AgentWindow var3) {
-        var3.writeToFrontEnd("started sameExampleForEveryEntity - testing to see if this entity: " + var2);
-        var3.writeToFrontEnd("is a culprit entity for this datatable");
-        var3.writeToFrontEnd(this.toTable());
+    /**
+     * Test to see whether this entity is a culprit entity for this datatable.
+     */
+    public boolean sameExampleForEveryEntity(Theory theory, String entity, AgentWindow window) {
+        window.writeToFrontEnd("started sameExampleForEveryEntity - testing to see if this entity: " + entity);
+        window.writeToFrontEnd("is a culprit entity for this datatable");
+        window.writeToFrontEnd(this.toTable());
         int var4 = 0;
 
         boolean var5;
         for(var5 = true; var5 && var4 < this.size(); ++var4) {
-            var3.writeToFrontEnd("i is " + var4);
+            window.writeToFrontEnd("i is " + var4);
             Row var6 = (Row)this.elementAt(var4);
-            if (var6.tuples.size() != 1 && !var1.pseudo_entities.contains(var6.entity.toString())) {
+            if (var6.tuples.size() != 1 && !theory.pseudo_entities.contains(var6.entity.toString())) {
                 var5 = false;
             }
 
@@ -511,9 +601,9 @@ public class Datatable extends Vector implements Serializable {
             if (var6.tuples.size() <= 1) {
                 Vector var7 = (Vector)var6.tuples.elementAt(0);
                 String var8 = (String)var7.elementAt(0);
-                var3.writeToFrontEnd("vector_in_tuple is " + var7);
-                var3.writeToFrontEnd("entity_on_row is " + var8);
-                if (!var8.equals(var2) && !var1.pseudo_entities.contains(var6.entity.toString())) {
+                window.writeToFrontEnd("vector_in_tuple is " + var7);
+                window.writeToFrontEnd("entity_on_row is " + var8);
+                if (!var8.equals(entity) && !theory.pseudo_entities.contains(var6.entity.toString())) {
                     var5 = false;
                 }
             }

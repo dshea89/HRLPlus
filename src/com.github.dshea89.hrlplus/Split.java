@@ -3,25 +3,64 @@ package com.github.dshea89.hrlplus;
 import java.io.Serializable;
 import java.util.Vector;
 
+/**
+ * A class representing the split production rule. This production rule takes an old datatable as input and a set of
+ * parameterisations. The parameterisation is a pair of vectors where the first dictates which columns are looked at and
+ * the second dictates which values are to be looked for. Then, all rows where the values specified are in the columns
+ * specified are extracted into the new table. Then the columns which have been specified are removed as we know what is
+ * in them. We call the columns to be looked at the split columns and the values to be looked for the split values.
+ */
 public class Split extends ProductionRule implements Serializable {
+    /**
+     * Which concepts have had their split values extracted.
+     */
     public Vector extracted_split_values_from = new Vector();
+
+    /**
+     * Which types are OK for empirical splitting.
+     */
     public Vector empirical_allowed_types = new Vector();
+
+    /**
+     * The number of values which can be instantiated in one go.
+     */
     public int tuple_size_limit = 1;
+
+    /**
+     * As allowed values but with the column types taken into account.
+     */
     public Vector fixed_allowed_values = new Vector();
+
+    /**
+     * The user can specify which split values can be looked for (usually restricted to small numbers like 1, 2 and 3.
+     */
     public Vector allowed_values = new Vector();
+
+    /**
+     * A pair of which should be returned along with the parameterisations for that particular concept. (i.e. for learning purposes).
+     */
     public Vector special_parameterisations = new Vector();
 
     public Split() {
     }
 
+    /**
+     * Returns false as this is a unary production rule.
+     */
     public boolean isBinary() {
         return false;
     }
 
+    /**
+     * Whether or not this produces cumulative concepts.
+     */
     public boolean isCumulative() {
         return false;
     }
 
+    /**
+     * Returns "split" as that is the name of this production rule.
+     */
     public String getName() {
         return "split";
     }
@@ -153,8 +192,15 @@ public class Split extends ProductionRule implements Serializable {
         return var2;
     }
 
-    public Vector allParameters(Vector var1, Theory var2) {
-        Concept var3 = (Concept)var1.elementAt(0);
+    /**
+     * Given a vector of one concept, this will return all the parameterisations for this concept.
+     * If the find_empirically flag is true, then it will return all tuples of columns and values (found empirically)
+     * in those columns for the old concept. For example, it will not generate parameters which look for integers with
+     * 7 divisors if there are none in the old table. If the flag is is negative, then the parameters are constructed
+     * from the allowed values only.
+     */
+    public Vector allParameters(Vector old_concepts, Theory theory) {
+        Concept var3 = (Concept) old_concepts.elementAt(0);
         Vector var4 = var3.types;
         if (!this.extracted_split_values_from.contains(var3.id)) {
             this.extracted_split_values_from.addElement(var3.id);
@@ -206,15 +252,21 @@ public class Split extends ProductionRule implements Serializable {
         return var14;
     }
 
-    public Vector newSpecifications(Vector var1, Vector var2, Theory var3, Vector var4) {
+    /**
+     * This produces the new specifications for concepts output using the size production rule. To do this,
+     * it first finds which old specifications do not involve any of the split variables, and these specifications
+     * are added. Note that it may be necessary to alter the permutations for these. Then, a single new specification
+     * is added which specifies how the variables should be fixed.
+     */
+    public Vector newSpecifications(Vector input_concepts, Vector input_parameters, Theory theory, Vector new_functions) {
         Vector var5 = new Vector();
-        Vector var6 = ((Concept)var1.elementAt(0)).specifications;
-        Concept var7 = (Concept)var1.elementAt(0);
+        Vector var6 = ((Concept) input_concepts.elementAt(0)).specifications;
+        Concept var7 = (Concept) input_concepts.elementAt(0);
         Vector var8 = var7.types;
         Vector var9 = new Vector();
         Vector var10 = new Vector();
-        Vector var11 = (Vector)var2.elementAt(0);
-        Vector var12 = (Vector)var2.elementAt(1);
+        Vector var11 = (Vector) input_parameters.elementAt(0);
+        Vector var12 = (Vector) input_parameters.elementAt(1);
         Specification var14;
         Vector var39;
         if (var11.size() == 1 && var11.elementAt(0).equals("0")) {
@@ -415,7 +467,7 @@ public class Split extends ProductionRule implements Serializable {
                         }
 
                         if (!var30.contains(var52)) {
-                            var4.addElement(var22);
+                            new_functions.addElement(var22);
                             var30.addElement(var52);
                         }
                     }
@@ -501,7 +553,7 @@ public class Split extends ProductionRule implements Serializable {
 
                 var42 = var44.writeFunction();
                 if (!var30.contains(var42)) {
-                    var4.addElement(var44);
+                    new_functions.addElement(var44);
                     var30.addElement(var42);
                 }
             }
@@ -510,10 +562,15 @@ public class Split extends ProductionRule implements Serializable {
         }
     }
 
-    public Datatable transformTable(Vector var1, Vector var2, Vector var3, Vector var4) {
-        Vector var5 = (Vector)var3.elementAt(0);
-        Vector var6 = (Vector)var3.elementAt(1);
-        Datatable var7 = (Datatable)var1.elementAt(0);
+    /**
+     * This produces the new datatable from the given datatable, using the parameters specified. This production rule
+     * extracts rows where the split values are found in the split columns into the new table. Then the split columns
+     * are removed from each new row.
+     */
+    public Datatable transformTable(Vector input_datatables, Vector input_concepts, Vector parameters, Vector all_concepts) {
+        Vector var5 = (Vector) parameters.elementAt(0);
+        Vector var6 = (Vector) parameters.elementAt(1);
+        Datatable var7 = (Datatable) input_datatables.elementAt(0);
         Datatable var8 = new Datatable();
         int var10;
         Row var18;
@@ -565,10 +622,13 @@ public class Split extends ProductionRule implements Serializable {
         }
     }
 
-    public Vector transformTypes(Vector var1, Vector var2) {
-        Concept var3 = (Concept)var1.elementAt(0);
-        Vector var4 = (Vector)var2.elementAt(0);
-        Vector var5 = (Vector)var2.elementAt(1);
+    /**
+     * Returns the types of the objects in the columns of the new datatable.
+     */
+    public Vector transformTypes(Vector old_concepts, Vector parameters) {
+        Concept var3 = (Concept) old_concepts.elementAt(0);
+        Vector var4 = (Vector) parameters.elementAt(0);
+        Vector var5 = (Vector) parameters.elementAt(1);
         if (var4.size() == 1 && var4.elementAt(0).equals("0")) {
             return var3.types;
         } else {
@@ -577,30 +637,44 @@ public class Split extends ProductionRule implements Serializable {
         }
     }
 
-    public int patternScore(Vector var1, Vector var2, Vector var3, Vector var4) {
-        return this.patternScore2(var1, var2, var4, var3) == var3.size() ? var4.size() : this.patternScore2(var1, var2, var3, var4);
+    /**
+     * This assigns a score to a concept depending on whether the production rule can see any likelihood of a pattern.
+     * The pattern for the split rule is that either (i) a column contains the same values for all tuples for all chosen
+     * entities or (ii) a column contains the same values for at least one tuples for all chosen entities. The algorithm
+     * for computing the score is as follows: Let max_score = 0 For each possible choice of columns Build the entire set
+     * of tuples from the non-entity-list Build an initial set of possible tuples using the tuples from the first entity
+     * in the list to learn (remembering to cut them down) note - don't allow a possible tuple into the set if it is in
+     * the non-entity-list For each entity in the list to learn except the first remove entity tuple from the possible
+     * set if it is not found in the tuples for the entity stop if the list becomes empty Next For each possible tuple
+     * left in the set Make the score = number of entities in non-entity-list For each entity in the non-entity list if
+     * the possible tuple is in the tuples for the non-entity then score=score-1 Next if score = number of entities in
+     * the non-entity-list then return score immediately if score > max_score then let max_score = score Next Next
+     * return max_score
+     */
+    public int patternScore(Vector concept_list, Vector all_concepts, Vector entity_list, Vector non_entity_list) {
+        return this.patternScore2(concept_list, all_concepts, non_entity_list, entity_list) == entity_list.size() ? non_entity_list.size() : this.patternScore2(concept_list, all_concepts, entity_list, non_entity_list);
     }
 
-    private int patternScore2(Vector var1, Vector var2, Vector var3, Vector var4) {
-        if (var3.size() == 0) {
+    private int patternScore2(Vector concept_list, Vector all_concepts, Vector entity_list, Vector non_entity_list) {
+        if (entity_list.size() == 0) {
             return 0;
         } else {
-            Concept var5 = (Concept)var1.elementAt(0);
+            Concept var5 = (Concept)concept_list.elementAt(0);
             if (var5.arity == 1) {
                 return 0;
             } else {
                 int var6 = 0;
                 Vector var7 = super.allColumnTuples(var5.arity);
 
-                for(int var8 = 0; var8 < var7.size() && var6 != var4.size(); ++var8) {
+                for(int var8 = 0; var8 < var7.size() && var6 != non_entity_list.size(); ++var8) {
                     Vector var9 = (Vector)var7.elementAt(var8);
                     Vector var10 = new Vector();
 
                     Vector var16;
                     String var18;
-                    for(int var11 = 0; var11 < var4.size(); ++var11) {
-                        String var12 = (String)var4.elementAt(var11);
-                        Row var13 = var5.calculateRow(var2, var12);
+                    for(int var11 = 0; var11 < non_entity_list.size(); ++var11) {
+                        String var12 = (String)non_entity_list.elementAt(var11);
+                        Row var13 = var5.calculateRow(all_concepts, var12);
                         Tuples var14 = var13.tuples;
 
                         for(int var15 = 0; var15 < var14.size(); ++var15) {
@@ -616,8 +690,8 @@ public class Split extends ProductionRule implements Serializable {
                         }
                     }
 
-                    String var26 = (String)var3.elementAt(0);
-                    Row var27 = var5.calculateRow(var2, var26);
+                    String var26 = (String)entity_list.elementAt(0);
+                    Row var27 = var5.calculateRow(all_concepts, var26);
                     Tuples var28 = var27.tuples;
                     Vector var29 = new Vector();
                     Vector var30 = new Vector();
@@ -639,10 +713,10 @@ public class Split extends ProductionRule implements Serializable {
                         }
                     }
 
-                    for(var31 = 1; var31 < var3.size() && !var29.isEmpty(); ++var31) {
+                    for(var31 = 1; var31 < entity_list.size() && !var29.isEmpty(); ++var31) {
                         var32 = new Vector();
-                        String var33 = (String)var3.elementAt(var31);
-                        Row var35 = var5.calculateRow(var2, var33);
+                        String var33 = (String)entity_list.elementAt(var31);
+                        Row var35 = var5.calculateRow(all_concepts, var33);
                         Tuples var21 = var35.tuples;
 
                         int var22;
@@ -671,7 +745,7 @@ public class Split extends ProductionRule implements Serializable {
                     }
 
                     if (!var29.isEmpty()) {
-                        var6 = var4.size();
+                        var6 = non_entity_list.size();
                         var18 = (String)var29.elementAt(0);
                         int var34 = var16.indexOf(var18);
                         Vector var36 = (Vector)var30.elementAt(var34);
