@@ -6,6 +6,8 @@ The original code for this project appears to have been lost to the sands of tim
 
 ## Background
 
+HRLPlus, and HRL itself, are built on top of HR. For more details about HR, see `HR_Background.md` in this repository.
+
 **HRL** was developed for the following PhD thesis:
 
 Pease, Alison. (2007). A Computational Model of Lakatos-style Reasoning.

@@ -3,6 +3,9 @@ package com.github.dshea89.hrlplus;
 import java.io.Serializable;
 import java.util.Vector;
 
+/**
+ * This takes two old data-tables which can used to define functions, and computes the data-table representing their composition.
+ */
 public class Compose extends ProductionRule implements Serializable {
     public boolean dont_swap = false;
     public boolean allow_repeated_specifications = false;

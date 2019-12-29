@@ -3,6 +3,10 @@ package com.github.dshea89.hrlplus;
 import java.io.Serializable;
 import java.util.Vector;
 
+/**
+ * This produces the compliment of a data-table, ie. those rows which could possibly be in the table,
+ * but which aren't there.
+ */
 public class Negate extends ProductionRule implements Serializable {
     public Negate() {
     }

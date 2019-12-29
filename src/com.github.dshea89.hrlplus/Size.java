@@ -4,6 +4,9 @@ import java.io.Serializable;
 import java.util.Enumeration;
 import java.util.Vector;
 
+/**
+ * This counts the number of occurrences of each entry in a column.
+ */
 public class Size extends ProductionRule implements Serializable {
     public Relation integer_relation = null;
     public int number_of_new_functions = 0;

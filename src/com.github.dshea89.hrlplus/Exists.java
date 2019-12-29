@@ -4,6 +4,9 @@ import java.io.Serializable;
 import java.util.Hashtable;
 import java.util.Vector;
 
+/**
+ * This removes columns.
+ */
 public class Exists extends ProductionRule implements Serializable {
     public boolean merge_previous_exists = true;
     public boolean is_cumulative = false;
