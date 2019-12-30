@@ -41,6 +41,16 @@ This repository seeks to provide a stable location for this large-scale project.
 
 Due to the scope and breadth of this system, there will be much left out of this section at first. Ideally, detailed documentation will be provided in the future with regards to each nook and cranny of the system and how it can be used to augment conjecture generation and theorem proving. For now, instructions are provided for basic setup and execution using the provided example files.
 
+### HR
+
+**HRLPlus** and **HRL** are built on top of **HR**. If you wish to only use **HR**, without the multi-agent augmentation of **HRL**, you can do so by running the *HR.java* class directly. It takes a list of files as input:
+
+1. HR configuration_file (loads the given config file)
+2. HR configuration_file macro macro_file argument#1 argument#2 ... (runs the given macro)
+3. HR configuration_file restore theory_file (restores the give theory)
+
+More details on using the HR-only build will be provided in the future.
+
 ### Configuration
 
 A configuration file must be provided when launching students or a teacher. The default configuration file is found in `src/resources/hr_agency.cfg` and consists of a few different options:
