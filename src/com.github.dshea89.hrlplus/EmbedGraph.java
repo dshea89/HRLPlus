@@ -19,14 +19,17 @@ public class EmbedGraph extends ProductionRule implements Serializable {
 
     public Vector allParameters(Vector concept_list, Theory theory) {
         Vector var3 = new Vector();
-        Concept var4 = (Concept) concept_list.elementAt(0);
-        Concept var5 = (Concept) concept_list.elementAt(1);
-        if (var4.arity == 3 && var5.id.equals("G01")) {
-            String var6 = (String)var4.types.elementAt(1);
-            String var7 = (String)var4.types.elementAt(2);
-            if (var6.equals(var7)) {
-                var3.addElement(new Vector());
+        try {
+            Concept var4 = (Concept) concept_list.elementAt(0);
+            Concept var5 = (Concept) concept_list.elementAt(1);
+            if (var4.arity == 3 && var5.id.equals("G01")) {
+                String var6 = (String) var4.types.elementAt(1);
+                String var7 = (String) var4.types.elementAt(2);
+                if (var6.equals(var7)) {
+                    var3.addElement(new Vector());
+                }
             }
+        } catch (ArrayIndexOutOfBoundsException ignored) {
         }
 
         return var3;

@@ -223,7 +223,10 @@ public class Match extends ProductionRule implements Serializable {
         for(int var4 = 0; var4 < var2.size(); ++var4) {
             int var5 = new Integer((String)var2.elementAt(var4));
             if (var5 == var4) {
-                var3.addElement(var1.elementAt(var4));
+                try {
+                    var3.addElement(var1.elementAt(var4));
+                } catch (ArrayIndexOutOfBoundsException ignored) {
+                }
             }
         }
 

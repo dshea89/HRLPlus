@@ -997,8 +997,8 @@ public class FrontEnd implements ItemListener, ActionListener, FocusListener, Se
         this.keep_best_check = new Checkbox("keep best", this.search_group, false);
         this.random_check = new Checkbox("random", this.search_group, false);
         this.subobject_overlap_check = new Checkbox("subobject overlap", true);
-        this.domain_label = new Label("domain:");
-        this.domain_list = new SortableList();
+        this.domain_label = new Label("domains:");
+        this.domain_list = new SortableList(0, false);
         this.domain_none_button = new Button("None");
         this.domain_default_button = new Button("Default");
         this.initial_entity_label = new Label("entities:");

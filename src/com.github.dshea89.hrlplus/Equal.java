@@ -99,8 +99,11 @@ public class Equal extends ProductionRule implements Serializable {
                     if (var15.equals("0")) {
                         var16 = var8.entity;
                     } else {
-                        int var17 = new Integer(var15) - 1;
-                        var16 = (String)var12.elementAt(var17);
+                        try {
+                            int var17 = new Integer(var15) - 1;
+                            var16 = (String) var12.elementAt(var17);
+                        } catch (ArrayIndexOutOfBoundsException ignored) {
+                        }
                     }
 
                     if (var14 == 0) {

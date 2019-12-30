@@ -95,9 +95,12 @@ public class Disjunct extends ProductionRule implements Serializable {
         Datatable var7 = (Datatable) old_datatables.elementAt(1);
 
         for(int var8 = 0; var8 < var6.size(); ++var8) {
-            Row var9 = (Row)var6.elementAt(var8);
-            Row var10 = (Row)var7.elementAt(var8);
-            var5.addElement(new Row(var9.entity, this.makeDisjunctRow(var9, var10)));
+            try {
+                Row var9 = (Row) var6.elementAt(var8);
+                Row var10 = (Row) var7.elementAt(var8);
+                var5.addElement(new Row(var9.entity, this.makeDisjunctRow(var9, var10)));
+            } catch (ArrayIndexOutOfBoundsException ignored) {
+            }
         }
 
         return var5;

@@ -2369,26 +2369,29 @@ public class Theory implements ActionListener, ItemListener, FocusListener, KeyL
 
         if (var1.getSource() == this.front_end.domain_list) {
             var2 = this.front_end.domain_list.getSelectedItem();
-            if (var2.indexOf(".") >= 0) {
-                var2 = var2.substring(0, var2.indexOf("."));
-            }
+            String[] selectedItems = this.front_end.domain_list.getSelectedItems();
+            for (String selectedItem : selectedItems) {
+                if (selectedItem.contains(".")) {
+                    var2 = selectedItem.substring(0, selectedItem.indexOf("."));
+                }
 
-            var7 = this.input_files_directory + this.front_end.domain_list.getSelectedItem();
-            Vector var11 = this.reader.readFile(var7, "");
-            this.front_end.addDomainInformation(var11);
-            Vector var13 = (Vector)var11.elementAt(0);
+                var7 = this.input_files_directory + selectedItem;
+                Vector var11 = this.reader.readFile(var7, "");
+                this.front_end.addDomainInformation(var11);
+                Vector var13 = (Vector)var11.elementAt(0);
 
-            int var14;
-            for(var14 = 0; var14 < var13.size(); ++var14) {
-                this.domain_concepts.addElement((Concept)var13.elementAt(var14));
-            }
+                int var14;
+                for(var14 = 0; var14 < var13.size(); ++var14) {
+                    this.domain_concepts.addElement((Concept)var13.elementAt(var14));
+                }
 
-            for(var14 = 0; var14 < this.front_end.initial_concepts_list.getItemCount(); ++var14) {
-                this.front_end.initial_concepts_list.select(var14);
-            }
+                for(var14 = 0; var14 < this.front_end.initial_concepts_list.getItemCount(); ++var14) {
+                    this.front_end.initial_concepts_list.select(var14);
+                }
 
-            for(var14 = 0; var14 < this.front_end.initial_entity_list.getItemCount(); ++var14) {
-                this.front_end.initial_entity_list.select(var14);
+                for(var14 = 0; var14 < this.front_end.initial_entity_list.getItemCount(); ++var14) {
+                    this.front_end.initial_entity_list.select(var14);
+                }
             }
         }
 

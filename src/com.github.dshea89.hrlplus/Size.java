@@ -296,8 +296,12 @@ public class Size extends ProductionRule implements Serializable {
                     for(var29 = true; var28 < var41.size() && var29; ++var28) {
                         String var30 = (String)var24.elementAt(var28);
                         int var31 = new Integer((String)var41.elementAt(var28));
-                        String var32 = (String)var27.elementAt(var31);
-                        if (!var30.equals(var32)) {
+                        try {
+                            String var32 = (String) var27.elementAt(var31);
+                            if (!var30.equals(var32)) {
+                                var29 = false;
+                            }
+                        } catch (ArrayIndexOutOfBoundsException e) {
                             var29 = false;
                         }
                     }

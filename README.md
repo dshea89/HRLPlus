@@ -108,6 +108,8 @@ You can look at individual theories, for instance concepts and definitions, by c
 
 To end a run, click on the "Stop" button on the teacher's screen. Note that after each run, you should delete or move the files `8000`, `8100`, etc., as well as `group-file`, otherwise the old files will be read for a new run.
 
+Note that, when selected domains in the `DOMAIN` view, although only one domain is selected in the list at a time, all properties of that domain are added to the other surrounding windows. This allows for working with multiple domains at a time.
+
 ### Proving Deduced Conjectures
 
 Otter and Mace are the currently supported interfaces for proving deduced conjectures as mathematical theorems.

@@ -207,8 +207,11 @@ public class ProductionRule implements Serializable {
      */
     public Vector removeColumns(Vector tuple, Vector parameters) {
         for(int var3 = 0; var3 < parameters.size(); ++var3) {
-            int var4 = new Integer((String)parameters.elementAt(var3));
-            tuple.removeElementAt(var4 - var3);
+            try {
+                int var4 = new Integer((String) parameters.elementAt(var3));
+                tuple.removeElementAt(var4 - var3);
+            } catch (ArrayIndexOutOfBoundsException ignored) {
+            }
         }
 
         return tuple;
