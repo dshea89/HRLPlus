@@ -242,7 +242,11 @@ public class UserFunctions implements Serializable {
             }
 
             var45 = var2.indexOf("[]") > -1;
-            var33 = var2.substring(var2.indexOf("["), var2.indexOf("]")).length();
+            try {
+                var33 = var2.substring(var2.indexOf("["), var2.indexOf("]")).length();
+            } catch (StringIndexOutOfBoundsException e) {
+                var33 = 0;
+            }
             var36 = 1;
 
             for(var8 = 0; var8 < var33; var8 += 3) {
@@ -258,7 +262,11 @@ public class UserFunctions implements Serializable {
             }
 
             var45 = var2.indexOf("[]") > -1;
-            var33 = var2.substring(var2.indexOf("["), var2.indexOf("]")).length();
+            try {
+                var33 = var2.substring(var2.indexOf("["), var2.indexOf("]")).length();
+            } catch (StringIndexOutOfBoundsException e) {
+                var33 = 0;
+            }
             var36 = 1;
 
             for(var8 = 0; var8 < var33; var8 += 6) {

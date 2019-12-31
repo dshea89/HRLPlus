@@ -37,6 +37,31 @@ public class NonExists extends Conjecture implements Serializable {
             var3 = var3 + this.concept.writeDefinition(var1) + " ) ";
         }
 
+        if (var1.equals("tptp")) {
+            String conceptDefinition = this.concept.writeDefinition(var1);
+            String var4 = "[";
+
+            for(int var5 = 1; var5 < var2.size() - 1; ++var5) {
+                var4 = var4 + ((String)var2.elementAt(var5)).toUpperCase() + ",";
+            }
+
+            if (var2.size() > 1) {
+                var4 = var4 + ((String)var2.elementAt(var2.size() - 1)).toUpperCase();
+            }
+
+            var4 = var4 + "]";
+            String var7 = "";
+            if (!conceptDefinition.trim().equals("") && !conceptDefinition.trim().equals("()") && !conceptDefinition.trim().equals("(())")) {
+                if (var4.equals("[]")) {
+                    var7 = "input_formula(conjecture" + this.id + ",conjecture,(\n     ~(" + conceptDefinition + "))).";
+                } else {
+                    var7 = "input_formula(conjecture" + this.id + ",conjecture,(\n     ~? " + var4 + " : \n      (" + conceptDefinition + "))).";
+                }
+            }
+
+            var3 = var7;
+        }
+
         if (var1.equals("otter")) {
             if (var2.size() <= 1 && !this.use_entity_letter) {
                 if (!this.concept.writeDefinition(var1).equals("")) {
