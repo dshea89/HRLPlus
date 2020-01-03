@@ -10,12 +10,12 @@ public class PIProver extends Prover implements Serializable {
     public PIProver() {
     }
 
-    public boolean prove(Conjecture var1, Theory var2) {
-        if (!(var1 instanceof Implicate)) {
+    public boolean prove(Conjecture conjecture, Theory theory) {
+        if (!(conjecture instanceof Implicate)) {
             return false;
         } else {
-            Implicate var3 = (Implicate)var1;
-            Vector var4 = var2.prime_implicates;
+            Implicate var3 = (Implicate) conjecture;
+            Vector var4 = theory.prime_implicates;
             this.branches = 0;
             Hashtable var5 = new Hashtable();
             new Vector();

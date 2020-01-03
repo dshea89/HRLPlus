@@ -24,100 +24,107 @@ public class ExplanationHandler implements Serializable {
     public ExplanationHandler() {
     }
 
-    public void explainConjecture(Conjecture var1, Theory var2, String var3) {
-        this.logThis(var1.writeConjecture("otter"), var2);
+    public void explainConjecture(Conjecture conjecture, Theory theory, String var3) {
+        this.logThis(conjecture.writeConjecture("otter"), theory);
 
         for(int var4 = 0; var4 < this.explainers.size(); ++var4) {
             Explainer var5 = (Explainer)this.explainers.elementAt(var4);
             var5.use_entity_letter = this.use_entity_letter;
-            var2.addToTimer(var3 + "." + Integer.toString(var4) + " Trying " + var5.name + " to solve conjecture");
-            if (!var5.condition_string.trim().equals("") && !this.reflect.checkCondition(var1, var5.condition_string)) {
-                this.logThis("Failed conditions for " + var5.name + "(" + var5.setup_name + ")", var2);
+            theory.addToTimer(var3 + "." + Integer.toString(var4) + " Trying " + var5.name + " to solve conjecture");
+            if (!var5.condition_string.trim().equals("") && !this.reflect.checkCondition(conjecture, var5.condition_string)) {
+                this.logThis("Failed conditions for " + var5.name + "(" + var5.setup_name + ")", theory);
             } else {
                 boolean var7;
                 if (var5 instanceof FileProver) {
-                    FileProver var6 = (FileProver)var5;
-                    var7 = var6.prove(var1, var2);
-                    this.logThis(var5.name + "(" + var5.setup_name + ") " + var1.proof_status, var2);
+                    FileProver prover = (FileProver)var5;
+                    var7 = prover.prove(conjecture, theory);
+                    this.logThis(var5.name + "(" + var5.setup_name + ") " + conjecture.proof_status, theory);
                     if (var7) {
-                        var1.proof_status = "proved";
-                        if (var1.is_trivially_true) {
-                            var1.explained_by = "being trivial";
+                        conjecture.proof_status = "proved";
+                        if (conjecture.is_trivially_true) {
+                            conjecture.explained_by = "being trivial";
                         } else {
-                            var1.explained_by = var5.name + "(" + var5.setup_name + ")";
+                            conjecture.explained_by = var5.name + "(" + var5.setup_name + ")";
                         }
 
                         if (!this.use_all_explainers) {
-                            this.logThis("-----------------", var2);
+                            this.logThis("-----------------", theory);
                             if (this.store_conjectures) {
-                                this.storage_handler.handleStorageOf(var1);
+                                this.storage_handler.handleStorageOf(conjecture);
                             }
-
                             return;
                         }
                     }
 
-                    if (!var1.counterexamples.isEmpty()) {
-                        var1.proof_status = "disproved";
-                        this.logThis(var5.name + "(" + var5.setup_name + ") " + var1.proof_status, var2);
-                        var1.explained_by = var5.name + "(" + var5.setup_name + ")";
+                    if (!conjecture.counterexamples.isEmpty() || prover.disprove(conjecture, theory)) {
+                        conjecture.proof_status = "disproved";
+                        this.logThis(var5.name + "(" + var5.setup_name + ") " + conjecture.proof_status, theory);
+                        conjecture.explained_by = var5.name + "(" + var5.setup_name + ")";
                         if (!this.use_all_explainers) {
-                            this.logThis("-----------------", var2);
+                            this.logThis("-----------------", theory);
                             if (this.store_conjectures) {
-                                this.storage_handler.handleStorageOf(var1);
+                                this.storage_handler.handleStorageOf(conjecture);
                             }
-
                             return;
                         }
                     }
 
-                    if (var1.proof_status.equals("sos") && !this.use_all_explainers) {
-                        this.logThis("-----------------", var2);
+                    if (conjecture.proof_status.equals("sos") && !this.use_all_explainers) {
+                        this.logThis("-----------------", theory);
                         if (this.store_conjectures) {
-                            this.storage_handler.handleStorageOf(var1);
+                            this.storage_handler.handleStorageOf(conjecture);
                         }
-
                         return;
                     }
                 }
 
                 if (var5 instanceof DataGenerator) {
                     DataGenerator var8 = (DataGenerator)var5;
-                    Vector var10 = var8.counterexamplesFor(var1, var2, 1);
+                    Vector var10 = var8.counterexamplesFor(conjecture, theory, 1);
                     if (!var10.isEmpty()) {
-                        var1.proof_status = "disproved";
-                        this.logThis(var5.name + "(" + var5.setup_name + ") " + var1.proof_status, var2);
-                        var1.counterexamples = var10;
-                        var1.explained_by = var5.name + "(" + var5.setup_name + ")";
+                        conjecture.proof_status = "disproved";
+                        this.logThis(var5.name + "(" + var5.setup_name + ") " + conjecture.proof_status, theory);
+                        conjecture.counterexamples = var10;
+                        conjecture.explained_by = var5.name + "(" + var5.setup_name + ")";
                         if (!this.use_all_explainers) {
-                            this.logThis("-----------------", var2);
+                            this.logThis("-----------------", theory);
                             if (this.store_conjectures) {
-                                this.storage_handler.handleStorageOf(var1);
+                                this.storage_handler.handleStorageOf(conjecture);
                             }
-
                             return;
                         }
                     }
                 }
 
                 if (var5 instanceof Prover && !(var5 instanceof FileProver)) {
-                    Prover var9 = (Prover)this.explainers.elementAt(var4);
-                    var7 = var9.prove(var1, var2);
-                    this.logThis(var5.name + "(" + var5.setup_name + ") " + var1.proof_status, var2);
+                    Prover prover = (Prover)this.explainers.elementAt(var4);
+                    var7 = prover.prove(conjecture, theory);
+                    this.logThis(var5.name + "(" + var5.setup_name + ") " + conjecture.proof_status, theory);
                     if (var7) {
-                        var1.proof_status = "proved";
-                        if (var1.is_trivially_true) {
-                            var1.explained_by = "being trivial";
+                        conjecture.proof_status = "proved";
+                        if (conjecture.is_trivially_true) {
+                            conjecture.explained_by = "being trivial";
                         } else {
-                            var1.explained_by = var5.name + "(" + var5.setup_name + ")";
+                            conjecture.explained_by = var5.name + "(" + var5.setup_name + ")";
                         }
 
                         if (!this.use_all_explainers) {
-                            this.logThis("-----------------", var2);
+                            this.logThis("-----------------", theory);
                             if (this.store_conjectures) {
-                                this.storage_handler.handleStorageOf(var1);
+                                this.storage_handler.handleStorageOf(conjecture);
                             }
-
+                            return;
+                        }
+                    }
+                    else if (prover.disprove(conjecture, theory)) {
+                        conjecture.proof_status = "disproved";
+                        this.logThis(var5.name + "(" + var5.setup_name + ") " + conjecture.proof_status, theory);
+                        conjecture.explained_by = var5.name + "(" + var5.setup_name + ")";
+                        if (!this.use_all_explainers) {
+                            this.logThis("-----------------", theory);
+                            if (this.store_conjectures) {
+                                this.storage_handler.handleStorageOf(conjecture);
+                            }
                             return;
                         }
                     }
@@ -126,10 +133,10 @@ public class ExplanationHandler implements Serializable {
         }
 
         if (this.store_conjectures) {
-            this.storage_handler.handleStorageOf(var1);
+            this.storage_handler.handleStorageOf(conjecture);
         }
 
-        this.logThis("-----------------", var2);
+        this.logThis("-----------------", theory);
     }
 
     public void initialiseExplainers(Theory var1) {

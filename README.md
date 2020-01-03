@@ -112,9 +112,43 @@ Note that, when selected domains in the `DOMAIN` view, although only one domain 
 
 ### Proving Deduced Conjectures
 
-Otter and Mace are the currently supported interfaces for proving deduced conjectures as mathematical theorems.
+**Otter** and **System on TPTP** are the two provers initially integrated into HR. Support for **Isabelle** has been added in HRLPlus. Support for **Coq** will ideally be added at some point in the near future.
 
-*More details coming soon™*
+#### Isabelle
+
+HRLPlus supports the Isabelle theorem prover for both Windows and non-Windows systems. Using Isabelle to prove or disprove HRLPlus conjectures requires a local installation of Isabelle (it is not bundled with the repository). Download the latest version:
+
+<http://isabelle.in.tum.de/>
+
+For reference, this guide is being written while Isabelle2019 is the latest version.
+
+Ensure that Isabelle's `bin` directory is in your PATH environment variable.
+
+It is recommended to run Isabelle at least once after downloading it in order to build the HOL library.
+
+It is also recommended to edit the Isabelle file `/src/HOL/TPTP/lib/Tools/tptp_sledgehammer` and comment out the line:
+
+`isabelle build -b HOL-TPTP 2>&1 | grep --line-buffered -v "elapsed time$"`
+
+Commenting out this line (by adding a `#` to the beginning of it) will save time by preventing Isabelle from rebuilding the library every time it is invoked. This is especially important due to the number of conjectures that are generated; having to wait several additional seconds per conjecture would complicate the speed at which HRLPlus can generate conjectures of interest.
+
+Likewise, edit the Isabelle file `/src/HOL/TPTP/lib/Tools/tptp_nitpick` and comment out the line:
+
+`isabelle build -b HOL-TPTP 2>&1 | grep --line-buffered -v "elapsed time$"`
+
+Isabelle attempts to prove conjectures using Isabelle's Sledgehammer tool, which itself invokes a number of different automated theorem provers. Currently, the timeout for the tool is set to 120 seconds, though this value should be configurable in the future. Read more about Sledgehammer at:
+
+<https://isabelle.in.tum.de/website-Isabelle2009-1/sledgehammer.html>
+
+If Isabelle is unable to prove an HRLPlus conjecture using Sledgehammer, then it attempts to disprove the conjecture using Isabelle's Nitpick utility, which searches for counterexamples. Like with Sledgehammer, the timeout for the tool is set to 120 seconds, though this value should be configurable in the future. Read more about Nitpick at:
+
+<https://isabelle.in.tum.de/website-Isabelle2009-1/dist/Isabelle/doc/nitpick.pdf>
+
+If Isabelle is neither able to prove the conjecture using Sledgehammer nor able to disprove the conjecture using Nitpick, then the conjecture remains open.
+
+*More details on how to set up the Isabelle prover in the HRLPlus GUI are coming soon™*
+
+*More details on how to use HRLPlus and navigate the GUI are coming soon™*
 
 ## Examples
 

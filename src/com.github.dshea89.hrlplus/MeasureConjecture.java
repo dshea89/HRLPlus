@@ -362,7 +362,10 @@ public class MeasureConjecture extends Measure implements Serializable {
             }
 
             double var11 = 0.0D;
-            var11 = (double)((var3.entities.size() - var1.counterexamples.size()) / var3.entities.size());
+            try {
+                var11 = (double) ((var3.entities.size() - var1.counterexamples.size()) / var3.entities.size());
+            } catch (ArithmeticException ignored) {
+            }
             var1.plausibility = var11;
             this.calculateOverallValue(var1);
             if (this.old_measures_have_been_updated) {

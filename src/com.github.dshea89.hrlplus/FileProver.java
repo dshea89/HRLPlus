@@ -20,16 +20,16 @@ public class FileProver extends Prover implements Serializable {
 
     }
 
-    public boolean prove(Conjecture var1, Theory var2) {
+    public boolean prove(Conjecture conjecture, Theory theory) {
         for(int var3 = 0; var3 < this.stored_results.size(); ++var3) {
             Conjecture var4 = (Conjecture)this.stored_results.elementAt(var3);
             String var5 = var4.writeConjecture("otter").trim();
-            String var6 = var1.writeConjecture("otter").trim();
+            String var6 = conjecture.writeConjecture("otter").trim();
             if (var5.equals(var6)) {
                 if (var4.proof_status.equals("proved")) {
-                    var2.front_end.systemout_text.append(var4.proof_status + "\n");
-                    var1.proof_status = "proved";
-                    var1.proof = var4.proof;
+                    theory.front_end.systemout_text.append(var4.proof_status + "\n");
+                    conjecture.proof_status = "proved";
+                    conjecture.proof = var4.proof;
                     return true;
                 }
 

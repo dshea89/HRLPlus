@@ -6,7 +6,11 @@ public class Prover extends Explainer implements Serializable {
     public Prover() {
     }
 
-    public boolean prove(Conjecture var1, Theory var2) {
+    public boolean prove(Conjecture conjecture, Theory theory) {
+        return false;
+    }
+
+    public boolean disprove(Conjecture conjecture, Theory theory) {
         return false;
     }
 }
