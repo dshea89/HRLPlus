@@ -20,7 +20,7 @@ public class Isabelle extends Prover implements Serializable {
     public boolean prove(Conjecture conjecture, Theory theory) {
         String tptp = conjecture.writeConjecture("tptp");
         String filename = conjecture.id + "_" + System.nanoTime() + "_sledgehammer" + ".thy";
-        int timeoutInSeconds = 120;
+        int timeoutInSeconds = 30;
         boolean proved = false;
 
         try {
@@ -77,7 +77,7 @@ public class Isabelle extends Prover implements Serializable {
     public boolean disprove(Conjecture conjecture, Theory theory) {
         String tptp = conjecture.writeConjecture("tptp");
         String filename = conjecture.id + "_" + System.nanoTime() + "_nitpick" + ".thy";
-        int timeoutInSeconds = 120;
+        int timeoutInSeconds = 30;
         boolean disproved = false;
 
         try {

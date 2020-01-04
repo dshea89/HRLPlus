@@ -62,7 +62,7 @@ public class SOTHandler extends Prover implements Serializable {
         String var3 = "";
 
         try {
-            URL var4 = new URL("http://www.cs.jcu.edu.au/cgi-bin/tptp/SystemOnTPTPFormReply");
+            URL var4 = new URL("http://www.tptp.org/cgi-bin/SystemOnTPTPFormReply");
             URLConnection var5 = var4.openConnection();
             var5.setDoOutput(true);
             this.pw = new PrintWriter(var5.getOutputStream());

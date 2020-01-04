@@ -35,7 +35,7 @@ The fields of automated theorem generation and automated theorem proving are qui
 
 **HRL** is a counterexample to this trend, in which the code had been made available prior. Over time, however, the pages hosting these projects have disappeared, only accessible in some form via the Internet Archive Wayback Machine, and even then with only limited success.
 
-This repository seeks to provide a stable location for this large-scale project. As this code is built off of decompiled class files from a prior build of HRL, local variable names and comments have been lost. In the near future, more documentation will be provided in the way of features offered and how to use each, and hopefully extensions to supported theorem provers like Coq and Isabelle on top of the currently supported Otter and Mace.
+This repository seeks to provide a stable location for this large-scale project. As this code is built off of decompiled class files from a prior build of HRL, local variable names and comments have been lost. In the near future, more documentation will be provided in the way of features offered and how to use each, and hopefully extensions to supported theorem provers like Coq and HOL Light on top of the currently supported provers.
 
 ## How to Use
 
@@ -136,7 +136,7 @@ Likewise, edit the Isabelle file `/src/HOL/TPTP/lib/Tools/tptp_nitpick` and comm
 
 `isabelle build -b HOL-TPTP 2>&1 | grep --line-buffered -v "elapsed time$"`
 
-Isabelle attempts to prove conjectures using Isabelle's Sledgehammer tool, which itself invokes a number of different automated theorem provers. Currently, the timeout for the tool is set to 120 seconds, though this value should be configurable in the future. Read more about Sledgehammer at:
+Isabelle attempts to prove conjectures using Isabelle's Sledgehammer tool, which itself invokes a number of different automated theorem provers. Currently, the timeout for the tool is set to 30 seconds, though this value should be configurable in the future. Read more about Sledgehammer at:
 
 <https://isabelle.in.tum.de/website-Isabelle2009-1/sledgehammer.html>
 
@@ -183,7 +183,7 @@ There is a lot that can be done to extend functionality beyond what is already h
 
 1. Renaming variables and adding comments! As this code is the result of decompiling class files, all local variable names and comments have been lost. This is the single biggest thing that could significantly improve the codebase.
 2. Documentation on how to develop the HRD and HRM files used to define the axioms and macros used in **HRL**.
-3. Extend theorem proving support to Isabelle and Coq.
+3. Extend theorem proving support to Coq and HOL Light.
 4. Resolve compiler and IDE warnings (note that some IDE warnings are false positives that should be suppressed, as attempting to "fix" them will break the program, e.g. the IDE claiming that setValue in ConfigHandler is unused and can be safely removed when it in fact cannot).
 
 ## Changelog
@@ -193,6 +193,7 @@ The original release that I was able to acquire was v2.2.2. As such, the numberi
 ### v2.3.0
 
 * Supports Java 11
+* Added support for proving conjectures via Isabelle
 * Fixed a looping issue preventing the Teacher and Student threads from communicating with each other
 * Made the maximum step counter configurable
 * Added support for relative imports in hr_agency.cfg
