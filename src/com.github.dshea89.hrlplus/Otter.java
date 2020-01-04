@@ -12,6 +12,8 @@ import java.util.Vector;
 /**
  * A super class for the otter theorem prover.
  */
+// Despite Java warnings that this class is unused, it is invoked via Java Reflection from the Other Provers table
+@SuppressWarnings("unused")
 public class Otter extends Prover implements Serializable {
     /**
      * The vector of demodulators for the axioms in the theory.

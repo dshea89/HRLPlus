@@ -7,6 +7,8 @@ import java.nio.file.Paths;
 /**
  * A super class for the Isabelle theorem prover.
  */
+// Despite Java warnings that this class is unused, it is invoked via Java Reflection from the Other Provers table
+@SuppressWarnings("unused")
 public class Isabelle extends Prover implements Serializable {
     /**
      * The standard constructor.
@@ -18,6 +20,7 @@ public class Isabelle extends Prover implements Serializable {
      * The method for attempting to prove the given conjecture.
      */
     public boolean prove(Conjecture conjecture, Theory theory) {
+        String axioms = this.writeAxioms();
         String tptp = conjecture.writeConjecture("tptp");
         String filename = conjecture.id + "_" + System.nanoTime() + "_sledgehammer" + ".thy";
         int timeoutInSeconds = 30;
@@ -25,6 +28,7 @@ public class Isabelle extends Prover implements Serializable {
 
         try {
             PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(filename)));
+            writer.write(axioms);
             writer.write(tptp);
             writer.close();
 

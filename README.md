@@ -49,6 +49,8 @@ Due to the scope and breadth of this system, there will be much left out of this
 2. HR configuration_file macro macro_file argument#1 argument#2 ... (runs the given macro)
 3. HR configuration_file restore theory_file (restores the give theory)
 
+Alternatively, you can run any one of the student or teacher threads by themselves, rather than as a group. See the next section for setting up student and teacher threads.
+
 More details on using the HR-only build will be provided in the future.
 
 ### Configuration
@@ -116,7 +118,11 @@ Note that, when selected domains in the `DOMAIN` view, although only one domain 
 
 #### Isabelle
 
-HRLPlus supports the Isabelle theorem prover for both Windows and non-Windows systems. Using Isabelle to prove or disprove HRLPlus conjectures requires a local installation of Isabelle (it is not bundled with the repository). Download the latest version:
+HRLPlus supports the Isabelle theorem prover for both Windows and non-Windows systems.
+
+##### Initial Setup
+
+Using Isabelle to prove or disprove HRLPlus conjectures requires a local installation of Isabelle (it is not bundled with the repository). Download the latest version:
 
 <http://isabelle.in.tum.de/>
 
@@ -145,6 +151,12 @@ If Isabelle is unable to prove an HRLPlus conjecture using Sledgehammer, then it
 <https://isabelle.in.tum.de/website-Isabelle2009-1/dist/Isabelle/doc/nitpick.pdf>
 
 If Isabelle is neither able to prove the conjecture using Sledgehammer nor able to disprove the conjecture using Nitpick, then the conjecture remains open.
+
+##### Using with HRLPlus
+
+The following steps must be done ***before*** clicking the `Load` button to load domain files!
+
+To enable Isabelle as an option for proving theorems, click on the `Proof` button at the bottom of the GUI. At the bottom the new window, you will see a section called `Other Provers`. In the top row, enter `0` in the `Try Position` column and enter `Isabelle` in the `Prover Name` column. (Note that the `Try Position` value is an ordering for how provers in that table should be attempted, so if you had multiple provers in the table and wanted another one to be used first, then you would set Isabelle to 1 while setting the other prover to 0, and so on for subsequent provers.)
 
 *More details on how to set up the Isabelle prover in the HRLPlus GUI are coming soon™*
 

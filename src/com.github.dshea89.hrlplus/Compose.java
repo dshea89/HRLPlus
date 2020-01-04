@@ -680,11 +680,14 @@ public class Compose extends ProductionRule implements Serializable {
                 var6 = -1;
             }
 
-            int var7 = new Integer((String)var3.elementAt(var5)) - 1;
-            if (var6 >= 0) {
-                var4.addElement(var1.elementAt(var6));
-            } else {
-                var4.addElement(var2.elementAt(var7));
+            try {
+                int var7 = new Integer((String) var3.elementAt(var5)) - 1;
+                if (var6 >= 0) {
+                    var4.addElement(var1.elementAt(var6));
+                } else {
+                    var4.addElement(var2.elementAt(var7));
+                }
+            } catch (ArrayIndexOutOfBoundsException ignored) {
             }
         }
 

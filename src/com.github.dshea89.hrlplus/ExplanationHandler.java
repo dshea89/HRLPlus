@@ -1,5 +1,7 @@
 package com.github.dshea89.hrlplus;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.Serializable;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -25,7 +27,7 @@ public class ExplanationHandler implements Serializable {
     }
 
     public void explainConjecture(Conjecture conjecture, Theory theory, String var3) {
-        this.logThis(conjecture.writeConjecture("otter"), theory);
+        this.logThis(conjecture.writeConjecture("tptp"), theory);
 
         for(int var4 = 0; var4 < this.explainers.size(); ++var4) {
             Explainer var5 = (Explainer)this.explainers.elementAt(var4);
@@ -140,20 +142,20 @@ public class ExplanationHandler implements Serializable {
     }
 
     public void initialiseExplainers(Theory var1) {
-        Hashtable var2 = new Hashtable();
-        Hashtable var3 = new Hashtable();
-        JTable var4 = var1.front_end.axiom_table;
+        Hashtable axiom_table = new Hashtable();
+        Hashtable algebra_table = new Hashtable();
+        JTable axiom_table_values = var1.front_end.axiom_table;
 
-        String var7;
-        for(int var5 = 0; var5 < var4.getRowCount(); ++var5) {
-            String var6 = (String)var4.getValueAt(var5, 0);
-            if (var6 instanceof String && var6.trim().equals("")) {
+        String row_name;
+        for(int axiom_table_row = 0; axiom_table_row < axiom_table_values.getRowCount(); ++axiom_table_row) {
+            String axioms_string = (String)axiom_table_values.getValueAt(axiom_table_row, 0);
+            if (axioms_string instanceof String && axioms_string.trim().equals("")) {
                 break;
             }
 
-            if (var6 instanceof String) {
-                var7 = (String)var4.getValueAt(var5, 1);
-                var2.put(var6.trim(), var7.trim());
+            if (axioms_string instanceof String) {
+                row_name = (String)axiom_table_values.getValueAt(axiom_table_row, 1);
+                axiom_table.put(axioms_string.trim(), row_name.trim());
             }
         }
 
@@ -164,28 +166,28 @@ public class ExplanationHandler implements Serializable {
         String var14;
         String var28;
         for(int var23 = 0; var23 < var22.getRowCount(); ++var23) {
-            var7 = (String)var22.getValueAt(var23, 0);
-            if (var7 instanceof String && !var7.trim().equals("")) {
+            row_name = (String)var22.getValueAt(var23, 0);
+            if (row_name instanceof String && !row_name.trim().equals("")) {
                 var8 = (String)var22.getValueAt(var23, 1);
                 Vector var10;
                 if (var8 instanceof String) {
                     Categorisation var9 = new Categorisation("[" + var8 + "]");
                     var10 = (Vector)var9.elementAt(0);
-                    var3.put(var7, var10);
+                    algebra_table.put(row_name, var10);
                 }
 
                 var28 = (String)var22.getValueAt(var23, 2);
                 if (var28 instanceof String && (var28.equals("true") || var28.equals("yes"))) {
-                    var10 = (Vector)var3.get(var7);
+                    var10 = (Vector)algebra_table.get(row_name);
                     Vector var11 = new Vector();
 
                     for(int var12 = 0; var12 < var10.size(); ++var12) {
                         var13 = (String)var10.elementAt(var12);
-                        var14 = (String)var2.get(var13);
+                        var14 = (String)axiom_table.get(var13);
                         var11.addElement(var14);
                     }
 
-                    var1.embed_algebra.algebra_hashtable.put(var7, var11);
+                    var1.embed_algebra.algebra_hashtable.put(row_name, var11);
                 }
             }
         }
@@ -268,12 +270,21 @@ public class ExplanationHandler implements Serializable {
 
                 var13 = (String)var26.getValueAt(var27, 3);
                 if (var13 instanceof String && !var13.trim().equals("")) {
-                    Vector var38 = (Vector)var3.get(var13);
+                    Vector axioms_in_algebra = (Vector)algebra_table.get(var13);
 
-                    for(int var39 = 0; var39 < var38.size(); ++var39) {
-                        var16 = (String)var38.elementAt(var39);
-                        var17 = (String)var2.get(var16);
-                        ((Explainer)var31).axiom_strings.addElement(var17);
+                    for(int algebra_axiom_index = 0; algebra_axiom_index < axioms_in_algebra.size(); ++algebra_axiom_index) {
+                        var16 = (String)axioms_in_algebra.elementAt(algebra_axiom_index);
+                        var17 = (String)axiom_table.get(var16);
+
+                        // Add the axiom string pointed to by the axiom name in the algebra's list of axioms
+                        if (var17.startsWith("file:")) {
+                            // The axiom string begins with "file:", so open the file and add all axioms in it
+                            // Currently, only TPTP style axioms are supported
+                            parseAxiomFile((Explainer) var31, var17.substring(5), "tptp");
+                        }
+                        else {
+                            ((Explainer) var31).axiom_strings.addElement(var17);
+                        }
                     }
                 }
 
@@ -335,7 +346,7 @@ public class ExplanationHandler implements Serializable {
                             Vector var8 = (Vector)var6.tuples.elementAt(var7);
                             Vector var9 = (Vector)var8.clone();
                             var9.insertElementAt(var6.entity, 0);
-                            String var10 = var4.writeDefinition("otter", var9);
+                            String var10 = var4.writeDefinition("tptp", var9);
                             if (!var10.trim().equals("")) {
                                 var1.ground_instances_as_axioms = var1.ground_instances_as_axioms + var10.trim() + ".\n";
                             }
@@ -344,9 +355,9 @@ public class ExplanationHandler implements Serializable {
                         if (var4.arity == 1 && var6.tuples.size() == 0) {
                             Vector var11 = new Vector();
                             var11.addElement(var6.entity);
-                            String var12 = var4.writeDefinition("otter", var11);
+                            String var12 = var4.writeDefinition("tptp", var11);
                             if (!var12.trim().equals("")) {
-                                var1.ground_instances_as_axioms = var1.ground_instances_as_axioms + "-(" + var12.trim() + ").\n";
+                                var1.ground_instances_as_axioms = var1.ground_instances_as_axioms + "~(" + var12.trim() + ").\n";
                             }
                         }
                     }
@@ -361,13 +372,13 @@ public class ExplanationHandler implements Serializable {
 
         for(int var2 = 0; var2 < this.explainers.size(); ++var2) {
             Explainer var3 = (Explainer)this.explainers.elementAt(var2);
-            var3.axiom_strings.addElement(var1.writeConjecture("otter"));
+            var3.axiom_strings.addElement(var1.writeConjecture("tptp"));
         }
 
     }
 
     public boolean conjectureSeenAlready(Conjecture var1) {
-        String var2 = var1.writeConjecture("otter");
+        String var2 = var1.writeConjecture("tptp");
         if (var1 instanceof Implication) {
             return this.previous_implications.containsKey(var2);
         } else if (var1 instanceof Equivalence) {
@@ -382,7 +393,7 @@ public class ExplanationHandler implements Serializable {
     }
 
     public String previousResult(Conjecture var1) {
-        String var2 = var1.writeConjecture("otter");
+        String var2 = var1.writeConjecture("tptp");
         Conjecture var3 = new Conjecture();
         if (var1 instanceof Implication) {
             var3 = (Conjecture)this.previous_implications.get(var2);
@@ -415,7 +426,7 @@ public class ExplanationHandler implements Serializable {
     }
 
     public void addConjecture(Conjecture var1) {
-        String var2 = var1.writeConjecture("otter");
+        String var2 = var1.writeConjecture("tptp");
         if (var1 instanceof Implicate) {
             this.previous_implicates.put(var2, var1);
         }
@@ -435,5 +446,28 @@ public class ExplanationHandler implements Serializable {
     }
 
     public void logThis(String var1, Theory var2) {
+    }
+
+    public void parseAxiomFile(Explainer explainer, String filename, String format) {
+        if (format.equalsIgnoreCase("tptp")) {
+            // Axioms in this file are being provided in TPTP format
+            try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
+                String line;
+                String axiom = "";
+                while ((line = br.readLine()) != null) {
+                    if (line.isBlank()) {
+                        explainer.axiom_strings.addElement(axiom);
+                        axiom = "";
+                    }
+                    else {
+                        axiom += ((axiom.isBlank()) ? "" : " ") + line.strip();
+                    }
+                }
+                if (!axiom.isBlank()) {
+                    explainer.axiom_strings.addElement(axiom);
+                }
+            } catch (Exception ignored) {
+            }
+        }
     }
 }

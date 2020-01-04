@@ -5,6 +5,8 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
+// Despite Java warnings that this class is unused, it is invoked via Java Reflection from the Other Provers table
+@SuppressWarnings("unused")
 public class MathWebProver extends Prover implements Serializable {
     public Vector prover_names = new Vector();
 

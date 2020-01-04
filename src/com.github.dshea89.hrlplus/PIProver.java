@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.Hashtable;
 import java.util.Vector;
 
+// Despite Java warnings that this class is unused, it is invoked via Java Reflection from the Other Provers table
+@SuppressWarnings("unused")
 public class PIProver extends Prover implements Serializable {
     public int branches = 0;
 
