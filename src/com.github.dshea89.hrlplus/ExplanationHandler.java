@@ -455,8 +455,10 @@ public class ExplanationHandler implements Serializable {
                 String line;
                 String axiom = "";
                 while ((line = br.readLine()) != null) {
-                    if (line.isBlank()) {
-                        explainer.axiom_strings.addElement(axiom);
+                    if (line.isBlank() || line.startsWith("%")) {
+                        if (!axiom.isBlank()) {
+                            explainer.axiom_strings.addElement(axiom);
+                        }
                         axiom = "";
                     }
                     else {

@@ -29,6 +29,7 @@ public class Isabelle extends Prover implements Serializable {
         try {
             PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(filename)));
             writer.write(axioms);
+            writer.write("\n\n");
             writer.write(tptp);
             writer.close();
 
@@ -79,6 +80,7 @@ public class Isabelle extends Prover implements Serializable {
      * The method for attempting to disprove the given conjecture by finding a counterexample.
      */
     public boolean disprove(Conjecture conjecture, Theory theory) {
+        String axioms = this.writeAxioms();
         String tptp = conjecture.writeConjecture("tptp");
         String filename = conjecture.id + "_" + System.nanoTime() + "_nitpick" + ".thy";
         int timeoutInSeconds = 30;
@@ -86,11 +88,13 @@ public class Isabelle extends Prover implements Serializable {
 
         try {
             PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(filename)));
+            writer.write(axioms);
+            writer.write("\n\n");
             writer.write(tptp);
             writer.close();
 
-            ProcessBuilder builder;
             Process process;
+            ProcessBuilder builder;
             BufferedReader stdInput;
             String isabelleCommand = "isabelle tptp_nitpick " + timeoutInSeconds + " " + filename;
             String s;
