@@ -154,8 +154,14 @@ public class Arithmeticb extends ProductionRule implements Serializable {
         String var10 = (String) parameters.elementAt(0);
 
         for(int var11 = 0; var11 < var5.size(); ++var11) {
-            Row var12 = (Row)var5.elementAt(var11);
-            Row var13 = (Row)var6.elementAt(var11);
+            Row var12;
+            Row var13;
+            try {
+                var12 = (Row) var5.elementAt(var11);
+                var13 = (Row) var6.elementAt(var11);
+            } catch (ArrayIndexOutOfBoundsException ignored) {
+                continue;
+            }
             if (!var12.tuples.isEmpty() && !var13.tuples.isEmpty()) {
                 String var14 = (String)((Vector)var12.tuples.elementAt(0)).elementAt(0);
                 String var15 = (String)((Vector)var13.tuples.elementAt(0)).elementAt(0);
