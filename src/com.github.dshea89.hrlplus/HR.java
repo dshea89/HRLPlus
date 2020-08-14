@@ -1251,11 +1251,13 @@ public class HR extends Frame implements ActionListener, ItemListener, Serializa
         macro_panel_mid.add("Center", macro_centre_panel);
         macro_panel_mid.add("South", theory.front_end.macro_error_text);
 
-
         macro_text_panel.setLayout(new BorderLayout());
         macro_text_panel.add("Center", theory.front_end.macro_text);
         hello_text_panel.setLayout(new BorderLayout());
         hello_text_panel.add("Center",theory.front_end.hello_text);
+        JScrollPane scrollPane = new JScrollPane();
+        scrollPane.setViewportView(theory.front_end.hello_text);
+        hello_text_panel.add(scrollPane);
 
         macro_centre_panel.setLayout(macro_text_layout);
         macro_text_layout.addLayoutComponent(hello_text_panel, "hello_panel");

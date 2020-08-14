@@ -1,10 +1,14 @@
 package com.github.dshea89.hrlplus;
 
-public abstract class AgentProcess extends Process {
+import java.lang.Process;
+
+public abstract class AgentProcess extends Process
+{
     static int count = 1;
     String id;
 
-    public AgentProcess() {
-        this.id = "AgentProcess" + count++;
+    public AgentProcess()
+    {
+        id = "AgentProcess" + count++;
     }
 }

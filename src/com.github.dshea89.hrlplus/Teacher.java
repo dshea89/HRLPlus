@@ -1,711 +1,1118 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.IOException;
-import java.net.BindException;
-import java.net.InetAddress;
-import java.net.ServerSocket;
+import java.lang.String;
+import java.io.*;
+import java.net.*;
 import java.util.Vector;
 
-public class Teacher extends Agent {
+public class Teacher extends Agent
+{
+    /** The window for this agent*/
+
     AgentWindow window = new AgentWindow();
-    public String name_teacher = null;
+
+    /** The name of the teacher + :teacher */
+
+    public String name_teacher = null; //change this
+
+    /** The names of the students in the class. */
+
     public Vector student_names = new Vector();
+
+    /** The number of students in the class*/
+
     public int num_students;
+
+    /** The inet addresses of the students in the class. */
+
     Vector student_inetaddresses = new Vector();
-    public Request current_request = new Request("");
+
+    //Request current_request_clone = new Request();
+    //Vector discussion_vector_clone = new Vector();
+
+    /** The current request from the teacher */
+
+    public Request current_request = new Request("");//added
+
+
+    /** The set of objects received from the students. */
+
     public Vector received_objects = new Vector();
+
+    /** The number of independent theory formation steps the teacher
+     asks the students to make []set as flag */
+
+    //public int num_independent_steps = 10; //[change back to 20 or 100 - experiment if nec]
+
+    /** The default request which the teacher is making of the students
+     * (used at the beginning of the run, and when discussion comes to a
+     * halt) - to ask for a conjecture */
+
+
+    //the number of times that the teacher has requested the students to
+    //work
     public int num_requests_to_work = 0;
     public String type = "";
     public int num = 1;
     public String condition = "null";
     public Vector theory_constituent_vector = new Vector();
+
     public Conjecture conj = new Conjecture();
     public String attempted_method = "to get discussion started";
-    public Motivation motivation;
-    public Request default_request;
-    int number_requests_to_work;
-    GroupAgendaElement current_group_agenda_element;
-    public Vector current_responses;
-    public GroupAgenda group_agenda;
-    public int port;
+    public Motivation motivation = new Motivation(conj,attempted_method);
 
-    public Teacher() {
-        this.motivation = new Motivation(this.conj, this.attempted_method);
-        this.default_request = new Request(this.type, this.num, this.condition, this.theory_constituent_vector, this.motivation);
-        this.number_requests_to_work = 0;
-        this.current_group_agenda_element = new GroupAgendaElement();
-        this.current_responses = new Vector();
-        this.group_agenda = new GroupAgenda();
-        this.port = 8500;
+    //set the default request to a conjecture, to get the discussion started (the usual default request)
+    public Request default_request = new Request(type, num, condition, theory_constituent_vector, motivation);
+
+
+
+    //set the request to l-inc (for testing purposes)
+    //Request default_request = new Request();
+
+
+
+
+    /** The current request which the teacher is making of the students */
+
+    // public Request current_request = new Request();
+
+    /** The request to work independently which the teacher makes of the students */
+    //public Request request_to_work = new Request("work independently", hr.theory.lakatos.num_independent_steps);
+
+    /**the number of times the teacher has sent the request to work
+     independently */
+    int number_requests_to_work = 0;
+
+    /** The current group agenda element which the teacher uses to determine the current request */
+
+    GroupAgendaElement current_group_agenda_element = new GroupAgendaElement();
+
+    /** The current responses from the students to a particular request */
+
+    public Vector current_responses = new Vector();
+
+    /** The group agenda for the Teacher (students do not have one) */
+    public GroupAgenda group_agenda = new GroupAgenda();
+
+    /** The Teacher's port number */
+    public int port = 8500;
+
+
+    /** The basic constructor */
+    public Teacher()
+    {
     }
 
-    public Teacher(Vector var1, String var2, String var3) {
-        this.motivation = new Motivation(this.conj, this.attempted_method);
-        this.default_request = new Request(this.type, this.num, this.condition, this.theory_constituent_vector, this.motivation);
-        this.number_requests_to_work = 0;
-        this.current_group_agenda_element = new GroupAgendaElement();
-        this.current_responses = new Vector();
-        this.group_agenda = new GroupAgenda();
-        this.port = 8500;
-        this.name = var3;
-        this.name_teacher = "teacher: " + this.name;
-        this.initialiseHR(var2, this.name_teacher);
-        this.initialiseTeacher(var1, var2, var3);
+    /** This constructor for the teacher takes in a set of student names,
+     * a config file name and the name of the teacher. Note that at the
+     * moment the teacher is NOT considered a student when sending
+     * conjectures etc to file. [???]*/
+
+    public Teacher (Vector given_student_names, String configfilename, String given_name)
+    {
+        name = given_name;
+        name_teacher = "teacher: " + name;
+        initialiseHR(configfilename, name_teacher);
+        initialiseTeacher(given_student_names, configfilename, given_name);
     }
 
-    public Teacher(Vector var1, String var2, String var3, String var4) {
-        this.motivation = new Motivation(this.conj, this.attempted_method);
-        this.default_request = new Request(this.type, this.num, this.condition, this.theory_constituent_vector, this.motivation);
-        this.number_requests_to_work = 0;
-        this.current_group_agenda_element = new GroupAgendaElement();
-        this.current_responses = new Vector();
-        this.group_agenda = new GroupAgenda();
-        this.port = 8500;
-        this.name = var3;
-        this.name_teacher = "teacher: " + this.name;
-        this.initialiseHR(var2, this.name_teacher, var4);
-        this.initialiseTeacher(var1, var2, var3);
+    /** This constructor for the teacher takes in a set of student names,
+     * a config file name, the name of the teacher and the macro.
+     */
+
+    public Teacher (Vector given_student_names, String configfilename, String given_name, String macro)
+    {
+        name = given_name;
+        name_teacher = "teacher: " + name;
+        initialiseHR(configfilename, name_teacher, macro);
+        initialiseTeacher(given_student_names, configfilename, given_name);
     }
 
-    public void initialiseTeacher(Vector var1, String var2, String var3) {
-        this.window.setTitle(this.name_teacher);
-        this.window.port = this.port;
-        this.port = this.port;
-        this.student_names = var1;
-        this.determineInitialRequest();
-        this.student_names.removeElementAt(this.student_names.size() - 1);
-        this.num_students = this.student_names.size();
-        this.port = this.port;
 
-        while(this.server_socket == null) {
-            try {
-                this.server_socket = new ServerSocket(this.port);
-            } catch (BindException var7) {
-                this.port += 20;
-            } catch (IOException var8) {
-                this.window.writeToFrontEnd("IOException: can't make ServerSocker" + var8);
+
+    public void initialiseTeacher(Vector given_student_names, String configfilename, String given_name)
+    {
+        window.setTitle(name_teacher); //set the title of its window to its name
+        window.port = port;
+        this.port = port;
+        student_names = (Vector)given_student_names;
+
+        determineInitialRequest();
+
+        //take teacher's name out of vector of student_names - [MESSY]
+        student_names.removeElementAt(student_names.size()-1);
+
+        //determine how many students there are
+        num_students = student_names.size();
+
+
+        //create the teacher's ServerSocket(port). If address is already
+        //in use, try again with a port number of 20 more
+
+        port = port;
+
+        while(server_socket==null)
+        {
+
+            try
+            {
+                server_socket = new ServerSocket(port);
+            }
+
+            catch(BindException e)
+            {
+                port = port+20;
+            }
+
+            catch(IOException e)
+            {
+                window.writeToFrontEnd("IOException: can't make ServerSocker" + e);
             }
         }
 
-        InetAddress var4 = null;
+        InetAddress my_hostname = null;
 
-        try {
-            var4 = InetAddress.getByName(this.name);
-        } catch (Exception var6) {
-            System.out.println("Problem getting my_hostname: " + var6);
+        try
+        {
+            my_hostname = InetAddress.getByName(name);
         }
 
-        this.window.writeToFrontEnd("my name is :" + this.name);
-        this.window.writeToFrontEnd("my hostname is :" + var4);
-        this.window.writeToFrontEnd("my port is " + this.port);
-        this.window.writeToFrontEnd("student_names are " + this.student_names);
-        this.window.drawLine();
+        catch(Exception e)
+        {
+            System.out.println("Problem getting my_hostname: " + e);
+        }
+
+        window.writeToFrontEnd("my name is :" + name);
+        window.writeToFrontEnd("my hostname is :" + my_hostname);
+        window.writeToFrontEnd("my port is " + port);
+        window.writeToFrontEnd("student_names are " + student_names);
+        window.drawLine();
     }
 
-    public static void main(String[] var0) {
-        String var1 = var0[0];
-        String var2 = var0[1];
-        Vector var3 = new Vector();
-        int var4 = 2;
-        String var5 = new String();
-        if (var0.length >= 2) {
-            String var6 = var0[2];
-            if (var6.endsWith(".hrm")) {
-                var5 = var6;
-                ++var4;
+
+    public static void main(String args[])
+    {
+        String configfilename  = args[0];
+        String name = args[1];
+        Vector agent_names = new Vector();
+        int agents_start_at = 2;
+        String macro = new String();
+
+        if(args.length>=2)
+        {
+            String poss_macro = args[2];
+            if(poss_macro.endsWith(".hrm"))
+            {
+                macro = poss_macro;
+                agents_start_at++;
             }
         }
 
-        for(int var7 = var4; var7 < var0.length; ++var7) {
-            var3.addElement(var0[var7]);
+        for (int i=agents_start_at; i<args.length; i++)
+        {
+            agent_names.addElement(args[i]);
         }
 
-        new Teacher();
-        Teacher var8;
-        if (var5 == null) {
-            var8 = new Teacher(var3, var1, var2);
-        } else {
-            var8 = new Teacher(var3, var1, var2, var5);
-        }
 
-        var8.start();
+        Teacher teacher = new Teacher();
+        if(macro==null)
+            teacher = new Teacher(agent_names, configfilename, name);
+
+        else
+            teacher = new Teacher(agent_names, configfilename, name, macro);
+
+        teacher.start(); //starts run method
+
     }
 
-    public void run() {
-        this.getStudentInetAddresses(this.student_names);
-        boolean var1 = false;
 
-        while(!var1) {
-            if (this.hr.theory.step_counter >= 20) {
-                this.hr.theory.step_counter = 0;
-                var1 = true;
+    public void run()
+    {
+
+
+        getStudentInetAddresses(student_names);
+        //window.writeToFrontEnd("getStudentInetAddresses(" + student_names + ")");
+
+        //the teacher does an initital loop of 20 steps to start with
+        boolean finished_initial_loop = false;
+        while(finished_initial_loop==false)
+        {
+            if (hr.theory.step_counter >= 20)
+            {
+                hr.theory.step_counter = 0;
+                finished_initial_loop = true;
             }
         }
 
-        this.window.writeToFrontEnd("done initial loop");
-        this.window.writeToFrontEnd("hr.theory.use_monster_barring_check is " + this.hr.theory.use_monster_barring);
-        this.window.writeToFrontEnd("hr.theory.make_near_equivalences is " + this.hr.theory.make_near_equivalences);
-        this.window.writeToFrontEnd("hr.theory.use_communal_piecemeal_exclusion is " + this.hr.theory.use_communal_piecemeal_exclusion);
-        this.window.writeToFrontEnd("hr.theory.teacher_requests_nonexists is " + this.hr.theory.teacher_requests_nonexists);
-        this.window.writeToFrontEnd("hr.theory.use_lemma_incorporation_check is " + this.hr.theory.use_lemma_incorporation);
-        this.window.writeToFrontEnd("hr.theory.lakatos.num_independent_steps is " + this.hr.theory.lakatos.num_independent_steps);
-        this.window.drawLine();
-        if (this.hr.theory.use_lemma_incorporation) {
-            String var2 = this.hr.theory.front_end.force_conjecture_text.getText();
-            ProofScheme var3 = new ProofScheme(this.hr.theory, var2);
-            String var4 = this.hr.theory.front_end.macro_list.getSelectedItem();
-            System.out.println("Teacher: macro_chosen is " + var4);
-            System.out.println("proofscheme.conj is " + var3.conj.writeConjecture());
+
+        //fix code for communal_piecemeal_exclusion for Teacher
+        //hr.theory.use_communal_piecemeal_exclusion = false;//true
+        window.writeToFrontEnd("done initial loop");
+        window.writeToFrontEnd("hr.theory.use_monster_barring_check is " + hr.theory.use_monster_barring);
+
+        window.writeToFrontEnd("hr.theory.make_near_equivalences is " + hr.theory.make_near_equivalences);
+        window.writeToFrontEnd("hr.theory.use_communal_piecemeal_exclusion is " + hr.theory.use_communal_piecemeal_exclusion);
+        window.writeToFrontEnd("hr.theory.teacher_requests_nonexists is " + hr.theory.teacher_requests_nonexists);
+        window.writeToFrontEnd("hr.theory.use_lemma_incorporation_check is " + hr.theory.use_lemma_incorporation);
+
+        window.writeToFrontEnd("hr.theory.lakatos.num_independent_steps is " +  hr.theory.lakatos.num_independent_steps);
+
+
+
+
+        window.drawLine();
+
+        //testing starts here
+
+        if(hr.theory.use_lemma_incorporation)
+        {
+            String conjs_to_force = hr.theory.front_end.force_conjecture_text.getText();
+
+            ProofScheme proofscheme = new ProofScheme(hr.theory,conjs_to_force);
+
+            String macro_chosen = hr.theory.front_end.macro_list.getSelectedItem();
+            System.out.println("Teacher: macro_chosen is " + macro_chosen);
+
+            System.out.println("proofscheme.conj is " + proofscheme.conj.writeConjecture());
             System.out.println("proofscheme.proof_vector is: ");
-
-            for(int var5 = 0; var5 < var3.proof_vector.size(); ++var5) {
-                System.out.println(((Conjecture)var3.proof_vector.elementAt(var5)).writeConjecture());
+            for(int i=0;i<proofscheme.proof_vector.size();i++)
+            {
+                System.out.println(((Conjecture)proofscheme.proof_vector.elementAt(i)).writeConjecture());
             }
 
             System.out.println("I'm the teacher, and I'm starting reconstruct proofscheme here");
-            Conjecture var21 = var3.conj.reconstructConjecture(this.hr.theory, this.window);
-            System.out.println("Teacher: global conj is " + var21.writeConjecture());
-            System.out.println("Teacher: proofscheme.proof_vector.size() is " + var3.proof_vector.size());
 
-            for(int var6 = 0; var6 < var3.proof_vector.size(); ++var6) {
-                Conjecture var7 = (Conjecture)var3.proof_vector.elementAt(var6);
-                System.out.println("\n\n\nTeacher: ******at the moment we've got conjecture " + var6 + " is: " + var7.writeConjecture());
-                Conjecture var8 = var7.reconstructConjecture(this.hr.theory, this.window);
-                System.out.println("Teacher: ******local_conj " + var6 + " is: " + var8.writeConjecture());
+            Conjecture global_conj = (proofscheme.conj).reconstructConjecture(hr.theory, window);
+            System.out.println("Teacher: global conj is " + global_conj.writeConjecture());
+            System.out.println("Teacher: proofscheme.proof_vector.size() is " + proofscheme.proof_vector.size());
+
+            for(int i=0;i<proofscheme.proof_vector.size();i++)
+            {
+                Conjecture conjecture = (Conjecture)proofscheme.proof_vector.elementAt(i);
+                System.out.println("\n\n\nTeacher: ******at the moment we've got conjecture " + i + " is: " +  conjecture.writeConjecture());
+                Conjecture current_local_conj = conjecture.reconstructConjecture(hr.theory, window);
+
+                System.out.println("Teacher: ******local_conj " + i + " is: " + current_local_conj.writeConjecture());
                 System.out.println("\nTeacher: _____________________________________________\n");
             }
 
             System.out.println("Teacher: - DONE reconstructConjecture");
-            this.window.writeToFrontEnd(var3);
-            this.default_request.type = "proof scheme";
-            this.default_request.condition = "modifies";
-            Vector var23 = new Vector();
-            var23.addElement(var3);
-            this.default_request.theory_constituent_vector = var23;
-            this.default_request.motivation.attempted_method = "lemma-incorporation";
+
+            window.writeToFrontEnd(proofscheme);
+
+            default_request.type = "proof scheme";
+            default_request.condition = "modifies";
+            Vector vector_for_proofscheme = new Vector();
+            vector_for_proofscheme.addElement(proofscheme);
+            default_request.theory_constituent_vector = vector_for_proofscheme;
+            default_request.motivation.attempted_method = "lemma-incorporation";
+
         }
 
-        while(true) {
-            this.window.writeToFrontEnd("At the beginning of this loop, we have group agenda:");
-            this.window.writeToFrontEnd(this.group_agenda.agenda);
-            this.window.writeToFrontEnd("The discussion vector is:");
-            this.window.writeToFrontEnd(this.discussion_vector);
-            if (this.hr.theory.teacher_requests_nonexists) {
-                this.default_request.type = "NonExists";
+        //testing ends here
+
+
+        //omit as the students don't use each others' addresses
+        //makeCallToAllStudents(student_inetaddresses, student_inetaddresses); //send everyone the student inet addresses
+
+        while (true)
+        {
+            window.writeToFrontEnd("At the beginnining of this loop, we have group agenda:");
+            window.writeToFrontEnd(group_agenda.agenda);
+            window.writeToFrontEnd("The discussion vector is:");
+            window.writeToFrontEnd(discussion_vector);
+
+
+            //System.out.println("At the beginnining of this loop, we have group agenda:");
+            //System.out.println(group_agenda.agenda);
+            //System.out.println("The discussion vector is:");
+            //System.out.println(discussion_vector);
+
+
+            if(hr.theory.teacher_requests_nonexists)
+                default_request.type = "NonExists";
+            if(hr.theory.teacher_requests_implication)
+                default_request.type = "Implication";
+            if(hr.theory.teacher_requests_nearimplication)
+                default_request.type = "NearImplication";
+            if(hr.theory.teacher_requests_equivalence)
+                default_request.type = "Equivalence";
+            if(hr.theory.teacher_requests_nearequivalence)
+                default_request.type = "NearEquivalence";
+
+            if (!(group_agenda.agenda.isEmpty()))
+            {
+                Object object = (Object)group_agenda.agenda.elementAt(0);
+                window.writeQuietlyToFrontEnd("first element in agenda is " + group_agenda.agenda.elementAt(0) + " .... ");
+                if (object instanceof GroupAgendaStringElement)
+                    window.writeQuietlyToFrontEnd("... this is a GroupAgendaStringElement");
+
+                if (object instanceof GroupAgendaTheoryConstituentElement)
+                    window.writeQuietlyToFrontEnd("... this is a GroupAgendaTheoryConstituentElement");
+
+                if (object instanceof GroupAgendaVectorElement)
+                    window.writeToFrontEnd("... this is a GroupAgendaVectorElement");
+
+                if (object instanceof Request)
+                    window.writeQuietlyToFrontEnd("... this is a Request");
             }
 
-            if (this.hr.theory.teacher_requests_implication) {
-                this.default_request.type = "Implication";
+            window.writeQuietlyToFrontEnd("The current request is " + current_request);
+            window.writeQuietlyToFrontEnd("current_request.isEmpty() is: " + current_request.isEmpty());
+            window.writeQuietlyToFrontEnd("discussion vector: " + discussion_vector);
+            window.writeToFrontEnd("current_responses: " + current_responses);
+
+            //if group_agenda is empty, send request to run for n steps, and add the default request to the group_agenda
+            if ((group_agenda.agenda).isEmpty())
+            {
+                window.writeQuietlyToFrontEnd("nothing in group agenda at the moment: " + group_agenda.agenda);
+                Request request_to_work = new Request("work independently", hr.theory.lakatos.num_independent_steps);
+                makeCallToAllStudents(port, student_inetaddresses, request_to_work);
+                num_requests_to_work++;
+                current_request = (Request)default_request.clone();
+                group_file.writeToGroupFile("Teacher: " + current_request.toStringForFile());
+                (group_agenda.agenda).addElement(current_request);
             }
 
-            if (this.hr.theory.teacher_requests_nearimplication) {
-                this.default_request.type = "NearImplication";
-            }
+            //if the first element in the group_agenda is a request, send
+            //it to all the students, wait for their responses, sort their
+            //responses, send all students a list of their responses, and
+            //insert them into the group_agenda
 
-            if (this.hr.theory.teacher_requests_equivalence) {
-                this.default_request.type = "Equivalence";
-            }
+            else
+            if ((group_agenda.agenda).elementAt(0) instanceof Request)
+            {
+                current_request = (Request)(group_agenda.agenda).elementAt(0);
+                //remove element from open (group_agenda) and add to closed (disc_vector) when do something with it
+                (group_agenda.agenda).removeElementAt(0);
+                Request current_request_clone = (Request)current_request.clone();
+                discussion_vector.addElement(current_request_clone);
+                makeCallToAllStudents(port, student_inetaddresses, current_request);//needs work
+                listenForResponsesToCurrentRequest(server_socket, current_request, num_students, current_responses);
+                makeCallToAllStudents(port, student_inetaddresses, current_responses);
+                group_agenda.addResponsesToGroupAgenda(current_responses, window);//maybe switch order with below?
 
-            if (this.hr.theory.teacher_requests_nearequivalence) {
-                this.default_request.type = "NearEquivalence";
-            }
+                Vector req_to_resp = listenForRequestsToResponses1(server_socket, current_request, num_students);
+                window.writeQuietlyToFrontEnd("req_to_resp is " + req_to_resp);
 
-            if (!this.group_agenda.agenda.isEmpty()) {
-                Object var10 = this.group_agenda.agenda.elementAt(0);
-                this.window.writeQuietlyToFrontEnd("first element in agenda is " + this.group_agenda.agenda.elementAt(0) + " .... ");
-                if (var10 instanceof GroupAgendaStringElement) {
-                    this.window.writeQuietlyToFrontEnd("... this is a GroupAgendaStringElement");
-                }
 
-                if (var10 instanceof GroupAgendaTheoryConstituentElement) {
-                    this.window.writeQuietlyToFrontEnd("... this is a GroupAgendaTheoryConstituentElement");
-                }
-
-                if (var10 instanceof GroupAgendaVectorElement) {
-                    this.window.writeToFrontEnd("... this is a GroupAgendaVectorElement");
-                }
-
-                if (var10 instanceof Request) {
-                    this.window.writeQuietlyToFrontEnd("... this is a Request");
-                }
-            }
-
-            this.window.writeQuietlyToFrontEnd("The current request is " + this.current_request);
-            this.window.writeQuietlyToFrontEnd("current_request.isEmpty() is: " + this.current_request.isEmpty());
-            this.window.writeQuietlyToFrontEnd("discussion vector: " + this.discussion_vector);
-            this.window.writeToFrontEnd("current_responses: " + this.current_responses);
-            Request var15;
-            if (this.group_agenda.agenda.isEmpty()) {
-                this.window.writeQuietlyToFrontEnd("nothing in group agenda at the moment: " + this.group_agenda.agenda);
-                var15 = new Request("work independently", this.hr.theory.lakatos.num_independent_steps);
-                this.makeCallToAllStudents(this.port, this.student_inetaddresses, var15);
-                ++this.num_requests_to_work;
-                this.current_request = (Request)this.default_request.clone();
-                this.group_file.writeToGroupFile("Teacher: " + this.current_request.toStringForFile());
-                this.group_agenda.agenda.addElement(this.current_request);
-            } else if (this.group_agenda.agenda.elementAt(0) instanceof Request) {
-                this.current_request = (Request)this.group_agenda.agenda.elementAt(0);
-                this.group_agenda.agenda.removeElementAt(0);
-                var15 = (Request)this.current_request.clone();
-                this.discussion_vector.addElement(var15);
-                this.makeCallToAllStudents(this.port, this.student_inetaddresses, this.current_request);
-                this.listenForResponsesToCurrentRequest(this.server_socket, this.current_request, this.num_students, this.current_responses);
-                this.makeCallToAllStudents(this.port, this.student_inetaddresses, this.current_responses);
-                this.group_agenda.addResponsesToGroupAgenda(this.current_responses, this.window);
-                Vector var18 = this.listenForRequestsToResponses1(this.server_socket, this.current_request, this.num_students);
-                this.window.writeQuietlyToFrontEnd("req_to_resp is " + var18);
-
-                for(int var20 = 0; var20 < var18.size(); ++var20) {
-                    if (var18.elementAt(var20) instanceof Request) {
-                        Request var22 = (Request)var18.elementAt(var20);
-                        this.window.writeQuietlyToFrontEnd(var20 + "th item is a request");
-                        this.window.writeQuietlyToFrontEnd("group_agenda.agenda just now is " + this.group_agenda.agenda);
-                        if (!this.current_request.isEmpty()) {
-                            if (this.group_agenda.agenda.elementAt(0) instanceof Request) {
-                                Request var24 = (Request)this.group_agenda.agenda.elementAt(0);
-                                if (!var22.equals(var24)) {
-                                    this.group_agenda.agenda.insertElementAt(var22, 0);
-                                }
-                            } else {
-                                this.group_agenda.agenda.insertElementAt(var22, 0);
+                for (int i=0; i<req_to_resp.size(); i++)
+                {
+                    if(req_to_resp.elementAt(i) instanceof Request)
+                    {
+                        Request req = (Request)req_to_resp.elementAt(i);
+                        window.writeQuietlyToFrontEnd(i+"th item is a request");
+                        window.writeQuietlyToFrontEnd("group_agenda.agenda just now is " + group_agenda.agenda);
+                        if(!current_request.isEmpty())
+                        {
+                            //check that the req isn't already there
+                            //(to avoid duplicate requests in
+                            //monster-barring)
+                            if((group_agenda.agenda).elementAt(0) instanceof Request)
+                            {
+                                Request req_in_agenda = (Request)(group_agenda.agenda).elementAt(0);
+                                if (!(req.equals(req_in_agenda)))
+                                    (group_agenda.agenda).insertElementAt(req,0);
                             }
+                            else
+                                (group_agenda.agenda).insertElementAt(req,0);
                         }
-
-                        this.window.writeQuietlyToFrontEnd("group_agenda.agenda now is ");
-                        this.window.writeQuietlyToFrontEnd(this.group_agenda.agenda);
+                        window.writeQuietlyToFrontEnd("group_agenda.agenda now is ");
+                        window.writeQuietlyToFrontEnd(group_agenda.agenda);
                     }
-                }
-            } else if (this.group_agenda.agenda.elementAt(0) instanceof GroupAgendaStringElement) {
-                this.window.writeQuietlyToFrontEnd("first element is a GroupAgendaStringElement - taking it out of the agenda and putting it into the dv");
-                GroupAgendaStringElement var11 = (GroupAgendaStringElement)this.group_agenda.agenda.elementAt(0);
-                this.window.writeQuietlyToFrontEnd("first element is " + var11);
-                GroupAgendaStringElement var13 = new GroupAgendaStringElement(var11);
-                this.discussion_vector.addElement(var13);
-                if (var11.motivation.attempted_method.equals("monster-barring")) {
-                    this.window.writeQuietlyToFrontEnd("gase.motivation.attempted_method is m-b");
-                    this.current_group_agenda_element = (GroupAgendaElement)this.group_agenda.agenda.elementAt(0);
-                    this.group_agenda.agenda.removeElementAt(0);
-                    this.window.writeQuietlyToFrontEnd("going to determineCurrentRequest on " + this.current_group_agenda_element);
-                    this.determineCurrentRequest();
-                    this.window.writeQuietlyToFrontEnd("current_request is NOW " + this.current_request);
-                    if (!this.current_request.isEmpty()) {
-                        this.window.writeQuietlyToFrontEnd("!current_request.isEmpty() so just inserting into agenda");
-                        this.group_agenda.agenda.insertElementAt(this.current_request, 0);
-                    } else {
-                        boolean var19 = this.current_request.isEmpty();
-                        this.window.writeQuietlyToFrontEnd("current_request.isEmpty() is " + var19 + ", so not going to insert anything into agenda");
-                    }
-                } else {
-                    this.group_agenda.agenda.removeElementAt(0);
-                }
-            } else if (this.group_agenda.agenda.elementAt(0) instanceof GroupAgendaElement) {
-                this.current_group_agenda_element = (GroupAgendaElement)this.group_agenda.agenda.elementAt(0);
-                if (this.current_group_agenda_element instanceof GroupAgendaTheoryConstituentElement) {
-                    GroupAgendaTheoryConstituentElement var12 = (GroupAgendaTheoryConstituentElement)this.current_group_agenda_element;
-                    GroupAgendaTheoryConstituentElement var16 = new GroupAgendaTheoryConstituentElement(var12);
-                    this.discussion_vector.addElement(var16);
-                }
-
-                if (this.current_group_agenda_element instanceof GroupAgendaVectorElement) {
-                    GroupAgendaVectorElement var14 = (GroupAgendaVectorElement)this.current_group_agenda_element;
-                    GroupAgendaVectorElement var17 = new GroupAgendaVectorElement(var14);
-                    this.discussion_vector.addElement(var17);
-                }
-
-                this.group_agenda.agenda.removeElementAt(0);
-                this.determineCurrentRequest();
-                if (!this.current_request.isEmpty()) {
-                    this.group_agenda.agenda.insertElementAt(this.current_request, 0);
                 }
             }
 
-            try {
-                sleep(2000L);
-            } catch (Exception var9) {
-                ;
+            //if the first element in the group_agenda is a group agenda
+            //string element, take it out of the agenda and put it into
+            //the discussion vector [need adding to - send to the other
+            //students at least] - put into if loop below? (but need to
+            //work out how to deal with String elements which don't require
+            //a request - ie those which should just be taken out and put
+            //into dv and nothing else done...)
+
+            else
+            if ((group_agenda.agenda).elementAt(0) instanceof GroupAgendaStringElement)
+            {
+
+                window.writeQuietlyToFrontEnd("first element is a GroupAgendaStringElement - taking it out of the agenda and putting it into the dv");
+                GroupAgendaStringElement gase = (GroupAgendaStringElement)(group_agenda.agenda).elementAt(0);
+                window.writeQuietlyToFrontEnd("first element is " + gase);
+                GroupAgendaStringElement clone = new GroupAgendaStringElement(gase);
+                discussion_vector.addElement(clone);
+                //remove element from open (group_agenda) and add to closed (disc_vector) when do something with it
+                if(gase.motivation.attempted_method.equals("monster-barring"))
+                {
+
+                    window.writeQuietlyToFrontEnd("gase.motivation.attempted_method is m-b");
+                    current_group_agenda_element = (GroupAgendaElement)(group_agenda.agenda).elementAt(0);
+                    (group_agenda.agenda).removeElementAt(0);
+                    window.writeQuietlyToFrontEnd("going to determineCurrentRequest on " + current_group_agenda_element);
+                    determineCurrentRequest(); //work out what the teacher wants to request here
+                    window.writeQuietlyToFrontEnd("current_request is NOW " + current_request);
+                    if(!current_request.isEmpty())
+                    {
+                        window.writeQuietlyToFrontEnd("!current_request.isEmpty() so just inserting into agenda");
+                        (group_agenda.agenda).insertElementAt(current_request, 0);
+                    }
+                    else
+                    {
+                        boolean b = current_request.isEmpty();
+                        window.writeQuietlyToFrontEnd("current_request.isEmpty() is " + b + ", so not going to insert anything into agenda");
+
+                    }
+                }
+                else
+                    (group_agenda.agenda).removeElementAt(0);
             }
 
-            this.window.drawLine();
+            //if the first element in the group_agenda is a group agenda
+            //element (i.e. a tc - or vector of entities along with
+            //motivation), then take it out of agenda and put it into
+            //discussion vector, determine the current request and put
+            //that into the front of the group_agenda.
+            else
+            if ((group_agenda.agenda).elementAt(0) instanceof GroupAgendaElement)
+            {
+                current_group_agenda_element = (GroupAgendaElement)(group_agenda.agenda).elementAt(0);
+
+
+
+                if(current_group_agenda_element instanceof GroupAgendaTheoryConstituentElement)
+                {
+                    GroupAgendaTheoryConstituentElement gatce = (GroupAgendaTheoryConstituentElement)current_group_agenda_element;
+                    GroupAgendaTheoryConstituentElement clone = new GroupAgendaTheoryConstituentElement(gatce);
+                    discussion_vector.addElement(clone);
+                }
+
+                if(current_group_agenda_element instanceof GroupAgendaVectorElement)
+                {
+                    GroupAgendaVectorElement gave = (GroupAgendaVectorElement)current_group_agenda_element;
+                    GroupAgendaVectorElement clone = new GroupAgendaVectorElement(gave);
+                    discussion_vector.addElement(clone);
+                }
+                (group_agenda.agenda).removeElementAt(0);
+                determineCurrentRequest(); //work out what the teacher wants to request here
+                if(!current_request.isEmpty())
+                {
+                    (group_agenda.agenda).insertElementAt(current_request, 0);
+                }
+            }
+            try
+            {
+                sleep(2000);
+            }
+            catch (Exception e)
+            {
+            }
+            window.drawLine();
+
+            //stop the teacher thread from running
+            //hr.theory.stop_now = true;
         }
     }
 
-    public void determineCurrentRequest() {
-        this.window.writeQuietlyToFrontEnd("\n\n into determineCurrentRequest()");
-        this.window.writeQuietlyToFrontEnd("current_request is " + this.current_request);
-        this.window.writeQuietlyToFrontEnd("current_group_agenda_element is " + this.current_group_agenda_element + "\n\n");
-        new Request();
-        boolean var2 = false;
-        GroupAgendaTheoryConstituentElement var3;
-        Conjecture var4;
-        Vector var5;
-        if (this.hr.theory.use_communal_piecemeal_exclusion) {
-            Vector var18;
-            if (this.current_group_agenda_element instanceof GroupAgendaTheoryConstituentElement) {
-                this.window.writeToFrontEnd("got a GroupAgendaTheoryConstituentElement");
-                var3 = (GroupAgendaTheoryConstituentElement)this.current_group_agenda_element;
-                if (var3.theory_constituent instanceof Conjecture) {
-                    var4 = (Conjecture)var3.theory_constituent;
-                    if (var3.motivation.attempted_method.equals("to get discussion started")) {
-                        this.current_request.type = "Entity";
-                        this.current_request.num = 100;
-                        this.current_request.condition = "breaks";
-                        var5 = new Vector();
-                        var5.addElement(var4);
-                        this.current_request.theory_constituent_vector = var5;
-                        this.current_request.motivation.conjecture_under_discussion = var4;
-                        this.current_request.motivation.attempted_method = "communal piecemeal exclusion";
-                    }
 
-                    boolean var19 = this.motivation.conjecture_under_discussion.equals(var4);
-                    if (!var19) {
-                        this.current_request.type = "Entity";
-                        this.current_request.num = 100;
-                        this.current_request.condition = "breaks";
-                        Vector var6 = new Vector();
-                        var6.addElement(var4);
-                        this.current_request.theory_constituent_vector = var6;
-                        this.current_request.motivation.conjecture_under_discussion = var4;
-                        this.current_request.motivation.attempted_method = "communal piecemeal exclusion";
+    /** Given the current group agenda element, determine the next request to make of the students.
+     If use_communal_piecemeal_exclusion is true, follow procedure
+     - otherwise just ask for personal modifications */
+
+    public void determineCurrentRequest()
+    {
+        window.writeQuietlyToFrontEnd("\n\n into determineCurrentRequest()");
+        window.writeQuietlyToFrontEnd("current_request is " + current_request);
+        window.writeQuietlyToFrontEnd("current_group_agenda_element is " + current_group_agenda_element + "\n\n");
+        //hr.theory.use_communal_piecemeal_exclusion=false;//change to false for exception-barring egs.
+
+        Request current_request2 = new Request();
+        boolean written_to_group_file = false;
+
+        if(hr.theory.use_communal_piecemeal_exclusion==true)
+        {
+            if(current_group_agenda_element instanceof GroupAgendaTheoryConstituentElement)
+            {
+                window.writeToFrontEnd("got a GroupAgendaTheoryConstituentElement");
+                GroupAgendaTheoryConstituentElement current_group_agenda_tc_element = (GroupAgendaTheoryConstituentElement)current_group_agenda_element;
+                //if just got a conjecture then ask for counters - may need more work
+
+                if (current_group_agenda_tc_element.theory_constituent instanceof Conjecture)
+                {
+                    Conjecture conjecture_to_discuss = (Conjecture)current_group_agenda_tc_element.theory_constituent;
+
+                    if(current_group_agenda_tc_element.motivation.attempted_method.equals("to get discussion started"))
+                    {
+                        current_request.type = "Entity";
+                        current_request.num = 100;//another way of saying 'all'
+                        current_request.condition = "breaks";
+                        Vector conj_vector = new Vector();
+                        conj_vector.addElement(conjecture_to_discuss);
+                        current_request.theory_constituent_vector = conj_vector;
+                        current_request.motivation.conjecture_under_discussion = conjecture_to_discuss;
+                        current_request.motivation.attempted_method = "communal piecemeal exclusion";
+                    }
+                    boolean b = motivation.conjecture_under_discussion.equals(conjecture_to_discuss);
+
+                    if(!b)
+                    {
+                        //System.out.println("4) - this is where we want to be");
+                        current_request.type = "Entity";
+                        current_request.num = 100;//another way of saying 'all'
+                        current_request.condition = "breaks";
+                        Vector conj_vector = new Vector();
+                        conj_vector.addElement(conjecture_to_discuss);
+                        current_request.theory_constituent_vector = conj_vector;
+                        current_request.motivation.conjecture_under_discussion = conjecture_to_discuss;
+                        current_request.motivation.attempted_method = "communal piecemeal exclusion";
                     }
                 }
 
-                if (var3.theory_constituent instanceof Concept) {
-                    Concept var17 = (Concept)var3.theory_constituent;
-                    Conjecture var20 = this.current_request.motivation.conjecture_under_discussion;
-                    new Concept();
-                    new Concept();
-                    Concept var7;
-                    Concept var23;
-                    if (var20 instanceof Implication) {
-                        Implication var8 = (Implication)var20;
-                        var23 = var8.lh_concept;
-                        var7 = var8.rh_concept;
+
+
+                //if got a concept back then need to perform communal
+                //piecemeal exclusion [needs work] currently just
+                //assumes all counters on lhs rather than looking where
+                //they are - ie only works for near implications
+                if (current_group_agenda_tc_element.theory_constituent instanceof Concept)
+                {
+                    //window.writeToFrontEnd("got a concept");
+                    Concept concept_to_discuss = (Concept)current_group_agenda_tc_element.theory_constituent;
+
+                    //TheoryConstituent tc = concept_to_discuss.reconstructConcept(hr.theory);//test
+                    //Concept reconstructed_concept_to_discuss = (Concept)tc;
+
+                    Conjecture conj = current_request.motivation.conjecture_under_discussion;
+                    Concept left_concept = new Concept();
+                    Concept right_concept = new Concept();
+
+                    if (conj instanceof Implication)
+                    {
+                        Implication imp = (Implication)conj;
+                        left_concept = imp.lh_concept;
+                        right_concept = imp.rh_concept;
                     }
 
-                    if (var20 instanceof NearImplication) {
-                        NearImplication var25 = (NearImplication)var20;
-                        var23 = var25.lh_concept;
-                        var7 = var25.rh_concept;
+                    if (conj instanceof NearImplication)
+                    {
+                        NearImplication nimp = (NearImplication)conj;
+                        left_concept = nimp.lh_concept;
+                        right_concept = nimp.rh_concept;
+                    }
+                    if (conj instanceof Equivalence)
+                    {
+                        Equivalence equiv = (Equivalence)conj;
+                        left_concept = equiv.lh_concept;
+                        right_concept = equiv.rh_concept;
                     }
 
-                    if (var20 instanceof Equivalence) {
-                        Equivalence var27 = (Equivalence)var20;
-                        var23 = var27.lh_concept;
-                        var7 = var27.rh_concept;
+                    if (conj instanceof NearEquivalence)
+                    {
+                        NearEquivalence nequiv = (NearEquivalence)conj;
+                        left_concept = nequiv.lh_concept;
+                        right_concept = nequiv.rh_concept;
                     }
 
-                    if (var20 instanceof NearEquivalence) {
-                        NearEquivalence var29 = (NearEquivalence)var20;
-                        var23 = var29.lh_concept;
-                        var7 = var29.rh_concept;
-                    }
 
-                    this.current_request.type = "Conjecture";
-                    this.current_request.condition = "modifies";
-                    Vector var31 = new Vector();
-                    var31.addElement(var20);
-                    this.current_request.theory_constituent_vector = var31;
-                    this.current_request.motivation.conjecture_under_discussion = var20;
-                    this.current_request.motivation.attempted_method = "individual methods";
-                    this.group_agenda.removeElementsWithGivenMotivation(var20);
+
+                    /** get this working - T needs to be able to reconstruct concepts
+                     String agenda_line = "id_of_dummy = " + reconstructed_concept_to_discuss.id + " " + left_concept.id + " negate [] ";
+                     window.writeToFrontEnd("1 - agenda_line is " + agenda_line);
+                     hr.theory.agenda.addForcedStep(agenda_line, false);
+                     window.writeToFrontEnd("2 - ");
+                     Step forcedstep = hr.theory.guider.forceStep(agenda_line, hr.theory); //sometimes gives problems - see Guide L107
+                     window.writeToFrontEnd("3 - ");
+                     TheoryConstituent tc_output = forcedstep.result_of_step;
+                     window.writeToFrontEnd("4 - tc_output is " + tc_output.writeTheoryConstituent());
+
+                     Vector tc_vector = new Vector();
+                     if(tc_output instanceof Concept)
+                     {
+                     Concept new_concept = (Concept)tc_output;
+                     Equivalence output = new Equivalence(new_concept, right_concept, "dummy_id");
+                     tc_vector.addElement(output);
+                     window.writeToFrontEnd("5 - output is " + output.writeTheoryConstituent());
+                     }
+
+                     if(tc_output instanceof Conjecture)
+                     {
+                     Conjecture new_conj = (Conjecture)tc_output;
+                     tc_vector.addElement(new_conj);
+                     window.writeToFrontEnd("5 - new_conj is " + new_conj.writeTheoryConstituent());
+                     //group_agenda.agenda.addElement(new_conj);
+                     }
+
+                     **/
+
+                    //Teacher makes and sends back response herself
+
+                    /**  Response teachers_response = new Response(tc_vector, current_request);
+                     Vector teachers_response_vector = new Vector();
+                     teachers_response_vector.addElement(teachers_response);
+                     window.writeToFrontEnd("teachers_response_vector is " + teachers_response_vector);
+                     window.writeToFrontEnd("agenda BEFORE addResponses.. is " + group_agenda.agenda);
+                     group_agenda.addResponsesToGroupAgenda(teachers_response_vector);
+                     window.writeToFrontEnd("agenda AFTER addResponses.. is " + group_agenda.agenda); */
+                    //current_group_agenda_element = (GroupAgendaElement)(group_agenda.agenda).elementAt(0);
+                    //window.writeToFrontEnd("current_group_agenda_element is now " + current_group_agenda_element);
+                    //boolean t1 = current_group_agenda_element  instanceof GroupAgendaVectorElement;
+                    //boolean t2 = current_group_agenda_element  instanceof GroupAgendaTheoryConstituentElement;
+                    //window.writeToFrontEnd("current_group_agenda_element instanceof GroupAgendaVectorElement is " + t1);
+                    //window.writeToFrontEnd("current_group_agenda_element instanceof GroupAgendaTheoryConstituentElement is " + t2);
+                    //Motivation new_mot = current_request.motivation; - put back in - 12/04
+                    //current_request = new Request("Entity", 1, "performs communal piecemeal exclusion", tc_vector, new_mot); - 12/04
+		/*{
+		  current_request.type = "Conjecture";
+		  current_request.condition = "performs communal piecemeal exclusion";
+		  Vector concept_vector = new Vector();
+		  concept_vector.addElement(concept_to_discuss);
+		  current_request.theory_constituent_vector = concept_vector;
+		  */
+
+                    current_request.type = "Conjecture";
+                    current_request.condition = "modifies";
+
+                    Vector conj_vector = new Vector();
+                    conj_vector.addElement(conj);
+                    current_request.theory_constituent_vector = conj_vector;
+                    current_request.motivation.conjecture_under_discussion = conj;
+                    current_request.motivation.attempted_method = "individual methods";
+                    (group_agenda).removeElementsWithGivenMotivation(conj);
                 }
 
-                if (var3.theory_constituent instanceof Entity) {
-                    var18 = new Vector();
-                    var18.addElement((Entity)var3.theory_constituent);
-                    this.current_request.type = "Concept";
-                    this.current_request.condition = "covers";
-                    this.current_request.theory_constituent_vector = var18;
+
+                //thurs might here - debug here
+                if (current_group_agenda_tc_element.theory_constituent instanceof Entity)
+                {
+                    Vector vector_of_entities = new Vector();
+                    vector_of_entities.addElement((Entity)current_group_agenda_tc_element.theory_constituent);
+                    current_request.type = "Concept";
+                    current_request.condition = "covers";
+
+                    current_request.theory_constituent_vector = vector_of_entities;
                 }
             }
 
-            if (this.current_group_agenda_element instanceof GroupAgendaVectorElement) {
-                this.window.writeQuietlyToFrontEnd("****************************** got a GroupAgendaVectorElement");
-                GroupAgendaVectorElement var15 = (GroupAgendaVectorElement)this.current_group_agenda_element;
-                var18 = var15.vector;
-                this.window.writeQuietlyToFrontEnd("vector_of_entities is " + var18);
-                if (var15.vector.isEmpty()) {
-                    this.window.writeQuietlyToFrontEnd("the vector_of_entities is empty");
-                    this.current_request = new Request();
-                } else {
-                    this.current_request.type = "Concept";
-                    this.current_request.condition = "covers";
-                    this.current_request.theory_constituent_vector = var18;
+            //if just got a vector of counters then ask for a concept to cover them
+            if(current_group_agenda_element instanceof GroupAgendaVectorElement)
+            {
+                window.writeQuietlyToFrontEnd("****************************** got a GroupAgendaVectorElement");
+                GroupAgendaVectorElement current_group_agenda_vector_element = (GroupAgendaVectorElement)current_group_agenda_element;
+                Vector vector_of_entities = (Vector)current_group_agenda_vector_element.vector;
+                window.writeQuietlyToFrontEnd("vector_of_entities is " + vector_of_entities);
+                if(current_group_agenda_vector_element.vector.isEmpty())
+                {
+                    window.writeQuietlyToFrontEnd("the vector_of_entities is empty");
+                    current_request = new Request();
                 }
-            }
-        } else if (this.current_group_agenda_element instanceof GroupAgendaTheoryConstituentElement) {
-            this.window.writeQuietlyToFrontEnd("2) got a GroupAgendaTheoryConstituentElement");
-            var3 = (GroupAgendaTheoryConstituentElement)this.current_group_agenda_element;
-            if (var3.theory_constituent instanceof Conjecture) {
-                var4 = (Conjecture)var3.theory_constituent;
-                this.current_request.type = "Conjecture";
-                this.current_request.condition = "modifies";
-                var5 = new Vector();
-                var5.addElement(var4);
-                this.current_request.theory_constituent_vector = var5;
-                this.current_request.motivation.conjecture_under_discussion = var4;
-                this.current_request.motivation.attempted_method = "individual methods";
+                else
+                {
+                    current_request.type = "Concept";
+                    current_request.condition = "covers";
+                    current_request.theory_constituent_vector = vector_of_entities;
+                }
             }
         }
 
-        if (this.current_group_agenda_element instanceof Request) {
-            this.window.writeQuietlyToFrontEnd("got a Request");
+        else
+        if(current_group_agenda_element instanceof GroupAgendaTheoryConstituentElement)
+        {
+            window.writeQuietlyToFrontEnd("2) got a GroupAgendaTheoryConstituentElement");
+            GroupAgendaTheoryConstituentElement current_group_agenda_tc_element = (GroupAgendaTheoryConstituentElement)current_group_agenda_element;
+
+            if (current_group_agenda_tc_element.theory_constituent instanceof Conjecture)
+            {
+                Conjecture conjecture_to_discuss = (Conjecture)current_group_agenda_tc_element.theory_constituent;
+                current_request.type = "Conjecture";
+                current_request.condition = "modifies";
+
+                Vector conj_vector = new Vector();
+                conj_vector.addElement(conjecture_to_discuss);
+                current_request.theory_constituent_vector = conj_vector;
+                current_request.motivation.conjecture_under_discussion = conjecture_to_discuss;
+                current_request.motivation.attempted_method = "individual methods";
+            }
         }
 
-        if (this.current_group_agenda_element instanceof GroupAgendaStringElement) {
-            this.window.writeToFrontEnd("got a GroupAgendaStringElement");
-            GroupAgendaStringElement var16 = (GroupAgendaStringElement)this.current_group_agenda_element;
-            if (var16.motivation.attempted_method.equals("monster-barring")) {
-                int var21 = 0;
-                int var22 = 0;
-                if (var16.string.equals("reject proposal to bar entity")) {
-                    ++var21;
-                }
 
-                if (var16.string.equals("accept proposal to bar entity")) {
-                    ++var22;
-                }
+        if(current_group_agenda_element instanceof Request)
+        {
+            window.writeQuietlyToFrontEnd("got a Request");
+        }
 
-                this.window.writeToFrontEnd("going through agenda to look for other votes");
-                this.window.writeToFrontEnd("before looking, got votes_to_accept_entity is " + var21 + ", and votes_to_bar_entity is " + var22);
-                this.window.writeToFrontEnd("before looking, agenda is " + this.agenda);
+        if(current_group_agenda_element instanceof GroupAgendaStringElement)
+        {
+            window.writeToFrontEnd("got a GroupAgendaStringElement");
+            GroupAgendaStringElement cgase = (GroupAgendaStringElement)current_group_agenda_element;
 
-                for(int var24 = 0; var24 < this.group_agenda.agenda.size(); ++var24) {
-                    GroupAgendaElement var26 = (GroupAgendaElement)this.group_agenda.agenda.elementAt(var24);
-                    if (var26 instanceof GroupAgendaStringElement) {
-                        GroupAgendaStringElement var33 = (GroupAgendaStringElement)this.group_agenda.agenda.elementAt(0);
-                        if (var33.motivation.attempted_method.equals("monster-barring") && var33.motivation.entity_under_discussion.name.equals(var16.motivation.entity_under_discussion.name)) {
-                            this.window.writeToFrontEnd("gase is " + var33);
-                            if (var33.string.equals("reject proposal to bar entity")) {
-                                ++var21;
-                            }
+            //if current ga element is a vote about whether to
+            //perform monster-barring on a particular entity, then
+            //(1) look through group agenda for other m-b votes on
+            //the same entity, (2) take them all out of the group
+            //agenda, clone them and put into discussion vector,
+            //(3) count them and construct a request to either
+            //addEntityToTheory (if more vote to accept the
+            //entity) or removeEntityFromTheory (if more vote to
+            //bar the entity)
+            if(cgase.motivation.attempted_method.equals("monster-barring"))
+            {
+                int votes_to_accept_entity = 0;
+                int votes_to_bar_entity = 0;
 
-                            if (var33.string.equals("accept proposal to bar entity")) {
-                                ++var22;
-                            }
+                if(cgase.string.equals("reject proposal to bar entity"))
+                    votes_to_accept_entity++;
 
-                            GroupAgendaStringElement var9 = new GroupAgendaStringElement(var33);
-                            this.discussion_vector.addElement(var9);
-                            this.group_agenda.agenda.removeElementAt(var24);
-                            --var24;
+                if(cgase.string.equals("accept proposal to bar entity"))
+                    votes_to_bar_entity++;
+
+                window.writeToFrontEnd("going through agenda to look for other votes");
+                window.writeToFrontEnd("before looking, got votes_to_accept_entity is " + votes_to_accept_entity
+                        + ", and votes_to_bar_entity is " + votes_to_bar_entity);
+
+                window.writeToFrontEnd("before looking, agenda is " + agenda);
+
+                for (int i=0; i<group_agenda.agenda.size(); i++)
+                {
+                    GroupAgendaElement gae = (GroupAgendaElement)(group_agenda.agenda).elementAt(i);
+                    if(gae instanceof GroupAgendaStringElement)
+                    {
+                        GroupAgendaStringElement gase = (GroupAgendaStringElement)(group_agenda.agenda).elementAt(0);
+                        if(gase.motivation.attempted_method.equals("monster-barring")
+                                && gase.motivation.entity_under_discussion.name.equals(cgase.motivation.entity_under_discussion.name))
+                        {
+                            window.writeToFrontEnd("gase is " + gase);
+
+                            if(gase.string.equals("reject proposal to bar entity"))
+                                votes_to_accept_entity++;
+                            if(gase.string.equals("accept proposal to bar entity"))
+                                votes_to_bar_entity++;
+
+
+                            GroupAgendaStringElement clone = new GroupAgendaStringElement(gase);
+                            discussion_vector.addElement(clone);
+                            (group_agenda.agenda).removeElementAt(i);
+                            i--;
                         }
                     }
                 }
 
-                this.window.writeToFrontEnd("been through agenda to look for other votes");
-                this.window.writeToFrontEnd("votes_to_accept_entity is " + var21 + ", and  votes_to_bar_entity is " + var22);
-                this.window.writeQuietlyToFrontEnd("before looking, agenda is " + this.agenda);
-                boolean var30 = var21 >= var22;
-                this.window.writeToFrontEnd("votes_to_accept_entity >= votes_to_bar_entity is " + var30);
-                Vector var28 = new Vector();
-                var28.addElement(var16.motivation.entity_under_discussion);
-                if (var21 > var22) {
-                    this.window.writeToFrontEnd("votes_to_accept_entity >= votes_to_bar_entity");
-                    this.current_request.type = "";
-                    this.current_request.num = 0;
-                    this.current_request.condition = "";
-                    this.current_request.theory_constituent_vector = var28;
-                    this.current_request.motivation = var16.motivation;
-                    this.current_request.string_object = "perform addEntityToTheory";
-                } else {
-                    this.current_request.type = "";
-                    this.current_request.num = 0;
-                    this.current_request.condition = "";
-                    this.current_request.theory_constituent_vector = var28;
-                    this.current_request.motivation = var16.motivation;
-                    this.current_request.string_object = "perform downgradeEntityToPseudoEntity";
+                window.writeToFrontEnd("been through agenda to look for other votes");
+                window.writeToFrontEnd("votes_to_accept_entity is " + votes_to_accept_entity
+                        + ", and  votes_to_bar_entity is " + votes_to_bar_entity);
 
-                    for(int var34 = 0; var34 < this.current_request.theory_constituent_vector.size(); ++var34) {
-                        this.current_request.theory_constituent_vector.elementAt(var34);
-                    }
+                window.writeQuietlyToFrontEnd("before looking, agenda is " + agenda);
+                boolean votes = votes_to_accept_entity >= votes_to_bar_entity;
+                window.writeToFrontEnd("votes_to_accept_entity >= votes_to_bar_entity is " + votes);
 
-                    Request var35 = new Request();
-                    var35.type = "Entity";
-                    var35.num = 100;
-                    var35.condition = "breaks";
-                    Vector var32 = new Vector();
-                    Conjecture var10 = new Conjecture();
-                    this.window.writeToFrontEnd("the last element of the dv is " + this.discussion_vector.elementAt(this.discussion_vector.size() - 1));
-                    boolean var11 = this.discussion_vector.elementAt(this.discussion_vector.size() - 1) instanceof Request;
-                    boolean var12 = this.discussion_vector.elementAt(this.discussion_vector.size() - 1) instanceof GroupAgendaElement;
-                    this.window.writeToFrontEnd("got a Request is " + var11);
-                    this.window.writeToFrontEnd("got a GroupAgendaElement is " + var12);
-                    if (this.discussion_vector.elementAt(this.discussion_vector.size() - 1) instanceof Request) {
-                        Request var13 = (Request)this.discussion_vector.elementAt(this.discussion_vector.size() - 1);
-                        var10 = var13.motivation.conjecture_under_discussion;
-                    }
+                Vector entity_vector = new Vector();
+                entity_vector.addElement(cgase.motivation.entity_under_discussion);
 
-                    if (this.discussion_vector.elementAt(this.discussion_vector.size() - 1) instanceof GroupAgendaElement) {
-                        GroupAgendaElement var36 = (GroupAgendaElement)this.discussion_vector.elementAt(this.discussion_vector.size() - 1);
-                        var10 = var36.motivation.conjecture_under_discussion;
-                    }
+                if (votes_to_accept_entity > votes_to_bar_entity)
+                //to do  - decide what the default choice is, if votes_to_accept_entity = votes_to_bar_entity
+                {
+                    window.writeToFrontEnd("votes_to_accept_entity >= votes_to_bar_entity");
+                    current_request.type = "";
+                    current_request.num = 0;
+                    //current_request.condition = "perform addEntityToTheory";
+                    current_request.condition = "";
+                    current_request.theory_constituent_vector = entity_vector;
+                    current_request.motivation = cgase.motivation;
+                    current_request.string_object = "perform addEntityToTheory";
+                    //String string_object = "";
+                    //int num_steps;
 
-                    this.window.writeToFrontEnd("conj_to_add is " + var10.writeConjecture());
-                    var32.addElement(var10);
-                    var35.theory_constituent_vector = var32;
-                    var35.motivation.attempted_method = "communal piecemeal exclusion";
 
-                    for(int var37 = 0; var37 < var28.size(); ++var37) {
-                        Entity var14 = (Entity)var28.elementAt(var37);
-                        this.group_agenda.removeElementsWithConjecture(var10, this.window);
-                    }
-
-                    this.group_agenda.agenda.insertElementAt(var35, 0);
-                    this.window.writeToFrontEnd("FRIDAY -- just inserted " + var35 + "into the agenda");
+                    //current_request = new Request("", 0, "perform addEntityToTheory", entity_vector, cgase.motivation);
+                    //may want to take out other requests in group_agenda.agenda to monster-bar the entity
                 }
+                else
+                {
+                    current_request.type = "";
+                    current_request.num = 0;
+                    //current_request.condition = "perform removeEntityFromTheory";
+                    current_request.condition = "";
+                    current_request.theory_constituent_vector = entity_vector;
+                    current_request.motivation = cgase.motivation;
+                    current_request.string_object = "perform downgradeEntityToPseudoEntity";
 
-                this.window.writeQuietlyToFrontEnd("2) current_request after collecting votes is " + this.current_request.toString());
-                this.group_file.writeToGroupFile("Teacher: We'll decide democratically with the default being that " + var16.motivation.entity_under_discussion.name + " is a monster. Can you all " + this.current_request.toStringForFile());
-                var2 = true;
+                    for(int i=0;i<current_request.theory_constituent_vector.size();i++)
+                    {
+                        Object o = (Object)current_request.theory_constituent_vector.elementAt(i);
+                    }
+                    //maybe here - need to go through agenda and remove
+                    //the entity which the teacher has just told the
+                    //students to downgrade -- thurs night.
+
+                    /** testing starts here */
+
+                    Request additional_request = new Request();
+                    additional_request.type = "Entity";
+                    additional_request.num = 100;//another way of saying 'all'
+                    additional_request.condition = "breaks";
+                    Vector conj_vector = new Vector();
+
+                    Conjecture conj_to_add = new Conjecture();
+                    window.writeToFrontEnd("the last element of the dv is "
+                            + discussion_vector.elementAt(discussion_vector.size()-1));
+
+                    boolean b1 = discussion_vector.elementAt(discussion_vector.size()-1) instanceof Request;
+                    boolean b2 = discussion_vector.elementAt(discussion_vector.size()-1) instanceof GroupAgendaElement;
+
+                    window.writeToFrontEnd("got a Request is " + b1);
+                    window.writeToFrontEnd("got a GroupAgendaElement is " + b2);
+
+                    if(discussion_vector.elementAt(discussion_vector.size()-1) instanceof Request)
+                    {
+
+                        Request req = (Request)discussion_vector.elementAt(discussion_vector.size()-1);
+                        conj_to_add = req.motivation.conjecture_under_discussion;
+
+                    }
+
+                    if(discussion_vector.elementAt(discussion_vector.size()-1) instanceof GroupAgendaElement)
+                    {
+                        GroupAgendaElement gae = (GroupAgendaElement)discussion_vector.elementAt(discussion_vector.size()-1);
+                        conj_to_add =  gae.motivation.conjecture_under_discussion;
+
+                    }
+
+
+                    window.writeToFrontEnd("conj_to_add is " + conj_to_add.writeConjecture());
+
+                    conj_vector.addElement(conj_to_add);//current_request.motivation.conjecture_under_discussion
+                    additional_request.theory_constituent_vector = conj_vector;
+                    additional_request.motivation.attempted_method = "communal piecemeal exclusion";
+
+
+                    /** testing ends here */
+
+
+                    //need to take out all counters to the conj
+                    // current_request = new Request("", 0, "perform removeEntityFromTheory", entity_vector, cgase.motivation);
+                    for(int i=0; i<entity_vector.size();i++)
+                    {
+                        Entity entity_to_remove = (Entity)entity_vector.elementAt(i);
+                        //group_agenda.removeEntity(entity_to_remove, window);
+                        group_agenda.removeElementsWithConjecture(conj_to_add, window);
+
+                    }
+
+                    (group_agenda.agenda).insertElementAt(additional_request,0);
+                    window.writeToFrontEnd("FRIDAY -- just inserted " + additional_request + "into the agenda");
+
+                }
+                window.writeQuietlyToFrontEnd("2) current_request after collecting votes is " + current_request.toString());
+
+                group_file.writeToGroupFile("Teacher: We'll decide democratically with the default being that " +
+                        cgase.motivation.entity_under_discussion.name + " is a monster. Can you all "+ current_request.toStringForFile());
+                written_to_group_file = true;
             }
         }
-
-        if (!var2 && !this.current_request.type.equals("")) {
-            this.group_file.writeToGroupFile("Teacher: " + this.current_request.toStringForFile());
-        }
-
-    }
-
-    public void orderResponses(Vector var1) {
-        new Vector();
-
-        for(int var3 = 0; var3 < var1.size(); ++var3) {
-            var1.elementAt(var3);
-        }
+        if(!written_to_group_file)
+            if(!(current_request.type.equals("")))
+                group_file.writeToGroupFile("Teacher: " + current_request.toStringForFile());
 
     }
 
-    public Vector combineResponses(Vector var1) {
-        Vector var2 = new Vector();
 
-        for(int var3 = 0; var3 < var1.size(); ++var3) {
-            Response var4 = (Response)var1.elementAt(var3);
-            Vector var5 = var4.response_vector;
-            if (!var5.isEmpty() && var5.elementAt(0) instanceof Entity) {
-                for(int var6 = 0; var6 < var5.size(); ++var6) {
-                    Entity var7 = (Entity)var5.elementAt(var6);
-                    var2.addElement(var7);
+    /** Given a vector of responses to a request, order it best first */
+
+    public void orderResponses(Vector responses)
+    {
+        Vector ordered_responses = new Vector();
+
+        for(int i=0; i<responses.size(); i++)
+        {
+            responses.elementAt(i);
+        }
+    }
+
+    /** Given a vector of responses to a request, combine the
+     * responses and return the resulting vector. This is used for
+     * combining everyone's the counters to a conjecture  */
+
+    public Vector combineResponses(Vector responses)
+    {
+        Vector combined_responses = new Vector();
+
+        for(int i=0; i<responses.size();i++)
+        {
+            Response current_response = (Response)responses.elementAt(i);
+
+            Vector curr_resp_vector = current_response.response_vector;
+            if (!(curr_resp_vector.isEmpty()))
+
+                if (curr_resp_vector.elementAt(0) instanceof Entity)
+                {
+                    for(int j=0; j<curr_resp_vector.size(); j++)
+                    {
+                        Entity entity_to_add = (Entity)curr_resp_vector.elementAt(j);
+                        combined_responses.addElement(entity_to_add);
+                    }
                 }
+        }
+
+        return combined_responses;
+    }
+
+
+
+
+
+
+    // teacher sorts its received conjectures - should return a
+    // SortableVector of conjectures - best first//
+
+    public Conjecture sortReceivedConjectures(Vector received_conjectures)
+    {
+        SortableVector sortable_vector = new SortableVector();
+        for (int i=0; i<received_conjectures.size(); i++)
+        {
+            Conjecture conj = (Conjecture)received_conjectures.elementAt(i);
+            sortable_vector.addElement(conj, "interestingness");
+        }
+        received_objects.removeElementAt(sortable_vector.size()-1);
+        return (Conjecture)sortable_vector.lastElement();
+    }
+
+
+    /** Given a vector of student names, adds each student's InetAddress
+     to the vector student_inetaddresses, where each is followed by
+     their host number (stored as a String).  eg. student_inetaddresses
+     = [lenny_inet_address, 8000, lisa_inet_address, 8001] */
+
+    public void getStudentInetAddresses(Vector student_names)
+    {
+
+        for(int i=0; i<student_names.size(); i++)
+        {
+            String current_student = (String)student_names.elementAt(i);
+            int index = current_student.indexOf(':');
+            String current_student_name = current_student.substring(0,index);
+            String current_student_port_string = current_student.substring(index+1);
+
+            InetAddress student_hostname = null;
+
+            try
+            {
+                student_hostname = InetAddress.getByName(current_student_name);
+                student_inetaddresses.addElement(student_hostname);
+                student_inetaddresses.addElement(current_student_port_string);
+            }
+
+            catch(Exception e)
+            {
+                System.out.println("Problem getting LocalHost: " + e);
             }
         }
-
-        return var2;
     }
 
-    public Conjecture sortReceivedConjectures(Vector var1) {
-        SortableVector var2 = new SortableVector();
 
-        for(int var3 = 0; var3 < var1.size(); ++var3) {
-            Conjecture var4 = (Conjecture)var1.elementAt(var3);
-            var2.addElement(var4, "interestingness");
-        }
+    //****************************************************************************************************
 
-        this.received_objects.removeElementAt(var2.size() - 1);
-        return (Conjecture)var2.lastElement();
-    }
 
-    public void getStudentInetAddresses(Vector var1) {
-        for(int var2 = 0; var2 < var1.size(); ++var2) {
-            try {
-                String var3 = (String) var1.elementAt(var2);
-                int var4 = var3.indexOf(58);
-                String var5 = var3.substring(0, var4);
-                String var6 = var3.substring(var4 + 1);
-                InetAddress var7 = null;
+    // teacher determines focus of discussion - same as determineCurrentRequest//
+    public Vector determineFocus(Vector received_objects)
+    {
+        Vector focus =  new Vector();
+        Object object_to_discuss = "";
+        String required_type = "";
+        String request = "";
 
-                try {
-                    var7 = InetAddress.getByName(var5);
-                    this.student_inetaddresses.addElement(var7);
-                    this.student_inetaddresses.addElement(var6);
-                } catch (Exception var9) {
-                    System.out.println("Problem getting LocalHost: " + var9);
-                }
-            } catch (Exception e) {
-                System.out.println("Problem getting student: " + e.getMessage());
-            }
-        }
-    }
+        //if got conjectures, pick the most interesting and request counters
 
-    public Vector determineFocus(Vector var1) {
-        Vector var2 = new Vector();
-        Object var3 = "";
-        String var4 = "";
-        String var5 = "";
-        if (var1.isEmpty()) {
+        if (received_objects.isEmpty())
+        {
             return new Vector();
-        } else {
-            Object var6 = var1.elementAt(0);
-            if (var6 instanceof Conjecture) {
-                Conjecture var7 = this.sortReceivedConjectures(var1);
-                var3 = var7;
-                var4 = "Entity";
-                var5 = "breaks conjecture";
-            }
-
-            if (var6 instanceof Entity) {
-                var3 = "counters";
-                var4 = "Concept";
-                var5 = "covers counters";
-            }
-
-            if (var6 instanceof Concept) {
-                ;
-            }
-
-            var2.addElement(var3);
-            var2.addElement(var4);
-            var2.addElement(var5);
-            return var2;
         }
+
+        Object received_object = received_objects.elementAt(0);
+
+        if (received_object instanceof Conjecture)
+        {
+            Conjecture most_interesting_conj =
+                    sortReceivedConjectures(received_objects);
+
+            //sort into best first and take first
+
+            object_to_discuss = most_interesting_conj;
+            required_type = "Entity";
+            request = "breaks conjecture";
+        }
+
+        if (received_object instanceof Entity)
+        {
+            object_to_discuss = "counters";
+            required_type = "Concept";
+            request = "covers counters";
+        }
+
+        if (received_object instanceof Concept)
+        {
+            // need to find the concept which covers the most
+            // counters (or is the most interesting) and perform concept-barring
+        }
+
+        focus.addElement(object_to_discuss);
+        focus.addElement(required_type);
+        focus.addElement(request);
+        return focus;
     }
 
-    public ProofScheme constructProofScheme() {
-        Conjecture var1 = new Conjecture();
-        Conjecture var2 = new Conjecture();
-        Vector var3 = new Vector();
 
-        for(int var4 = 0; var4 < this.hr.theory.conjectures.size(); ++var4) {
-            Conjecture var5 = (Conjecture)this.hr.theory.conjectures.elementAt(var4);
-            if (var5.id.equals("2")) {
-                var1 = var5;
-            }
+  /*
+  public void printing(Vector vector)
+  {
 
-            if (var5.id.equals("6")) {
-                var2 = var5;
-            }
+    AgentWindow ag = this.window;
+    ag.writeToFrontEnd(vector);
+  }
+  */
+
+    /** test -- monday. Usally this would read from the macro and
+     * construct a proof scheme from that. It should possibly be in
+     * UserFunctions */
+
+    public ProofScheme constructProofScheme()
+    {
+        Conjecture main_conj = new Conjecture();
+        Conjecture conj_step1 = new Conjecture();
+        Vector v = new Vector();
+
+        for(int i=0; i<hr.theory.conjectures.size();i++)
+        {
+            Conjecture c = (Conjecture)hr.theory.conjectures.elementAt(i);
+            if (c.id.equals("2"))
+                main_conj = c;
+            if (c.id.equals("6"))
+                conj_step1 = c;
+
         }
 
-        String var7 = new String();
-        ProofSchemeElement var8 = new ProofSchemeElement(var7, var2);
-        var3.addElement(var8);
-        ProofScheme var6 = new ProofScheme(var1, var3);
-        return var6;
+        String agenda_line = new String();
+
+
+        ProofSchemeElement step1 = new ProofSchemeElement(agenda_line, conj_step1);
+        v.addElement(step1);
+        ProofScheme proof_scheme = new ProofScheme(main_conj, v);
+
+        return proof_scheme;
     }
 
-    public void determineInitialRequest() {
-        if (this.hr.theory.teacher_requests_conjectures) {
-            this.default_request.type = "Conjecture";
-        }
+    public void determineInitialRequest()
+    {
+        //determine the default_request
 
-        if (this.hr.theory.teacher_requests_nonexists) {
-            this.default_request.type = "NonExists";
-        }
-
-        if (this.hr.theory.teacher_requests_implication) {
-            this.default_request.type = "Implication";
-        }
-
-        if (this.hr.theory.teacher_requests_nearimplication) {
-            this.default_request.type = "NearImplication";
-        }
-
-        if (this.hr.theory.teacher_requests_equivalence) {
-            this.default_request.type = "Equivalence";
-        }
-
-        if (this.hr.theory.teacher_requests_nearequivalence) {
-            this.default_request.type = "NearEquivalence";
-        }
-
+        if(hr.theory.teacher_requests_conjectures)
+            default_request.type = "Conjecture";
+        if(hr.theory.teacher_requests_nonexists)
+            default_request.type = "NonExists";
+        if(hr.theory.teacher_requests_implication)
+            default_request.type = "Implication";
+        if(hr.theory.teacher_requests_nearimplication)
+            default_request.type = "NearImplication";
+        if(hr.theory.teacher_requests_equivalence)
+            default_request.type = "Equivalence";
+        if(hr.theory.teacher_requests_nearequivalence)
+            default_request.type = "NearEquivalence";
+        //end
     }
 }

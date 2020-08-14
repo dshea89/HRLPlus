@@ -1,46 +1,63 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.io.Serializable;
+import java.lang.String;
+import java.io.*;
 
-public class GroupFile extends Thread implements Serializable {
+/** The group file which everyone writes to */
+
+public class GroupFile extends Thread implements Serializable
+{
+    /** The group file name*/
     String group_file_name = "group-file";
 
-    public GroupFile() {
+    /** The constructor */
+    public GroupFile ()
+    {
     }
 
-    public GroupFile(String var1) {
-        this.group_file_name = this.group_file_name;
+    public GroupFile (String group_file)
+    {
+        this.group_file_name = group_file_name;
     }
 
-    public void writeToGroupFile(String var1) {
-        System.out.println("writeToGroupFile: " + var1);
-        if (!AgentOutputPanel.group_file_text.getText().equals("")) {
-            this.group_file_name = AgentOutputPanel.group_file_text.getText();
-        }
+    public void writeToGroupFile(String string)
+    {
+        System.out.println("writeToGroupFile: " + string);
 
-        boolean var2 = false;
+        if(!((AgentOutputPanel.group_file_text.getText()).equals("")))
+            group_file_name = AgentOutputPanel.group_file_text.getText();
 
-        while(!var2) {
-            try {
-                PrintWriter var3 = new PrintWriter(new BufferedWriter(new FileWriter(this.group_file_name, true)));
-                var3.println(var1 + "\n");
-                var3.close();
-                var2 = true;
+        boolean written = false;
+
+        //  //wrap the string
+//     for(int i=70; i<string.length();i+70)
+//       {
+// 	for(int j=)
+//       }
+
+
+        while(!(written))
+        {
+            try
+            {
+                PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(group_file_name, true)));
+                out.println(string + "\n");
+                out.close();
+                written = true;
                 break;
-            } catch (Exception var5) {
-                System.out.println(var5);
-
-                try {
-                    sleep(50L);
-                } catch (Exception var4) {
-                    ;
-                }
+            }
+            catch(Exception e)
+            {
+                System.out.println(e);
+            }
+            try
+            {
+                sleep(50);
+            }
+            catch (Exception e)
+            {
             }
         }
-
         System.out.println("done writeToGroupFile");
     }
 }

@@ -6,14 +6,14 @@ public class GroupAgendaStringElement extends GroupAgendaElement {
     public GroupAgendaStringElement() {
     }
 
-    public GroupAgendaStringElement(GroupAgendaStringElement var1) {
-        this.string = var1.string;
-        this.motivation = var1.motivation;
+    public GroupAgendaStringElement(GroupAgendaStringElement groupAgendaStringElement) {
+        this.string = groupAgendaStringElement.string;
+        this.motivation = groupAgendaStringElement.motivation;
     }
 
-    public GroupAgendaStringElement(String var1, Motivation var2) {
-        this.string = var1;
-        this.motivation = var2;
+    public GroupAgendaStringElement(String string, Motivation motivation) {
+        this.string = string;
+        this.motivation = motivation;
     }
 
     public String toString() {

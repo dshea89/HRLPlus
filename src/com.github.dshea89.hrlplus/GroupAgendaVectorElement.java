@@ -2,56 +2,79 @@ package com.github.dshea89.hrlplus;
 
 import java.util.Vector;
 
-public class GroupAgendaVectorElement extends GroupAgendaElement {
+// File:    GroupAgendaVectorElement.java
+// Author:  Alison Pease <alisonp@dai.ed.ac.uk>
+// Created: 19/01/2003
+// Updated: <>
+
+/**
+ * <b>Description:</b><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ * &nbsp;
+ * @author <a href="mailto:alisonp@dai.ed.ac.uk">Alison Pease</a>
+ * @version 1.0, 19/01/2003
+ */
+public class GroupAgendaVectorElement extends GroupAgendaElement
+{
+
     Vector vector = new Vector();
 
-    public GroupAgendaVectorElement() {
+    /** The default constructor */
+
+    public GroupAgendaVectorElement()
+    {
+
     }
 
-    public GroupAgendaVectorElement(GroupAgendaVectorElement var1) {
-        this.vector = var1.vector;
+    public GroupAgendaVectorElement(GroupAgendaVectorElement gave)
+    {
+        this.vector = gave.vector;
     }
 
-    public GroupAgendaVectorElement(Vector var1, Motivation var2) {
-        this.vector = var1;
-        this.motivation = var2;
+    /** This has a vector (which will contain entities of the theory)
+     * and a motivation (for why the vector was wanted) */
+
+    public GroupAgendaVectorElement(Vector vector, Motivation motivation)
+    {
+        this.vector = vector;
+        this.motivation = motivation;
     }
 
-    public boolean equals(GroupAgendaVectorElement var1) {
-        boolean var2 = true;
-        if (!this.vector.equals(var1.vector)) {
-            var2 = false;
-            return false;
-        } else if (!this.motivation.equals(this.motivation)) {
-            var2 = false;
-            return false;
-        } else {
-            return var2;
+    public boolean equals(GroupAgendaVectorElement gave)
+    {
+        boolean verdict = true;
+
+        if (!((this.vector).equals(gave.vector)))
+            return (verdict = false);
+
+
+        if (!((this.motivation).equals(motivation)))
+            return (verdict = false);
+
+        return verdict;
+    }
+
+    public String toString()
+    {
+        String return_string = "";
+
+        for(int i=0; i<vector.size(); i++)
+        {
+            if (vector.elementAt(i) instanceof Concept)
+                return_string = return_string+((Concept)vector.elementAt(i)).writeDefinition("ascii");
+
+            if (vector.elementAt(i) instanceof Conjecture)
+                return_string = return_string+((Conjecture)vector.elementAt(i)).writeConjecture("ascii");
+
+            if (vector.elementAt(i) instanceof Entity)
+                return_string = return_string+((Entity)vector.elementAt(i)).toString();
+
+            else
+                return_string = (String)((Object)vector.elementAt(i)).toString();
+
+            return_string = return_string+" , ";
         }
-    }
 
-    public String toString() {
-        String var1 = "";
-
-        for(int var2 = 0; var2 < this.vector.size(); ++var2) {
-            if (this.vector.elementAt(var2) instanceof Concept) {
-                var1 = var1 + ((Concept)this.vector.elementAt(var2)).writeDefinition("ascii");
-            }
-
-            if (this.vector.elementAt(var2) instanceof Conjecture) {
-                var1 = var1 + ((Conjecture)this.vector.elementAt(var2)).writeConjecture("ascii");
-            }
-
-            if (this.vector.elementAt(var2) instanceof Entity) {
-                var1 = var1 + ((Entity)this.vector.elementAt(var2)).toString();
-            } else {
-                var1 = this.vector.elementAt(var2).toString();
-            }
-
-            var1 = var1 + " , ";
-        }
-
-        var1 = var1 + this.motivation.toString();
-        return var1;
+        return_string =  return_string + this.motivation.toString();
+        return return_string;
     }
 }

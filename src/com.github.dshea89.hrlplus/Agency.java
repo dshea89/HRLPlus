@@ -1,85 +1,142 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.File;
-import java.net.InetAddress;
+import java.lang.String;
+import java.io.*;
 import java.util.Vector;
 
-public class Agency {
+/** The top level class in which the HR students are created and set
+ *  running on the computers which are input as arguments.
+ */
+
+public class Agency
+{
+
+    /** the vector of processes
+     */
     public Vector processes = new Vector();
+
+    /** the homedirectory
+     */
     public String homedir = "";
+
+    /** the path to the agent files
+     */
     public String remote_HR_path = "";
+
+    /** A string of the agent names
+     */
     public String agent_names = "";
 
-    public Agency() {
+    /** a simple constructor for Agency
+     */
+    public Agency ()
+    {
     }
 
-    public static void main(String[] var0) {
-        Agency var1 = new Agency();
-        var1.parseArgs(var0);
-        var1.getHomeDir();
-        var1.remote_HR_path = var1.homedir + "/hr/agency";
-        File var2 = new File(var1.remote_HR_path);
-        if (!var2.exists()) {
-            var2.mkdir();
-        }
+    /** In main we create a new agency, check that arguments have been
+     * input, make files for each agent in ~/hr/agency, and start the
+     * processes running
+     */
 
-        var1.createAndStartProcesses(var0);
+    public static void main(String[] args)
+    {
+
+        Agency agency = new Agency();//create a new Agency object
+
+        agency.parseArgs(args);
+        agency.getHomeDir();
+        agency.remote_HR_path = agency.homedir + "/hr/agency"; //set path for agency file to ~/hr/agency
+        File f = new File(agency.remote_HR_path);
+        if (!f.exists())
+            f.mkdir();
+        agency.createAndStartProcesses(args);
     }
 
-    public void parseArgs(String[] var1) {
-        if (var1.length == 0) {
+    /** If no arguments are input in then print error message and exit the program
+     */
+    public void parseArgs(String[] args)
+    {
+        if (args.length ==0)
+        {
             System.out.println("You need to input the names of the computers ");
             System.out.println("on which you wish to run HR,");
             System.out.println("i.e. agency <hostname1> [<hostname2>...]");
             System.exit(-1);
         }
-
     }
 
-    public void getHomeDir() {
-        try {
-            this.homedir = System.getProperty("user.home");
-        } catch (SecurityException var2) {
+
+    /** Gets the home directory of the user
+     */
+    public void getHomeDir()
+    {
+        try
+        {
+            homedir = System.getProperty("user.home");
+        }
+        catch (SecurityException e)
+        {
             System.out.println("Problem reading user home directory");
             System.exit(-1);
         }
-
     }
 
-    public void createAndStartProcesses(String[] var1) {
-        String var2 = "";
-        int var3;
-        if (var1.length != 0) {
-            var3 = var1.length - 1;
-            var2 = var1[var3];
+    //note - if on edinburgh sun machine then change edinburgh-sun to edinburgh-sun (or just omit it)
+    // if on edinburgh dice machine then change edinburgh-sun to edinburgh-sun
+
+    public void createAndStartProcesses(String[] args)
+    {
+        String teacher_name = "";
+
+        if(!(args.length == 0))
+        {
+            int last_arg = args.length - 1;
+            teacher_name = args[last_arg];
         }
 
-        for(var3 = 0; var3 < var1.length; ++var3) {
-            try {
-                String var4 = InetAddress.getLocalHost().getHostName();
-                short var6 = 8000;
-                String var7;
-                if (var3 < var1.length - 1) {
-                    int var10 = var6 + var3;
-                    this.agent_names = this.agent_names + " " + var1[var3] + ":" + var10;
-                    var7 = this.homedir + "/hr/runs/makestudent " + var1[var3] + " " + var4 + " " + var2 + " " + var10;
-                    System.out.println(var7);
-                    Runtime.getRuntime().exec(var7);
+        for(int i=0; i<args.length; i++)
+        {
+            try
+            {
+                String localhostname = java.net.InetAddress.getLocalHost().getHostName();
+                String agent_command;
+
+                int port = 8000;
+
+                if (i<args.length - 1)
+                {
+                    port = port+i;
+                    agent_names = agent_names + " " + args[i]+":"+port; //added so that teacher knows each student's port number
+                    String command =  homedir + "/hr/runs/makestudent " + args[i] + " "
+                            + localhostname + " " + teacher_name + " " + port;
+                    System.out.println(command);
+                    Runtime.getRuntime().exec(command);
                     System.out.println("student");
-                } else {
-                    this.agent_names = this.agent_names + " " + var1[var3];
-                    var7 = this.homedir + "/hr/runs/maketeacher " + var1[var3] + " " + var4 + this.agent_names;
-                    System.out.println(var7);
-                    Process var8 = Runtime.getRuntime().exec(var7);
-                    System.out.println("agent_names are " + this.agent_names);
-                    var8.waitFor();
                 }
-            } catch (Exception var9) {
+
+                else
+                {
+                    agent_names = agent_names + " " + args[i];
+                    String command =  homedir + "/hr/runs/maketeacher " + args[i] + " " + localhostname + agent_names;
+                    System.out.println(command);
+                    Process p = Runtime.getRuntime().exec(command);
+                    System.out.println("agent_names are " + agent_names);
+                    p.waitFor();
+                }
+
+
+                //processes.addElement(new (Process)(Runtime.getRuntime().exec(command)));
+                //AgentProcess ap = Runtime.getRuntime().exec(command);
+                //processes.addElement(ap);
+                //System.out.println("processes: " + processes);
+
+            }
+            catch (Exception e)
+            {
                 System.out.println("Problem starting agency");
-                System.out.println(var9);
+                System.out.println(e);
                 System.exit(-1);
             }
         }
-
     }
 }

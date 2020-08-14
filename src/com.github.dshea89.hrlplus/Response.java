@@ -6,101 +6,121 @@ public class Response extends CommunicationLanguage {
     Vector response_vector = new Vector();
     Request request = new Request();
 
-    public Response() {
+    public Response()
+    {
+
     }
 
-    public Response(Request var1) {
-        this.request = var1;
+    public Response(Request request)
+    {
+        this.request = request;
+        //Response(response_vector, request);
     }
 
-    public Response(Vector var1, Request var2) {
-        this.response_vector = var1;
-        this.request = var2;
+    public Response(Vector response_vector, Request request)
+    {
+        this.response_vector = response_vector;
+        this.request = request;
     }
 
-    public String toString() {
-        Vector var1 = new Vector();
+    public String toString()
+    {
+        Vector string_response_vector = new Vector();
 
-        for(int var2 = 0; var2 < this.response_vector.size(); ++var2) {
-            String var4;
-            if (this.response_vector.elementAt(var2) instanceof Conjecture) {
-                Conjecture var3 = (Conjecture)this.response_vector.elementAt(var2);
-                var4 = var3.id + ": " + var3.writeConjecture("ascii");
-                var1.addElement(var4);
+        for(int i=0; i<response_vector.size(); i++)
+        {
+            if (response_vector.elementAt(i) instanceof Conjecture)
+            {
+                Conjecture conjecture = (Conjecture)response_vector.elementAt(i);
+                String string_conj = conjecture.id + ": " + conjecture.writeConjecture("ascii");
+                string_response_vector.addElement(string_conj);
             }
 
-            if (this.response_vector.elementAt(var2) instanceof Concept) {
-                Concept var5 = (Concept)this.response_vector.elementAt(var2);
-                var4 = var5.id + ": " + var5.writeDefinition("ascii");
-                var1.addElement(var4);
+            if (response_vector.elementAt(i) instanceof Concept)
+            {
+                Concept concept = (Concept)response_vector.elementAt(i);
+                String string_concept = concept.id + ": " + concept.writeDefinition("ascii");
+                string_response_vector.addElement(string_concept);
             }
 
-            if (this.response_vector.elementAt(var2) instanceof Entity) {
-                Entity var6 = (Entity)this.response_vector.elementAt(var2);
-                var4 = var6.toString();
-                var1.addElement(var4);
+            if (response_vector.elementAt(i) instanceof Entity)
+            {
+                Entity entity = (Entity)response_vector.elementAt(i);
+                String string_entity = entity.toString();
+                string_response_vector.addElement(string_entity);
             }
 
-            if (this.response_vector.elementAt(var2) instanceof String) {
-                String var7 = (String)this.response_vector.elementAt(var2);
-                var1.addElement(var7);
+            if (response_vector.elementAt(i) instanceof String)
+            {
+                String string_element  = (String)response_vector.elementAt(i);
+                string_response_vector.addElement(string_element);
             }
-
-            if (var2 < this.response_vector.size() - 1) {
-                var1.addElement("\n");
-            }
+            if( i<response_vector.size()-1)
+                string_response_vector.addElement("\n");
         }
 
-        if (!var1.isEmpty()) {
-            return "" + var1;
-        } else {
-            return "" + this.response_vector;
+        if(!(string_response_vector.isEmpty()))
+        {
+            return ""+string_response_vector; // + ", request=" + request +")";
+        }
+
+        else
+        {
+            return ""+response_vector;// + ", request=" + request +")";
+
         }
     }
 
-    public String toStringForFile() {
-        String var1 = new String();
 
-        for(int var2 = 0; var2 < this.response_vector.size(); ++var2) {
-            if (this.response_vector.elementAt(var2) instanceof Conjecture) {
-                Conjecture var3 = (Conjecture)this.response_vector.elementAt(var2);
-                var1 = var1 + var3.writeConjecture("ascii");
+
+    public String toStringForFile()
+    {
+        String string_response = new String();
+
+        for(int i=0; i<response_vector.size(); i++)
+        {
+            if (response_vector.elementAt(i) instanceof Conjecture)
+            {
+                Conjecture conjecture = (Conjecture)response_vector.elementAt(i);
+                string_response = string_response + conjecture.writeConjecture("ascii");
             }
 
-            if (this.response_vector.elementAt(var2) instanceof Concept) {
-                Concept var4 = (Concept)this.response_vector.elementAt(var2);
-                var1 = var1 + var4.writeDefinition("ascii");
+            if (response_vector.elementAt(i) instanceof Concept)
+            {
+                Concept concept = (Concept)response_vector.elementAt(i);
+                string_response = string_response + concept.writeDefinition("ascii");
             }
 
-            if (this.response_vector.elementAt(var2) instanceof Entity) {
-                Entity var5 = (Entity)this.response_vector.elementAt(var2);
-                var1 = var1 + var5.toString();
+            if (response_vector.elementAt(i) instanceof Entity)
+            {
+                Entity entity = (Entity)response_vector.elementAt(i);
+                string_response = string_response + entity.toString();
             }
 
-            if (this.response_vector.elementAt(var2) instanceof String) {
-                String var6 = (String)this.response_vector.elementAt(var2);
-                if (var6.equals("accept proposal to bar entity")) {
-                    var1 = var1 + "I think we should bar the entity";
+            if (response_vector.elementAt(i) instanceof String)
+            {
+                String string_element  = (String)response_vector.elementAt(i);
+
+                if(string_element.equals("accept proposal to bar entity"))
+                {
+                    string_response = string_response + "I think we should bar the entity";
                     break;
                 }
-
-                if (var6.equals("reject proposal to bar entity")) {
-                    var1 = var1 + "I think the entity is fine";
+                if(string_element.equals("reject proposal to bar entity"))
+                {
+                    string_response = string_response + "I think the entity is fine";
                     break;
                 }
-
-                var1 = var1 + var6;
+                string_response = string_response +string_element;
             }
 
-            if (var2 < this.response_vector.size() - 1) {
-                var1 = var1 + ", ";
-            }
+            if( i<response_vector.size()-1)
+                string_response = string_response +", ";
         }
 
-        if (this.request.type.equals("Entity") && this.response_vector.isEmpty()) {
-            var1 = "No, sorry.";
-        }
+        if((request.type).equals("Entity") && response_vector.isEmpty())
+            string_response = "No, sorry.";
 
-        return var1;
+        return string_response;
     }
 }
