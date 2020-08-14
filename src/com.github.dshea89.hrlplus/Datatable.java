@@ -1,672 +1,696 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.Serializable;
 import java.util.Vector;
+import java.lang.String;
+import java.io.Serializable;
 
-/**
- * A class representing the data for a given concept. It is a vector of rows.
+/** A class representing the data for a given concept.
+ * It is a vector of rows.
+ * @see Row
+ * @author Simon Colton, started 11th December 1999
+ * @version 1.0
  */
-public class Datatable extends Vector implements Serializable {
-    /**
-     * The number of tuples in the datatable.
+
+public class Datatable extends Vector implements Serializable
+{
+
+    /** The number of tuples in the datatable.
      */
+
     public int number_of_tuples = 0;
 
-    public Datatable() {
-    }
-
-    /**
-     * Calculates the number of tuples
+    /** Calculates the number of tuples
      */
-    public void setNumberOfTuples() {
-        for(int var1 = 0; var1 < this.size(); ++var1) {
-            Row var2 = (Row)this.elementAt(var1);
-            this.number_of_tuples += var2.tuples.size();
+
+    public void setNumberOfTuples()
+    {
+        for (int i=0; i<size(); i++)
+        {
+            Row row = (Row)elementAt(i);
+            number_of_tuples = number_of_tuples + row.tuples.size();
         }
-
     }
 
-    /**
-     * Writes the table neatly.
+    /** Writes the table neatly.
      */
-    public String toTable() {
-        String var1 = new String();
-
-        for(int var2 = 0; var2 < this.size(); ++var2) {
-            var1 = var1 + ((Row)this.elementAt(var2)).entity;
-            var1 = var1 + "=";
-            var1 = var1 + ((Row)this.elementAt(var2)).tuples.toString();
-            var1 = var1 + "\n";
+    public String toTable()
+    {
+        String output = new String();
+        for (int i=0;i<size();i++)
+        {
+            output=output+(((Row)elementAt(i)).entity);
+            output=output+"=";
+            output=output+(((Row)elementAt(i)).tuples.toString());
+            output=output+"\n";
         }
-
-        return var1;
+        return output;
     }
 
-    /**
-     * Sorts the datatable using a lexicographic ordering of the entities which each row represents.
+    /** Sorts the datatable using a lexicographic ordering of the entities which each row
+     * represents.
      */
-    public void sort() {
-        this.quickSort(0, this.size() - 1);
+
+    public void sort()
+    {
+        quickSort(0, size() - 1);
     }
 
-    private void quickSort(int var1, int var2) {
-        if (var2 > var1) {
-            String var3 = ((Row)this.elementAt(var2)).entity;
-            int var4 = var1 - 1;
-            int var5 = var2;
+    private void quickSort(int left, int right)
+    {
+        if(right > left) {
+            String s1 = ((Row)elementAt(right)).entity;
+            int i = left - 1;
+            int j = right;
+            while(true)
+            {
+                while(entityCompare(((Row)elementAt(++i)).entity,s1) < 0);
+                while(j > 0)
+                    if(entityCompare(((Row)elementAt(--j)).entity,s1) <= 0) break;
+                if(i >= j) break;
+                swap(i, j);
+            }
+            swap(i , right);
+            quickSort(left, i-1);
+            quickSort(i+1, right);
+        }
+    }
 
-            while(true) {
-                while(true) {
-                    ++var4;
-                    if (this.entityCompare(((Row)this.elementAt(var4)).entity, var3) >= 0) {
-                        while(var5 > 0) {
-                            --var5;
-                            if (this.entityCompare(((Row)this.elementAt(var5)).entity, var3) <= 0) {
-                                break;
-                            }
-                        }
+    private int entityCompare(String e1, String e2)
+    {
+        int output = 0;
+        try
+        {
+            int n1 = new Integer(e1).intValue();
+            int n2 = new Integer(e2).intValue();
+            if (n1 < n2) output = -1;
+            if (n1 == n2) output = 0;
+            if (n1 > n2) output = 1;
+        }
+        catch(Exception e)
+        {
+            output = e1.compareTo(e2);
+        }
+        return output;
+    }
 
-                        if (var4 >= var5) {
-                            this.swap(var4, var2);
-                            this.quickSort(var1, var4 - 1);
-                            this.quickSort(var4 + 1, var2);
-                            return;
-                        }
+    private void swap(int loc1, int loc2) {
+        Object tmp = elementAt(loc1);
+        setElementAt(elementAt(loc2), loc1);
+        setElementAt(tmp, loc2);
+    }
 
-                        this.swap(var4, var5);
-                    }
+    /** Returns a clone of the datatable.
+     */
+
+    public Datatable copy()
+    {
+        Datatable output = new Datatable();
+        for (int i=0;i<size();i++)
+        {
+            Row row = (Row)elementAt(i);
+            Tuples new_tuples = new Tuples();
+            for (int j=0;j<row.tuples.size();j++)
+            {
+                Vector new_tuple = (Vector)((Vector)row.tuples.elementAt(j)).clone();
+                new_tuples.addElement(new_tuple);
+            }
+            Row new_row = new Row(row.entity,new_tuples);
+            output.addElement(new_row);
+        }
+        return(output);
+    }
+
+    /** Finds the row which corresponds to the given entity.
+     * @see Row
+     */
+
+    public Row rowWithEntity(String entity)
+    {
+        int i=0;
+        while(i<size() && !((Row)elementAt(i)).entity.equals(entity)) i++;
+        if (i<size()) return((Row)elementAt(i));
+        else return (new Row(entity,new Tuples()));
+    }
+
+    private Row rowWithEntityNoTuples(String entity)
+    {
+        int i=0;
+        while(i<size() && !((Row)elementAt(i)).entity.equals(entity)) i++;
+        if (i<size()) return((Row)elementAt(i));
+        else return (new Row("",new Tuples()));
+    }
+
+    /** Checks to see if the given entity is in the datatable.
+     */
+
+    public boolean hasEntity(String entity)
+    {
+        int i=0;
+        while(i<size() && !((Row)elementAt(i)).entity.equals(entity)) i++;
+        if (i<size()) return true;
+        else return false;
+    }
+
+    /** Writes the datatable not as a vector of rows, but as a vector of tuples each starting
+     * with the entity of the row the tuple was taken from.
+     */
+
+    public Vector toFlatTable()
+    {
+        Vector output = new Vector();
+        for(int i=0;i<size();i++)
+        {
+            Row row = (Row)elementAt(i);
+            if(row.tuples.size() > 0)
+            {
+                for(int j=0;j<row.tuples.size();j++)
+                {
+                    Vector new_tuple = (Vector)((Vector)row.tuples.elementAt(j)).clone();
+                    if (new_tuple.size()>0 && ((String)new_tuple.elementAt(0)).equals(""))
+                        new_tuple.removeElementAt(0);
+                    new_tuple.insertElementAt(row.entity,0);
+                    output.addElement(new_tuple);
                 }
             }
         }
+        return output;
     }
 
-    private int entityCompare(String var1, String var2) {
-        int var3 = 0;
-
-        try {
-            int var4 = new Integer(var1);
-            int var5 = new Integer(var2);
-            if (var4 < var5) {
-                var3 = -1;
-            }
-
-            if (var4 == var5) {
-                var3 = 0;
-            }
-
-            if (var4 > var5) {
-                var3 = 1;
-            }
-        } catch (Exception var6) {
-            var3 = var1.compareTo(var2);
-        }
-
-        return var3;
-    }
-
-    private void swap(int var1, int var2) {
-        Object var3 = this.elementAt(var1);
-        this.setElementAt(this.elementAt(var2), var1);
-        this.setElementAt(var3, var2);
-    }
-
-    /**
-     * Returns a clone of the datatable.
+    /** Writes a flat table back as a vector of rows.
      */
-    public Datatable copy() {
-        Datatable var1 = new Datatable();
 
-        for(int var2 = 0; var2 < this.size(); ++var2) {
-            Row var3 = (Row)this.elementAt(var2);
-            Tuples var4 = new Tuples();
-
-            for(int var5 = 0; var5 < var3.tuples.size(); ++var5) {
-                Vector var6 = (Vector)((Vector)var3.tuples.elementAt(var5)).clone();
-                var4.addElement(var6);
-            }
-
-            Row var7 = new Row(var3.entity, var4);
-            var1.addElement(var7);
+    public Datatable fromFlatTable()
+    {
+        Datatable output = new Datatable();
+        for(int i=0;i<size();i++)
+        {
+            Vector tuple = (Vector)elementAt(i);
+            String entity = (String)tuple.elementAt(0);
+            tuple.removeElementAt(0);
+            int j=0;
+            Row row = output.rowWithEntity(entity);
+            row.tuples.addElement(tuple);
+            if (row.tuples.size()==1) output.addElement(row);
         }
-
-        return var1;
+        return output;
     }
 
-    /**
-     * Finds the row which corresponds to the given entity.
-     */
-    public Row rowWithEntity(String entity) {
-        int var2;
-        for(var2 = 0; var2 < this.size() && !((Row)this.elementAt(var2)).entity.equals(entity); ++var2) {
-            ;
+    /** Checks whether this datatable is identical to the other given
+     datatable. Ignores anything which is in psuedo entities list -
+     alisonp. needs testing*/
+
+    public boolean isIdenticalTo(Theory theory, Datatable other_table)
+    {
+        if(!theory.pseudo_entities.isEmpty())
+        {
+            //System.out.println("started isIdenticalTo() on " + this.toTable() + " and " + other_table.toTable());
+            //System.out.println("pseudo_entities is " + theory.pseudo_entities);
         }
+        boolean output = true;
+        int i=0;
+        if(theory.pseudo_entities.isEmpty() && other_table.size()!=size()) output=false;
 
-        return var2 < this.size() ? (Row)this.elementAt(var2) : new Row(entity, new Tuples());
-    }
-
-    /**
-     * Finds the row which corresponds to the given entity. Does not return a row with the entity if the count is less
-     * than the size of the data table.
-     */
-    private Row rowWithEntityNoTuples(String entity) {
-        int var2;
-        for(var2 = 0; var2 < this.size() && !((Row)this.elementAt(var2)).entity.equals(entity); ++var2) {
-            ;
+        if(!theory.pseudo_entities.isEmpty() && other_table.size()!=size())
+        {
+            if(other_table.size()>size()+theory.pseudo_entities.size() || size() > other_table.size()+theory.pseudo_entities.size())
+                output=false;
         }
+        while(i<size() && output)
+        {
+            Row row = (Row)elementAt(i);
+            Row other_row = (Row)other_table.elementAt(i);
 
-        return var2 < this.size() ? (Row)this.elementAt(var2) : new Row("", new Tuples());
-    }
+            if(theory.pseudo_entities.contains(row.entity.toString()) || theory.pseudo_entities.contains(other_row.entity.toString()))
+                output = true;
 
-    /**
-     * Checks to see if the given entity is in the datatable.
-     */
-    public boolean hasEntity(String entity) {
-        int var2;
-        for(var2 = 0; var2 < this.size() && !((Row)this.elementAt(var2)).entity.equals(entity); ++var2) {
-            ;
-        }
-
-        return var2 < this.size();
-    }
-
-    /**
-     * Writes the datatable not as a vector of rows, but as a vector of tuples each starting with the entity of the row
-     * the tuple was taken from.
-     */
-    public Vector toFlatTable() {
-        Vector var1 = new Vector();
-
-        for(int var2 = 0; var2 < this.size(); ++var2) {
-            Row var3 = (Row)this.elementAt(var2);
-            if (var3.tuples.size() > 0) {
-                for(int var4 = 0; var4 < var3.tuples.size(); ++var4) {
-                    Vector var5 = (Vector)((Vector)var3.tuples.elementAt(var4)).clone();
-                    if (var5.size() > 0 && ((String)var5.elementAt(0)).equals("")) {
-                        var5.removeElementAt(0);
-                    }
-
-                    var5.insertElementAt(var3.entity, 0);
-                    var1.addElement(var5);
-                }
-            }
-        }
-
-        return var1;
-    }
-
-    /**
-     * Writes a flat table back as a vector of rows.
-     */
-    public Datatable fromFlatTable() {
-        Datatable var1 = new Datatable();
-
-        for(int var2 = 0; var2 < this.size(); ++var2) {
-            Vector var3 = (Vector)this.elementAt(var2);
-            String var4 = (String)var3.elementAt(0);
-            var3.removeElementAt(0);
-            boolean var5 = false;
-            Row var6 = var1.rowWithEntity(var4);
-            var6.tuples.addElement(var3);
-            if (var6.tuples.size() == 1) {
-                var1.addElement(var6);
-            }
-        }
-
-        return var1;
-    }
-
-    /**
-     * Checks whether this datatable is identical to the other given datatable.
-     */
-    public boolean isIdenticalTo(Theory theory, Datatable other_table) {
-        if (!theory.pseudo_entities.isEmpty()) {
-            ;
-        }
-
-        boolean var3 = true;
-        int var4 = 0;
-        if (theory.pseudo_entities.isEmpty() && other_table.size() != this.size()) {
-            var3 = false;
-        }
-
-        if (!theory.pseudo_entities.isEmpty() && other_table.size() != this.size() && (other_table.size() > this.size() + theory.pseudo_entities.size() || this.size() > other_table.size() + theory.pseudo_entities.size())) {
-            var3 = false;
-        }
-
-        for(; var4 < this.size() && var3; ++var4) {
-            Row var5 = (Row)this.elementAt(var4);
-            Row var6 = (Row)other_table.elementAt(var4);
-            if (!theory.pseudo_entities.contains(var5.entity.toString()) && !theory.pseudo_entities.contains(var6.entity.toString())) {
-                if (!var5.entity.equals(var6.entity)) {
-                    var3 = false;
+            else
+            {
+                if (!row.entity.equals(other_row.entity))
+                {
+                    output = false;
                     break;
                 }
+                if (!row.tuples.toString().equals(other_row.tuples.toString())) output = false;
+            }
+            i++;
+        }
+        //if(!theory.pseudo_entities.isEmpty())
+        //System.out.println("finished isIdenticalTo() - returning output=" + output);
+        return output;
+    }
 
-                if (!var5.tuples.toString().equals(var6.tuples.toString())) {
-                    var3 = false;
+    /** Returns a string representation of the first tuple for each row
+     */
+
+    public String firstTuples()
+    {
+        String output = "";
+        for (int i=0; i<size(); i++)
+        {
+            Row row = (Row)elementAt(i);
+            if (row.tuples.isEmpty())
+                output = output + "empty";
+            else
+                output = output + ((Vector)row.tuples.elementAt(0)).toString();
+        }
+        return output;
+    }
+
+    /** Adds a row to the datatable
+     */
+
+    public void addRow(String entity)
+    {
+        Tuples tuples = new Tuples();
+        tuples.addElement(new Vector());
+        Row row = new Row(entity,tuples);
+        addElement(row);
+    }
+
+    /** Adds an empty row to the datatable
+     */
+
+    public void addEmptyRow(String entity)
+    {
+        Tuples tuples = new Tuples();
+        Row row = new Row(entity,tuples);
+        addElement(row);
+    }
+
+    /** Adds a row to the datatable
+     */
+
+    public void addRow(String entity, String elements)
+    {
+        String element = "";
+        Tuples tuples = new Tuples();
+        if (!elements.equals(""))
+        {
+            for (int i=0;i<elements.length();i++)
+            {
+                if (elements.substring(i,i+1).equals(",") || i==elements.length()-1)
+                {
+                    if (i==elements.length()-1)
+                        element = element + elements.substring(i,i+1);
+                    Vector tuple = new Vector();
+                    tuple.addElement(element);
+                    tuples.addElement(tuple);
+                    element = "";
                 }
-            } else {
-                var3 = true;
+                else
+                    element = element + elements.substring(i,i+1);
             }
         }
-
-        return var3;
+        Row row = new Row(entity,tuples);
+        addElement(row);
     }
 
-    /**
-     * Returns a string representation of the first tuple for each row
+    /** Adds a row to the datatable
      */
-    public String firstTuples() {
-        String var1 = "";
 
-        for(int var2 = 0; var2 < this.size(); ++var2) {
-            Row var3 = (Row)this.elementAt(var2);
-            if (var3.tuples.isEmpty()) {
-                var1 = var1 + "empty";
-            } else {
-                var1 = var1 + ((Vector)var3.tuples.elementAt(0)).toString();
+    public void addTwoRow(String entity, String element1, String element2)
+    {
+        Tuples tuples = new Tuples();
+        Vector tuple = new Vector();
+        tuple.addElement(element1);
+        tuple.addElement(element2);
+        Row row = rowWithEntity(entity);
+        row.tuples.addElement(tuple);
+        if (row.tuples.size()==1)
+            addElement(row);
+    }
+
+    /** Adds a row to the datatable
+     */
+
+    public void addTuple(Vector tuple)
+    {
+        String entity = (String)tuple.elementAt(0);
+        Vector new_tuple = (Vector)tuple.clone();
+        new_tuple.removeElementAt(0);
+        Row row = rowWithEntity(entity);
+        row.tuples.addElement(new_tuple);
+        row.tuples.removeDuplicates();
+        row.tuples.sort();
+    }
+
+    /** Checks whether the datatable has all empty rows.
+     * i.e. no tuples for any entity
+     */
+
+    public boolean allEmptyTuples(Theory theory)
+    {
+        int i=0;
+        boolean output = true;
+        while(output && i<size())
+        {
+            Row row = (Row)elementAt(i);
+            if (!row.tuples.isEmpty())
+            {
+                if(!(theory.pseudo_entities.contains(row.entity.toString())))
+                    output = false;
+            }
+            i++;
+        }
+        return output;
+    }
+
+    /** This returns the number of ground objects (inside all the tuples
+     * inside the rows) in the datatable.
+     */
+
+    public double fullSize()
+    {
+        double output = 0;
+        for (int i=0; i<size(); i++)
+        {
+            Row row = (Row)elementAt(i);
+            for (int j=0; j<row.tuples.size(); j++)
+                output = output + ((Vector)row.tuples.elementAt(j)).size();
+        }
+        return output;
+    }
+
+    /** This returns the proportion of entities in the datatable which
+     * have something in their row.
+     */
+
+    public double applicability()
+    {
+        if (size()==0)
+            return 0;
+        double num_filled = 0;
+        for (int i=0; i<size(); i++)
+        {
+            Row row = (Row)elementAt(i);
+            if (!row.tuples.isEmpty())
+                num_filled++;
+        }
+        return num_filled/size();
+    }
+
+    /** This returns the proportion of entities in the datatable which
+     * have something in their row.
+     */
+
+    public double applicability(Vector entities)
+    {
+        if (size()==0)
+            return 0;
+        double num_filled = 0;
+        for (int i=0; i<size(); i++)
+        {
+            Row row = (Row)elementAt(i);
+            if (!row.tuples.isEmpty() && entities.contains(row.entity))
+                num_filled++;
+        }
+        return num_filled/entities.size();
+    }
+
+
+    /** This returns the number of entities in the datatable which
+     * have something in their row.
+     */
+
+    public double plausibility()
+    {
+        if (size()==0)
+            return 0;
+        double num_filled = 0;
+        for (int i=0; i<size(); i++)
+        {
+            Row row = (Row)elementAt(i);
+            if (!row.tuples.isEmpty())
+                num_filled++;
+        }
+        return num_filled;
+    }
+
+
+    /** This returns the proportion of categories containing an entity which
+     * has a non-empty row.
+     */
+
+    public double coverage(Categorisation cat)
+    {
+        double output = 0;
+        for (int i=0; i<cat.size(); i++)
+        {
+            Vector category = (Vector)cat.elementAt(i);
+            boolean found_non_empty = false;
+            int j=0;
+            while (!found_non_empty && j<category.size())
+            {
+                String entity = (String)category.elementAt(j);
+                Row row = rowWithEntityNoTuples(entity);
+                if (row.entity.equals(entity) && !row.tuples.isEmpty())
+                {
+                    output++;
+                    found_non_empty = true;
+                }
+                j++;
             }
         }
-
-        return var1;
+        return output/(cat.size());
     }
 
-    /**
-     * Adds a row to the datatable
+    /** Returns the entities in the rows, as they appear in the table.
      */
-    public void addRow(String entity) {
-        Tuples var2 = new Tuples();
-        var2.addElement(new Vector());
-        Row var3 = new Row(entity, var2);
-        this.addElement(var3);
+
+    public Vector getEntities()
+    {
+        Vector output = new Vector();
+        for (int i=0; i<size(); i++)
+            output.addElement(((Row)elementAt(i)).entity);
+        return output;
     }
 
-    /**
-     * Adds an empty row to the datatable
+    /** Returns the percentage number of tuples of this table which are
+     * also tuples of the given table.
      */
-    public void addEmptyRow(String entity) {
-        Tuples var2 = new Tuples();
-        Row var3 = new Row(entity, var2);
-        this.addElement(var3);
+
+    public double percentageMatchWith(Datatable other_table)
+    {
+        double num_matches = 0;
+        double tries = 0;
+        for (int i=0; i<size(); i++)
+        {
+            Row row = (Row)elementAt(i);
+            Row other_row = (Row)other_table.elementAt(i);
+            String other_row_string = other_row.tuples.toString();
+            if (other_row_string.equals("[]"))
+            {
+                tries++;
+                if (row.tuples.isEmpty())
+                    num_matches++;
+            }
+            if (other_row_string.equals("[[]]"))
+            {
+                tries++;
+                if (row.tuples.size()==1)
+                    num_matches++;
+            }
+
+            if (!other_row_string.equals("[]") && !other_row_string.equals("[[]]"))
+            {
+                for (int j=0; j<row.tuples.size(); j++)
+                {
+                    tries++;
+                    Vector tuple = (Vector)row.tuples.elementAt(j);
+                    String tuple_string = tuple.toString();
+                    if (other_row_string.indexOf(tuple_string)>=0)
+                        num_matches++;
+                }
+            }
+        }
+        double output = num_matches/tries;
+        return output;
     }
 
-    /**
-     * Adds a row to the datatable
-     */
-    public void addRow(String entity, String elements) {
-        String var3 = "";
-        Tuples var4 = new Tuples();
-        if (!elements.equals("")) {
-            for(int var5 = 0; var5 < elements.length(); ++var5) {
-                if (!elements.substring(var5, var5 + 1).equals(",") && var5 != elements.length() - 1) {
-                    var3 = var3 + elements.substring(var5, var5 + 1);
-                } else {
-                    if (var5 == elements.length() - 1) {
-                        var3 = var3 + elements.substring(var5, var5 + 1);
+    /** Does a quick comparison (based on entities, rather than tuples)
+     * of the number of matches this table has with the given one.
+     * Altered by alisonp on 12/4 to record counter-examples.  Altered
+     * by alisonp on 8/7 to ignore entities in pseudo_entities.  */
+
+    public double quickPercentageMatchWith(Theory theory, Datatable other_table, Vector counterexamples)
+    {
+
+        double num_matches = size();
+        for (int i=0; i<size(); i++)
+        {
+            Row row = (Row)elementAt(i);
+            Row other_row = (Row)other_table.elementAt(i);
+            if (!theory.pseudo_entities.contains(row.entity))
+            {
+
+                if (other_row.tuples.isEmpty() && !row.tuples.isEmpty())
+                {
+                    num_matches--;
+                    counterexamples.addElement(new Entity(row.entity));
+                }
+                if (!other_row.tuples.isEmpty() && row.tuples.isEmpty())
+                {
+                    num_matches--;
+                    counterexamples.addElement(new Entity(row.entity));
+                }
+                if (!other_row.tuples.isEmpty() && !row.tuples.isEmpty())
+                {
+                    String row_string = row.tuples.toString();
+                    String other_row_string = other_row.tuples.toString();
+                    if (!row_string.equals(other_row_string))
+                    {
+                        num_matches--;
+                        counterexamples.addElement(new Entity(row.entity));
                     }
-
-                    Vector var6 = new Vector();
-                    var6.addElement(var3);
-                    var4.addElement(var6);
-                    var3 = "";
                 }
             }
         }
-
-        Row var7 = new Row(entity, var4);
-        this.addElement(var7);
+        double output = num_matches/size();
+        return output;
     }
 
-    /**
-     * Adds a row to the datatable
+    /** Removes the rows with the given entities
      */
-    public void addTwoRow(String entity, String element1, String element2) {
-        new Tuples();
-        Vector var5 = new Vector();
-        var5.addElement(element1);
-        var5.addElement(element2);
-        Row var6 = this.rowWithEntity(entity);
-        var6.tuples.addElement(var5);
-        if (var6.tuples.size() == 1) {
-            this.addElement(var6);
-        }
 
-    }
-
-    /**
-     * Adds a row to the datatable
-     */
-    public void addTuple(Vector tuple) {
-        String var2 = (String)tuple.elementAt(0);
-        Vector var3 = (Vector)tuple.clone();
-        var3.removeElementAt(0);
-        Row var4 = this.rowWithEntity(var2);
-        var4.tuples.addElement(var3);
-        var4.tuples.removeDuplicates();
-        var4.tuples.sort();
-    }
-
-    /**
-     * Checks whether the datatable has all empty rows.
-     */
-    public boolean allEmptyTuples(Theory var1) {
-        int var2 = 0;
-
-        boolean var3;
-        for(var3 = true; var3 && var2 < this.size(); ++var2) {
-            Row var4 = (Row)this.elementAt(var2);
-            if (!var4.tuples.isEmpty() && !var1.pseudo_entities.contains(var4.entity.toString())) {
-                var3 = false;
-            }
-        }
-
-        return var3;
-    }
-
-    /**
-     * This returns the number of ground objects (inside all the tuples inside the rows) in the datatable.
-     */
-    public double fullSize() {
-        double var1 = 0.0D;
-
-        for(int var3 = 0; var3 < this.size(); ++var3) {
-            Row var4 = (Row)this.elementAt(var3);
-
-            for(int var5 = 0; var5 < var4.tuples.size(); ++var5) {
-                var1 += (double)((Vector)var4.tuples.elementAt(var5)).size();
-            }
-        }
-
-        return var1;
-    }
-
-    /**
-     * This returns the proportion of entities in the datatable which have something in their row.
-     */
-    public double applicability() {
-        if (this.size() == 0) {
-            return 0.0D;
-        } else {
-            double var1 = 0.0D;
-
-            for(int var3 = 0; var3 < this.size(); ++var3) {
-                Row var4 = (Row)this.elementAt(var3);
-                if (!var4.tuples.isEmpty()) {
-                    ++var1;
-                }
-            }
-
-            return var1 / (double)this.size();
-        }
-    }
-
-    /**
-     * This returns the proportion of entities in the datatable which have something in their row.
-     */
-    public double applicability(Vector entities) {
-        if (this.size() == 0) {
-            return 0.0D;
-        } else {
-            double var2 = 0.0D;
-
-            for(int var4 = 0; var4 < this.size(); ++var4) {
-                Row var5 = (Row)this.elementAt(var4);
-                if (!var5.tuples.isEmpty() && entities.contains(var5.entity)) {
-                    ++var2;
-                }
-            }
-
-            return var2 / (double)entities.size();
-        }
-    }
-
-    public double plausibility() {
-        if (this.size() == 0) {
-            return 0.0D;
-        } else {
-            double var1 = 0.0D;
-
-            for(int var3 = 0; var3 < this.size(); ++var3) {
-                Row var4 = (Row)this.elementAt(var3);
-                if (!var4.tuples.isEmpty()) {
-                    ++var1;
-                }
-            }
-
-            return var1;
-        }
-    }
-
-    /**
-     * This returns the proportion of categories containing an entity which has a non-empty row.
-     */
-    public double coverage(Categorisation cat) {
-        double var2 = 0.0D;
-
-        for(int var4 = 0; var4 < cat.size(); ++var4) {
-            Vector var5 = (Vector)cat.elementAt(var4);
-            boolean var6 = false;
-
-            for(int var7 = 0; !var6 && var7 < var5.size(); ++var7) {
-                String var8 = (String)var5.elementAt(var7);
-                Row var9 = this.rowWithEntityNoTuples(var8);
-                if (var9.entity.equals(var8) && !var9.tuples.isEmpty()) {
-                    ++var2;
-                    var6 = true;
-                }
-            }
-        }
-
-        return var2 / (double)cat.size();
-    }
-
-    /**
-     * Returns the entities in the rows, as they appear in the table.
-     */
-    public Vector getEntities() {
-        Vector var1 = new Vector();
-
-        for(int var2 = 0; var2 < this.size(); ++var2) {
-            var1.addElement(((Row)this.elementAt(var2)).entity);
-        }
-
-        return var1;
-    }
-
-    /**
-     * Returns the percentage number of tuples of this table which are also tuples of the given table.
-     */
-    public double percentageMatchWith(Datatable other_table) {
-        double var2 = 0.0D;
-        double var4 = 0.0D;
-
-        for(int var6 = 0; var6 < this.size(); ++var6) {
-            Row var7 = (Row)this.elementAt(var6);
-            Row var8 = (Row)other_table.elementAt(var6);
-            String var9 = var8.tuples.toString();
-            if (var9.equals("[]")) {
-                ++var4;
-                if (var7.tuples.isEmpty()) {
-                    ++var2;
-                }
-            }
-
-            if (var9.equals("[[]]")) {
-                ++var4;
-                if (var7.tuples.size() == 1) {
-                    ++var2;
-                }
-            }
-
-            if (!var9.equals("[]") && !var9.equals("[[]]")) {
-                for(int var10 = 0; var10 < var7.tuples.size(); ++var10) {
-                    ++var4;
-                    Vector var11 = (Vector)var7.tuples.elementAt(var10);
-                    String var12 = var11.toString();
-                    if (var9.indexOf(var12) >= 0) {
-                        ++var2;
-                    }
-                }
-            }
-        }
-
-        double var13 = var2 / var4;
-        return var13;
-    }
-
-    /**
-     * Does a quick comparison (based on entities, rather than tuples) of the number of matches this table has with the given one.
-     * Altered by alisonp on 12/4 to record counter-examples
-     */
-    public double quickPercentageMatchWith(Theory theory, Datatable other_table, Vector counterexamples) {
-        double var4 = (double)this.size();
-
-        for(int var6 = 0; var6 < this.size(); ++var6) {
-            Row var7 = (Row)this.elementAt(var6);
-            Row var8 = (Row)other_table.elementAt(var6);
-            if (!theory.pseudo_entities.contains(var7.entity)) {
-                if (var8.tuples.isEmpty() && !var7.tuples.isEmpty()) {
-                    --var4;
-                    counterexamples.addElement(new Entity(var7.entity));
-                }
-
-                if (!var8.tuples.isEmpty() && var7.tuples.isEmpty()) {
-                    --var4;
-                    counterexamples.addElement(new Entity(var7.entity));
-                }
-
-                if (!var8.tuples.isEmpty() && !var7.tuples.isEmpty()) {
-                    String var9 = var7.tuples.toString();
-                    String var10 = var8.tuples.toString();
-                    if (!var9.equals(var10)) {
-                        --var4;
-                        counterexamples.addElement(new Entity(var7.entity));
-                    }
-                }
-            }
-        }
-
-        double var11 = var4 / (double)this.size();
-        return var11;
-    }
-
-    /**
-     * Removes the rows with the given entities
-     */
-    public void removeRow(String entity) {
-        for(int var2 = 0; var2 < this.size(); ++var2) {
-            Row var3 = (Row)this.elementAt(var2);
-            if (var3.entity.equals(entity)) {
-                this.removeElementAt(var2);
-                --var2;
+    public void removeRow(String entity)
+    {
+        for (int i=0; i<size(); i++)
+        {
+            Row row = (Row)elementAt(i);
+            if (row.entity.equals(entity))
+            {
+                removeElementAt(i);
+                i--;
             }
         }
     }
 
-    /**
-     * This function uses the trimToSize() method from Vector to trim both itself and the tuples in the rows.
-     * This should reduce the size of the memory required to store the datatable.
+    /** This function uses the trimToSize() method from Vector to trim both itself
+     * and the tuples in the rows. This should reduce the size of the memory required
+     * to store the datatable.
      */
-    public void trimRowsToSize() {
-        this.trimToSize();
 
-        for(int var1 = 0; var1 < this.size(); ++var1) {
-            Row var2 = (Row)this.elementAt(var1);
-            var2.tuples.trimToSize();
+    public void trimRowsToSize()
+    {
+        trimToSize();
+        for (int i=0; i<size(); i++)
+        {
+            Row row = (Row)elementAt(i);
+            row.tuples.trimToSize();
         }
-
     }
 
-    /**
-     * Test to see whether this entity is a culprit entity for this datatable.
-     */
-    public boolean sameExampleForEveryEntity(Theory theory, String entity, AgentWindow window) {
-        window.writeToFrontEnd("started sameExampleForEveryEntity - testing to see if this entity: " + entity);
+    /** Checks whether the datatable has the same, single entity in
+     * every row.  i.e. the same example for every entity (ignoring
+     * anything in pseudo_entities) - alisonp */
+
+    public boolean sameExampleForEveryEntity(Theory theory, String entity_example, AgentWindow window)
+    {
+        window.writeToFrontEnd("started sameExampleForEveryEntity - testing to see if this entity: " + entity_example);
         window.writeToFrontEnd("is a culprit entity for this datatable");
         window.writeToFrontEnd(this.toTable());
-        int var4 = 0;
 
-        boolean var5;
-        for(var5 = true; var5 && var4 < this.size(); ++var4) {
-            window.writeToFrontEnd("i is " + var4);
-            Row var6 = (Row)this.elementAt(var4);
-            if (var6.tuples.size() != 1 && !theory.pseudo_entities.contains(var6.entity.toString())) {
-                var5 = false;
+        int i=0;
+        boolean output = true;
+        while(output && i<size())
+        {
+            window.writeToFrontEnd("i is " + i);
+            Row row = (Row)elementAt(i);
+            if (!(row.tuples.size()==1))
+            {
+                if(!(theory.pseudo_entities.contains(row.entity.toString())))
+                    output = false;
             }
 
-            if (var6.tuples.isEmpty()) {
-                var5 = false;
-            }
+            if (row.tuples.isEmpty())//check
+                output = false;
 
-            if (var6.tuples.size() <= 1) {
-                Vector var7 = (Vector)var6.tuples.elementAt(0);
-                String var8 = (String)var7.elementAt(0);
-                window.writeToFrontEnd("vector_in_tuple is " + var7);
-                window.writeToFrontEnd("entity_on_row is " + var8);
-                if (!var8.equals(entity) && !theory.pseudo_entities.contains(var6.entity.toString())) {
-                    var5 = false;
+            if (!(row.tuples.size()>1))
+            {
+                Vector vector_in_tuple = (Vector)row.tuples.elementAt(0);
+                String entity_on_row = (String)vector_in_tuple.elementAt(0);
+                window.writeToFrontEnd("vector_in_tuple is " + vector_in_tuple);
+                window.writeToFrontEnd("entity_on_row is " + entity_on_row);
+
+                if(!entity_on_row.equals(entity_example))
+                {
+                    if(!(theory.pseudo_entities.contains(row.entity.toString())))
+                        output = false;
                 }
             }
+            i++;
         }
-
-        return var5;
+        return output;
     }
 
-    public void removeEntity(String var1) {
-        for(int var2 = 0; var2 < this.size(); ++var2) {
-            if (((Row)this.elementAt(var2)).entity.equals(var1)) {
-                this.removeElementAt(var2);
-                --var2;
+
+    /** Checks to see if the given entity is in the datatable, and if
+     * so, deletes that row. */
+
+    public void removeEntity(String entity)
+    {
+        for(int i=0; i<size(); i++)
+        {
+            if(((Row)elementAt(i)).entity.equals(entity))
+            {
+                removeElementAt(i);
+                i--;
             }
         }
-
     }
 
-    public Vector getDifference(Datatable var1) {
-        Vector var2 = new Vector();
-        int var3;
-        Row var4;
-        Row var5;
-        if (this.size() == var1.size()) {
-            for(var3 = 0; var3 < this.size(); ++var3) {
-                var4 = (Row)this.elementAt(var3);
-                var5 = (Row)var1.elementAt(var3);
-                if (!var4.tuples.toString().equals(var5.tuples.toString())) {
-                    var2.addElement(new Entity(var4.entity));
-                }
+
+    /** Returns a vector of all the entities which appear in one
+     * datatable but not the other */
+
+    public Vector getDifference(Datatable datatable)
+    {
+        Vector counters = new Vector();
+
+        if(this.size() == datatable.size())
+        {
+            for (int i=0; i<this.size(); i++)
+            {
+                Row lh_row = (Row)this.elementAt(i);
+                Row rh_row = (Row)datatable.elementAt(i);
+                if (!lh_row.tuples.toString().equals(rh_row.tuples.toString()))
+                    counters.addElement(new Entity(lh_row.entity));
             }
         }
 
-        if (this.size() < var1.size()) {
-            for(var3 = 0; var3 < this.size(); ++var3) {
-                var4 = (Row)this.elementAt(var3);
-                var5 = (Row)var1.elementAt(var3);
-                if (!var4.tuples.toString().equals(var5.tuples.toString())) {
-                    var2.addElement(new Entity(var4.entity));
-                }
+        if(this.size() < datatable.size())
+        {
+            for(int i=0; i<this.size(); i++)
+            {
+                Row lh_row = (Row)this.elementAt(i);
+                Row rh_row = (Row)datatable.elementAt(i);
+                if (!lh_row.tuples.toString().equals(rh_row.tuples.toString()))
+                    counters.addElement(new Entity(lh_row.entity));
             }
 
-            for(var3 = this.size(); var3 < var1.size(); ++var3) {
-                var4 = (Row)var1.elementAt(var3);
-                var2.addElement(new Entity(var4.entity));
-            }
-        }
-
-        if (this.size() > var1.size()) {
-            for(var3 = 0; var3 < var1.size(); ++var3) {
-                var4 = (Row)this.elementAt(var3);
-                var5 = (Row)var1.elementAt(var3);
-                if (!var4.tuples.toString().equals(var5.tuples.toString())) {
-                    var2.addElement(new Entity(var4.entity));
-                }
-            }
-
-            for(var3 = var1.size(); var3 < this.size(); ++var3) {
-                var4 = (Row)this.elementAt(var3);
-                var2.addElement(new Entity(var4.entity));
+            for(int i = this.size(); i<datatable.size(); i++)
+            {
+                Row rh_row = (Row)datatable.elementAt(i);
+                counters.addElement(new Entity(rh_row.entity));
             }
         }
 
-        return var2;
+        if(this.size() > datatable.size())
+        {
+            for(int i=0; i<datatable.size(); i++)
+            {
+                Row lh_row = (Row)this.elementAt(i);
+                Row rh_row = (Row)datatable.elementAt(i);
+                if (!lh_row.tuples.toString().equals(rh_row.tuples.toString()))
+                    counters.addElement(new Entity(lh_row.entity));
+            }
+
+            for(int i = datatable.size(); i<this.size(); i++)
+            {
+                Row rh_row = (Row)this.elementAt(i);
+                counters.addElement(new Entity(rh_row.entity));
+            }
+        }
+        return counters;
     }
 }

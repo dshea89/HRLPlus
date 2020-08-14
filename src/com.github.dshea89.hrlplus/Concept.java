@@ -1,3088 +1,3582 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.Serializable;
-import java.util.Enumeration;
 import java.util.Vector;
+import java.util.Hashtable;
+import java.util.Enumeration;
+import java.lang.String;
+import java.io.Serializable;
 
-/**
- * A class representing a mathematical concept in the theory.
- * It consists of a datatable for the concept and a set of specifications for the concept.
+/** A class representing a mathematical concept in the theory. It consists of a datatable
+ * for the concept and a set of specifications for the concept.
+ * @author Simon Colton, started 11th December 1999
+ * @version 1.0
  */
-public class Concept extends TheoryConstituent implements Serializable {
-    /**
-     * The skolemised representation of this concept.
+
+public class Concept extends TheoryConstituent implements Serializable
+{
+    /** The skolemised representation of this concept.
      */
+
     public SkolemisedRepresentation skolemised_representation = new SkolemisedRepresentation();
 
-    /**
-     * The specification strings obtained by using Otter's Knuth Bendix completion.
+    /** The specification strings obtained by using Otter's Knuth Bendix completion.
      */
+
     public Vector specification_strings_from_knuth_bendix = new Vector();
 
-    /**
-     * A vector of user-given markers for this concept, so that the user (or the react mechanism) can find all those concepts with a particular marker.
+    /** A vector of user-given markers for this concept, so that the user (or the react
+     * mechanism) can find all those concepts with a particular marker.
      */
+
     public Vector markers = new Vector();
 
-    /**
-     * The set of analogy puzzles which have been generated for this concept.
+    /** The set of analogy puzzles which have been generated for this concept.
      */
+
     public Vector analogy_puzzles = new Vector();
 
-    /**
-     * The set of next-in-sequence puzzles which have been generated for this concept.
+    /** The set of next-in-sequence puzzles which have been generated for this concept.
      */
+
     public Vector nis_puzzles = new Vector();
 
-    /**
-     * The set of odd-one-out puzzles which have been generated for this concept.
+    /** The set of odd-one-out puzzles which have been generated for this concept.
      */
+
     public Vector ooo_puzzles = new Vector();
 
-    /**
-     * The set of implication conjectures involving this concept.
+    /** The set of implication conjectures involving this concept.
      */
+
     public Vector implications = new Vector();
 
-    /**
-     * The set of specifications implied in addition when the properties of this concept are satisfied.
+    /** The set of specifications implied in addition when the properties of this
+     * concept are satisfied.
      */
+
     public Vector implicates = new Vector();
 
-    /**
-     * Whether or not to use the top substitutable concept instead of this concept.
+    /** Whether or not to use the top substitutable concept instead of this concept.
      */
+
     public boolean use_top_substitutable = true;
 
-    /**
-     * The set of concepts which can be substituted for this concept, for various reasons.
+    /** The set of concepts which can be substituted for this concept,
+     * for various reasons.
      */
+
     public Vector substitutable_concepts = new Vector();
 
-    /**
-     * The equivalence conjecture which maps this (conjecture to be equivalent) concept to the concept it is conjectured to be equivalent with.
+    /** The equivalence conjecture which maps this (conjecture to be equivalent)
+     * concept to the concept it is conjectured to be equivalent with.
      */
+
     public Conjecture equivalence_conjecture = new Conjecture();
 
-    /**
-     * Whether or not this is a (possibly single) disjunction or conjunction [or combo] of single_entity concepts.
+    /** Whether or not this is a (possibly single) disjunction or conjunction
+     * [or combo] of single_entity concepts.
      */
+
     public boolean is_entity_instantiations = false;
 
-    /**
-     * Whether or not this is a single entity concept (e.g., [a] : a=4).
+    /** Whether or not this is a single entity concept (e.g., [a] : a=4).
      */
+
     public boolean is_single_entity = false;
 
-    /**
-     * The definition_writer object for this concept.
+    /** The definition_writer object for this concept.
      */
+
     public DefinitionWriter definition_writer = new DefinitionWriter();
 
-    /**
-     * The step number when this concept was constructed
+    /** The step number when this concept was constructed
      */
+
     public int step_number = 0;
 
-    /**
-     * The vector of concepts which are nearly equivalent to this concept (statistically so).
+    /** The vector of concepts which are nearly equivalent to this concept
+     * (statistically so).
      */
+
     public SortableVector near_equivalences = new SortableVector();
 
-    /**
-     * The vector of concepts which are nearly implications to this concept (statistically so).
+    /** The set of near_implication conjectures involving this
+     *  concept. alisonp
      */
+
     public SortableVector near_implications = new SortableVector();
 
-    /**
-     * The set of relevant implicates for this concept. This is the set of implicate conjectures for which this concept
-     * implies the left hand side of the implicate, hence the right hand side is also true. This remains empty until the
-     * method: getRelevantImplicates is called.
+    /** The set of relevant implicates for this concept.
+     * This is the set of implicate conjectures for which this concept
+     * implies the left hand side of the implicate, hence the right
+     * hand side is also true. This remains empty until the method:
+     * getRelevantImplicates is called.
      */
+
     public SortableVector relevant_implicates = new SortableVector();
 
-    /**
-     * The set of relevant equivalences for this concept. This is the set of equivalence conjectures involving this concept.
+    /** The set of relevant equivalences for this concept. This is the
+     * set of equivalence conjectures involving this concept.
      */
+
     public SortableVector relevant_equivalences = new SortableVector();
 
-    /**
-     * The concept which supplies the objects of interest for this concept.
+    /** The concept which supplies the objects of interest for this concept.
      */
+
     public Concept entity_concept = null;
 
-    /**
-     * Whether or not the user has supplied java code for calculations with this concept.
+    /** Whether or not the user has supplied java code for calculations with this
+     * concept.
      */
+
     public boolean is_java_enabled = false;
 
-    /**
-     * The type of objects in the datatable (i.e. the first column of the types).
+    /** The type of objects in the datatable (i.e. the first column of the types).
      */
+
     public String object_type;
 
-    /**
-     * Whether or not this concept contains a list of objects of interest (with no additional properties.
+    /** Whether or not this concept contains a list of objects of interest (with no
+     * additional properties).
      */
+
     public boolean is_object_of_interest_concept = false;
 
-    /**
-     * A copy of the user functions object from the theory (which calculates all the user given java functions.
+
+    /** A copy of the user functions object from the theory (which calculates all the
+     * user given java functions.
      */
+
     public UserFunctions user_functions = new UserFunctions();
 
-    /**
-     * The time (in milliseconds) taken to construct the datatable for this concept.
+    /** The time (in milliseconds) taken to construct the datatable for this concept.
      */
-    public long datatable_construction_time = 0L;
 
-    /**
-     * Whether or not this concept has the categorisation specified by the user.
+    public long datatable_construction_time = 0;
+
+    /** Whether or not this concept has the categorisation specified by the user.
      */
+
     public boolean has_required_categorisation = false;
 
-    /**
-     * The set of functions for this concept, i.e. the columns which can be considered input columns and those which can be considered output columns.
+    /** The set of functions for this concept, i.e. the columns which can be considered
+     * input columns and those which can be considered output columns.
+     * @see Function
      */
+
     public Vector functions = new Vector();
 
-    /**
-     * A flag to say that this concept should not be used in any theory formation steps.
+    /** A flag to say that this concept should not be used in any theory formation steps.
      */
+
     public boolean dont_develop = false;
 
-    /**
-     * The alternative concepts (from equivalence conjectures)
+    /** The alternative concepts (from equivalence conjectures)
      */
+
     public Vector conjectured_equivalent_concepts = new Vector();
 
-    /**
-     * A vector of alternative ways to construct this concept.
+    /** A vector of alternative ways to construct this concept.
      */
+
     public Vector conjectured_equivalent_constructions = new Vector();
 
-    /**
-     * The other concepts which have been constructed on the way to this concept.
+    /** The other concepts which have been constructed on the
+     * way to this concept.
      */
+
     public Vector ancestors = new Vector();
 
-    /**
-     * The ids of the other concepts which have been constructed on the way to this concept.
+    /** The ids of the other concepts which have been constructed on the
+     * way to this concept.
      */
+
     public Vector ancestor_ids = new Vector();
 
-    /**
-     * The parent concepts of this concept.
+    /** The parent concepts of this concept.
      */
+
     public Vector parents = new Vector();
 
-    /**
-     * The children concepts of this concept.
+    /** The children concepts of this concept.
      */
+
     public Vector children = new Vector();
 
-    /**
-     * The arity (number of columns in datatable) for this concept.
+    /** The arity (number of columns in datatable) for this concept.
      */
+
     public int arity = 0;
 
-    /**
-     * The domain from which this concept is taken.
+    /** The domain from which this concept is taken.
      */
+
     public String domain = "";
 
-    /**
-     * Whether or not this concept is built from concepts from two or more domains, i.e. whether it is cross domain or not.
+    /** Whether or not this concept is built from concepts from two or
+     * more domains, i.e. whether it is cross domain or not.
      */
+
     public boolean is_cross_domain = false;
 
-    /**
-     * Scores 1 if this is cross domain, 0 otherwise.
+    /** Scores 1 if this is cross domain, 0 otherwise.
+     *
      */
-    public double cross_domain_score = 0.0D;
 
-    /**
-     * Whether or not this is a core concept supplied by the user.
+    public double cross_domain_score = 0;
+
+    /** Whether or not this is a core concept supplied by the user.
      */
+
     public boolean is_user_given;
 
-    /**
-     * The associated relation for this concept. Note that if the concept has been constructed using the compose production rule, there will be no associated relation.
+    /** The associated relation for this concept. Note that if the concept has been constructed
+     * using the compose production rule, there will be no associated relation.
      */
+
     public Relation associated_relation;
 
-    /**
-     * An additional datatable required to store the calculations performed on entities outside of the set used in the theory
-     * (ie. when using the compose production rules, other entities may need to be considered).
+    /** An additional datatable required to store the calculations performed on entities
+     * outside of the set used in the theory (ie. when using the compose production rules,
+     * other entities may need to be considered.
      */
+
     public Datatable additional_datatable = new Datatable();
 
-    /**
-     * The complexity of this concept.
+    /** The complexity of this concept.
      */
+
     public int complexity = 0;
 
-    /**
-     * The applicability of this concept (the proportion of entities which are #not# empty in the datatable).
+    /** The applicability of this concept (the proportion of entities which are #not# empty in
+     * the datatable).
      */
-    public double applicability = 0.0D;
 
-    /**
-     * The positive applicability of this concept (the proportion of entities in the "positives" category of the gold
-     * standard categorisation which are #not# empty in the datatable).
-     */
-    public double positive_applicability = 0.0D;
+    public double applicability = 0;
 
-    /**
-     * The negative applicability of this concept (the proportion of entities in the "positives" category of the gold
-     * standard categorisation which are #not# empty in the datatable).
+    /** The positive applicability of this concept (the proportion of entities in the
+     * "positives" category of the gold standard categorisation
+     * which are #not# empty in the datatable).
      */
-    public double negative_applicability = 0.0D;
 
-    /**
-     * The normalised positive applicability of this concept (the proportion of entities in the "positives" category of
-     * the gold standard categorisation which are #not# empty in the datatable).
-     */
-    public double normalised_positive_applicability = 0.0D;
+    public double positive_applicability = 0;
 
-    /**
-     * The normalised negative applicability of this concept (the proportion of entities in the "positives" category of
-     * the gold standard categorisation which are #not# empty in the datatable).
+    /** The negative applicability of this concept (the proportion of entities in the
+     * "positives" category of the gold standard categorisation
+     * which are #not# empty in the datatable).
      */
-    public double normalised_negative_applicability = 0.0D;
 
-    /**
-     * The predictive power of this concept (positives.size() * positive_applicability + negatives.size() * negative_applicability
-     */
-    public double predictive_power = 0.0D;
+    public double negative_applicability = 0;
 
-    /**
-     * The normalised predictive power of this concept.
+    /** The normalised positive applicability of this concept (the proportion of entities in the
+     * "positives" category of the gold standard categorisation
+     * which are #not# empty in the datatable).
      */
-    public double normalised_predictive_power = 0.0D;
 
-    /**
-     * The normalised applicability of this concept.
-     */
-    public double normalised_applicability = 0.0D;
+    public double normalised_positive_applicability = 0;
 
-    /**
-     * The coverage of this concept (the proportion of entities which are #not# empty in the datatable).
+    /** The normalised negative applicability of this concept (the proportion of entities in the
+     * "positives" category of the gold standard categorisation
+     * which are #not# empty in the datatable).
      */
-    public double coverage = 0.0D;
 
-    /**
-     * The normalised coverage of this concept.
-     */
-    public double normalised_coverage = 0.0D;
+    public double normalised_negative_applicability = 0;
 
-    /**
-     * The sum of the scores from the equivalences conjectures involving this concept.
+    /** The predictive power of this concept
+     * (positives.size() * positive_applicability + negatives.size() * negative_applicability
      */
-    public double equiv_conj_sum = 0.0D;
 
-    /**
-     * The sum of the scores from the non-existence conjectures involving this concept.
-     */
-    public double ne_conj_sum = 0.0D;
+    public double predictive_power = 0;
 
-    /**
-     * The sum of the scores from the implicate conjectures involving this concept.
+    /** The normalised predictive power of this concept.
      */
-    public double imp_conj_sum = 0.0D;
 
-    /**
-     * The sum of the scores from the prime implicate conjectures involving this concept.
-     */
-    public double pi_conj_sum = 0.0D;
+    public double normalised_predictive_power = 0;
 
-    /**
-     * The set of equivalence conjectures involving this concept.
+    /** The normalised applicability of this concept.
      */
+
+    public double normalised_applicability = 0;
+
+    /** The coverage of this concept (the proportion of entities which are #not# empty in
+     * the datatable).
+     */
+
+    public double coverage = 0;
+
+    /** The normalised coverage of this concept.
+     */
+
+    public double normalised_coverage = 0;
+
+    /** The sum of the scores from the equivalences conjectures involving this concept.
+     */
+
+    public double equiv_conj_sum = 0;
+
+    /** The sum of the scores from the non-existence conjectures involving this concept.
+     */
+
+    public double ne_conj_sum = 0;
+
+    /** The sum of the scores from the implicate conjectures involving this concept.
+     */
+
+    public double imp_conj_sum = 0;
+
+    /** The sum of the scores from the prime implicate conjectures involving this concept.
+     */
+
+    public double pi_conj_sum = 0;
+
+    /** The set of equivalence conjectures involving this concept.
+     */
+
     public Vector equiv_conjectures = new Vector();
 
-    /**
-     * The set of non-existence conjectures involving this concept.
+    /** The set of non-existence conjectures involving this concept.
      */
+
     public Vector ne_conjectures = new Vector();
 
-    /**
-     * The set of implicate conjectures involving this concept.
+    /** The set of implicate conjectures involving this concept.
      */
+
     public Vector imp_conjectures = new Vector();
 
-    /**
-     * The set of prime implicate conjectures involving this concept.
+    /** The set of prime implicate conjectures involving this concept.
      */
+
     public Vector pi_conjectures = new Vector();
 
-    /**
-     * The score from the equivalence conjectures of this concept.
+    /** The score from the equivalence conjectures of this concept.
      */
-    public double equiv_conj_score = 0.0D;
 
-    /**
-     * The normalised equivalence conjecture score of this concept.
-     */
-    public double normalised_equiv_conj_score = 0.0D;
+    public double equiv_conj_score = 0;
 
-    /**
-     * The score from the prime implicate conjectures of this concept.
+    /** The normalised equivalence conjecture score of this concept.
      */
-    public double pi_conj_score = 0.0D;
 
-    /**
-     * The normalised equivalence conjecture score of this concept.
-     */
-    public double normalised_pi_conj_score = 0.0D;
+    public double normalised_equiv_conj_score = 0;
 
-    /**
-     * The score from the non-existence conjectures of this concept.
+    /** The score from the prime implicate conjectures of this concept.
      */
-    public double ne_conj_score = 0.0D;
 
-    /**
-     * The normalised non-existence conjecture score of this concept.
-     */
-    public double normalised_ne_conj_score = 0.0D;
+    public double pi_conj_score = 0;
 
-    /**
-     * The score from the implicate conjectures of this concept.
+    /** The normalised equivalence conjecture score of this concept.
      */
-    public double imp_conj_score = 0.0D;
 
-    /**
-     * The normalised implicate conjecture score of this concept.
-     */
-    public double normalised_imp_conj_score = 0.0D;
+    public double normalised_pi_conj_score = 0;
 
-    /**
-     * The normalised equivalence conjecture number score of this concept.
+    /** The score from the non-existence conjectures of this concept.
      */
-    public double normalised_equiv_conj_num = 0.0D;
 
-    /**
-     * The normalised equivalence conjecture number score of this concept.
-     */
-    public double normalised_pi_conj_num = 0.0D;
+    public double ne_conj_score = 0;
 
-    /**
-     * The normalised non-existence conjecture number score of this concept.
+    /** The normalised non-existence conjecture score of this concept.
      */
-    public double normalised_ne_conj_num = 0.0D;
 
-    /**
-     * The normalised implicate conjecture number score of this concept.
-     */
-    public double normalised_imp_conj_num = 0.0D;
+    public double normalised_ne_conj_score = 0;
 
-    /**
-     * The comprehensibility of this concept (1 over the complexity)
+    /** The score from the implicate conjectures of this concept.
      */
-    public double comprehensibility = 0.0D;
 
-    /**
-     * The normalised comprehensibility of this concept.
-     */
-    public double normalised_comprehensibility = 0.0D;
+    public double imp_conj_score = 0;
 
-    /**
-     * The invariance of the concept's categorisation with respect to a user-given gold standard categorisation.
+    /** The normalised implicate conjecture score of this concept.
      */
-    public double invariance = 0.0D;
 
-    /**
-     * The normalised invariance of the concept's categorisation with respect to a user-given gold standard categorisation.
-     */
-    public double normalised_invariance_score = 0.0D;
+    public double normalised_imp_conj_score = 0;
 
-    /**
-     * The discrimination of the concept's categorisation with respect to a user-given gold standard categorisation.
+    /** The normalised equivalence conjecture number score of this concept.
      */
-    public double discrimination = 0.0D;
 
-    /**
-     * The normalised disrimination of the concept's categorisation with respect to a user-given gold standard categorisation.
-     */
-    public double normalised_discrimination_score = 0.0D;
+    public double normalised_equiv_conj_num = 0;
 
-    /**
-     * The novelty of this concept (inversely proportional to the number of other concepts which share the categorisation this concept has).
+    /** The normalised equivalence conjecture number score of this concept.
      */
-    public double novelty = 0.0D;
 
-    /**
-     * The normalised novelty of this concept.
-     */
-    public double normalised_novelty = 0.0D;
+    public double normalised_pi_conj_num = 0;
 
-    /**
-     * The parsimony of this concept (1 over the size of the datatable)
+    /** The normalised non-existence conjecture number score of this concept.
      */
-    public double parsimony = 0.0D;
 
-    /**
-     * The normalised parsimony of this concept.
-     */
-    public double normalised_parsimony = 0.0D;
+    public double normalised_ne_conj_num = 0;
 
-    /**
-     * The score inherited from the parents of this concept.
+    /** The normalised implicate conjecture number score of this concept.
      */
-    public double parent_score = 0.0D;
 
-    /**
-     * The score from the children of this concept.
-     */
-    public double children_score = 0.0D;
+    public double normalised_imp_conj_num = 0;
 
-    /**
-     * The productivity of this concept proportion of steps leading to a concept.
+    /** The comprehensibility of this concept (1 over the complexity);
      */
-    public double productivity = 0.0D;
 
-    /**
-     * The normalised parsimony of this concept.
-     */
-    public double normalised_productivity = 0.0D;
+    public double comprehensibility = 0;
 
-    /**
-     * The variety of this concept (1 over the size of the datatable)
+    /** The normalised comprehensibility of this concept.
      */
-    public double variety = 0.0D;
 
-    /**
-     * The normalised_variety of this concept.
-     */
-    public double normalised_variety = 0.0D;
+    public double normalised_comprehensibility = 0;
 
-    /**
-     * The tuple of old_concepts, production rule and parameters which were used to construct this concept.
+    /** The invariance of the concept's categorisation with respect to a user-given
+     * gold standard categorisation.
      */
+
+    public double invariance = 0;
+
+    /** The normalised invariance of the concept's categorisation with respect to a user-given
+     * gold standard categorisation.
+     */
+
+    public double normalised_invariance_score = 0;
+
+    /** The discrimination of the concept's categorisation with respect to a user-given
+     * gold standard categorisation.
+     */
+
+    public double discrimination = 0;
+
+    /** The normalised disrimination of the concept's categorisation with respect to a user-given
+     * gold standard categorisation.
+     */
+
+    public double normalised_discrimination_score = 0;
+
+    /** The novelty of this concept (inversely proportional to the number of other
+     * concepts which share the categorisation this concept has).
+     */
+
+    public double novelty = 0;
+
+    /** The normalised novelty of this concept.
+     */
+
+    public double normalised_novelty = 0;
+
+    /** The parsimony of this concept (1 over the size of the datatable);
+     */
+
+    public double parsimony = 0;
+
+    /** The normalised parsimony of this concept.
+     */
+
+    public double normalised_parsimony = 0;
+
+    /** The score inherited from the parents of this concept.
+     */
+
+    public double parent_score = 0;
+
+    /** The score from the children of this concept.
+     */
+
+    public double children_score = 0;
+
+    /** The productivity of this concept proportion of steps leading to a concept.
+     */
+
+    public double productivity = 0;
+
+    /** The normalised parsimony of this concept.
+     */
+
+    public double normalised_productivity = 0;
+
+    /** The variety of this concept (1 over the size of the datatable);
+     */
+
+    public double variety = 0;
+
+    /** The normalised_variety of this concept.
+     */
+
+    public double normalised_variety = 0;
+
+    /** The tuple of old_concepts, production rule and parameters which were used to construct
+     * this concept.
+     */
+
     public Step construction = new Step();
 
-    /**
-     * The categorisation this concept produces.
+    /** The categorisation this concept produces.
      */
+
     public Categorisation categorisation = new Categorisation();
 
-    /**
-     * The datatable for this concept.
+    /** The datatable for this concept.
      */
+
     public Datatable datatable = new Datatable();
 
-    /**
-     * Whether or not the concept is cumulative.
-     * If it is cumulative, the datatable row for the nth entity requires information from the first n-1 rows.
+    /** Whether or not the concept is cumulative. If it is cumulative, the datatable row
+     * for the nth entity requires information from the first n-1 rows.
      */
+
     public boolean is_cumulative = false;
 
-    /**
-     * The name of the concept.
+    /** The name of the concept.
      */
+
     public String name = "";
 
-    /**
-     * If this was the nth concept introduced (including core concepts), then the position in the theory is n.
+    /** If this was the nth concept introduced (including core concepts), then the position in
+     * the theory is n.
      */
+
     public int position_in_theory = 0;
 
-    /**
-     * The specification of the relations applicable to this concept. This is a vector of specifications.
+    /** The specification of the relations applicable to this concept. This is a vector of
+     * specifications.
+     * @see Specification
      */
+
     public Vector specifications = new Vector();
 
-    /**
-     * The types of elements in the columns for the concept's datatable
+    /** The types of elements in the columns for the concept's datatable
      */
+
     public Vector types = new Vector();
 
-    /**
-     * The highlight value of this concept (1 if highlighted, 0 otherwise)
+    /** The highlight value of this concept (1 if highlighted, 0 otherwise)
      */
-    public double highlight_score = 0.0D;
 
-    /**
-     * The set of concepts which contain a subset of the specifications of this concept.
+    public double highlight_score = 0;
+
+    /** The set of concepts which contain a subset of the specifications of this
+     * concept.
      */
+
     public Vector generalisations = new Vector();
 
-    /**
-     * The weighted sum of all the interestingness measures for this concept.
-     * Designed to give some overall indication of the worth of the concept.
+    /** The weighted sum of all the interestingness measures for this concept. Designed
+     * to give some overall indication of the worth of the concept.
      */
-    public double interestingness = 0.0D;
 
-    /**
-     * The number of theory formation steps in which this concept has been involved.
-     */
-    public double development_steps_num = 0.0D;
+    public double interestingness = 0;
 
-    /**
-     * The normalised value for the number_of_steps_involved.
+    /** The number of theory formation steps in which this concept has been involved.
      */
-    public double normalised_development_steps_num = 0.0D;
+    public double development_steps_num = 0;
 
-    /**
-     * The number of theory formation steps in which this concept has been involved which led to a new concept being introduced.
+    /** The normalised value for the number_of_steps_involved.
      */
-    public double number_of_children = 0.0D;
 
-    /**
-     * The set of construction steps required to reproduce this concept.
+    public double normalised_development_steps_num = 0;
+
+    /** The number of theory formation steps in which this concept has been involved which
+     * led to a new concept being introduced.
      */
+
+    public double number_of_children = 0;
+
+    /** The set of construction steps required to reproduce this concept.
+     */
+
     public Vector construction_history = new Vector();
 
-    /**
-     * The set of alternative id numbers for this concept.
-     * A concept might get an alternative id number if it is repeated in another theory (from another agent perhaps).
+    /** The set of alternative id numbers for this concept. A concept might get an alternative
+     * id number if it is repeated in another theory (from another agent perhaps).
      */
+
     public Vector alternative_ids = new Vector();
 
+    /** Whether the concept has been invented just to cover specific
+     entities (in which case no other definition is available). The
+     entities (if they exist) are stored in entity_strings
+     below. This flag is written for counterexample-barring -
+     alisonp */
+
     public boolean concept_to_cover_entities = false;
+
+    /** The vector of entity strings which this concept is to cover
+     (used for counterexample-barring) - alisonp */
+
     public Vector entity_strings = new Vector();
+
+
+    /** Whether the concept has been produced using Lakatos methods, and
+     * if so which one.
+     */
+
     public String lakatos_method = "no";
 
-    public Concept() {
-    }
 
-    /**
-     * This writes the concept definition in the given language, using the letters supplied.
+    /** This writes the concept definition in the given language, using the
+     * letters supplied.
      */
-    public String writeDefinition(String language, Vector letters) {
-        return this.definition_writer.writeDefinition(this, language, letters);
+
+    public String writeDefinition(String language, Vector letters)
+    {
+        return definition_writer.writeDefinition(this, language, letters);
     }
 
-    /**
-     * This writes the concept definition in the given language, using the letters supplied, putting @ signs around the letters.
+    /** This writes the concept definition in the given language, using the
+     * letters supplied, putting @ signs around the letters.
      */
-    public String writeDefinitionWithAtSigns(String language) {
-        boolean var2 = this.definition_writer.surround_by_at_sign;
-        this.definition_writer.surround_by_at_sign = true;
-        String var3 = this.definition_writer.writeDefinition(this, language);
-        this.definition_writer.surround_by_at_sign = var2;
-        return var3;
+
+    public String writeDefinitionWithAtSigns(String language)
+    {
+        boolean old_val = definition_writer.surround_by_at_sign;
+        definition_writer.surround_by_at_sign = true;
+        String output = definition_writer.writeDefinition(this, language);
+        definition_writer.surround_by_at_sign = old_val;
+        return output;
     }
 
-    /**
-     * This writes the concept definition in the given language.
+    /** This writes the concept definition in the given language.
      */
-    public String writeDefinition(String language) {
-        return !this.concept_to_cover_entities ? this.definition_writer.writeDefinition(this, language) : this.definition_writer.writeDefinitionForGivenEntities(this, language, this.entity_strings);
+
+    public String writeDefinition(String language)
+    {
+        if(!concept_to_cover_entities)
+            return definition_writer.writeDefinition(this, language);
+        else
+            return definition_writer.writeDefinitionForGivenEntities(this, language, entity_strings);
     }
 
-    public String writeDefinition() {
+    /** This writes the definition in ascii*/
+    public String writeDefinition()
+    {
         return this.writeDefinition("ascii");
     }
 
-    public String toString() {
-        return this.writeDefinition();
+    /** Another method for writing the concept in ascii.
+     */
+
+    public String toString()
+    {
+        return writeDefinition();
     }
 
-    /**
-     * This writes the concept definition in the given language and includes a vector of letters at the start.
+
+
+    /** This writes the concept definition in the given language and includes a vector
+     * of letters at the start.
      */
-    public String writeDefinitionWithStartLetters(String language) {
-        return this.definition_writer.writeDefinitionWithStartLetters(this, language);
+
+    public String writeDefinitionWithStartLetters(String language)
+    {
+        return definition_writer.writeDefinitionWithStartLetters(this, language);
     }
 
-    /**
-     * This calculates the row for a given entity. It also needs to be supplied the rest of the concepts in the theory,
-     * so that it can backtrack and calculate values for the ancestors of the concept.
+    /** This calculates the row for a given entity. It also needs to be supplied the rest of the
+     * concepts in the theory, so that it can backtrack and calculate values for the ancestors
+     * of the concept.
+     * @see Row
      */
-    public Row calculateRow(Vector all_concepts, String entity) {
-        Row var3 = new Row();
-        var3.entity = entity;
-        int var4 = 0;
 
-        Row var5;
-        for(var5 = new Row(); var4 < this.datatable.size(); ++var4) {
-            var5 = (Row)this.datatable.elementAt(var4);
-            if (var5.entity.equals(entity)) {
-                break;
-            }
+    public Row calculateRow(Vector all_concepts, String entity)
+    {
+        Row output = new Row();
+        output.entity = entity;
+        int i=0;
+        Row row = new Row();
+
+        // First check to see if it's already in the datatable //
+
+        while (i<datatable.size())
+        {
+            row = (Row)datatable.elementAt(i);
+            if (row.entity.equals(entity)) break;
+            i++;
+        }
+        if (i<datatable.size()) return row;
+
+        // Next check the additional datatable //
+
+        i=0;
+        while (i<additional_datatable.size())
+        {
+            row = (Row)additional_datatable.elementAt(i);
+            if (row.entity.equals(entity)) break;
+            i++;
+        }
+        if (i<additional_datatable.size()) return row;
+
+        // If the concept is user given and an object of interest, then return //
+
+        if (is_object_of_interest_concept)
+        {
+            Tuples tuples = new Tuples();
+            tuples.addElement(new Vector());
+            Row new_row = new Row();
+            new_row.entity = entity;
+            new_row.tuples = tuples;
+            additional_datatable.addElement(new_row);
+            return (new_row);
         }
 
-        if (var4 < this.datatable.size()) {
-            return var5;
-        } else {
-            for(var4 = 0; var4 < this.additional_datatable.size(); ++var4) {
-                var5 = (Row)this.additional_datatable.elementAt(var4);
-                if (var5.entity.equals(entity)) {
-                    break;
-                }
-            }
+        // If the entity is of the wrong type, then return //
+        // THIS STILL NEEDS DOING //
 
-            if (var4 < this.additional_datatable.size()) {
-                return var5;
-            } else {
-                Tuples var17;
-                Row var18;
-                if (this.is_object_of_interest_concept) {
-                    var17 = new Tuples();
-                    var17.addElement(new Vector());
-                    var18 = new Row();
-                    var18.entity = entity;
-                    var18.tuples = var17;
-                    this.additional_datatable.addElement(var18);
-                    return var18;
-                } else if (this.is_user_given) {
-                    var17 = this.user_functions.calculateTuples(this.id, entity);
-                    var18 = new Row();
-                    var18.entity = entity;
-                    var18.tuples = var17;
-                    this.additional_datatable.addElement(var18);
-                    return var18;
-                } else {
-                    boolean var6 = false;
-                    Vector var7 = (Vector)this.construction.elementAt(0);
-                    ProductionRule var8 = (ProductionRule)this.construction.elementAt(1);
-                    Vector var9 = (Vector)this.construction.elementAt(2);
-                    Vector var10 = new Vector();
+        // If it's user given, then we need to use the user-supplied code to
+        // calculate a new row.
 
-                    for(var4 = 0; var4 < var7.size(); ++var4) {
-                        if (!var6) {
-                            Concept var11 = (Concept)var7.elementAt(var4);
-                            if (!var11.domain.equals(this.domain)) {
-                                var10.addElement(var11.datatable);
-                            }
+        if (is_user_given)
+        {
+            Tuples tuples = user_functions.calculateTuples(id, entity);
+            Row new_row = new Row();
+            new_row.entity = entity;
+            new_row.tuples = tuples;
+            additional_datatable.addElement(new_row);
+            return new_row;
+        }
 
-                            if (var11.domain.equals(this.domain)) {
-                                Datatable var12 = new Datatable();
-                                if (this.is_cumulative) {
-                                    int var13 = 1;
+        // For the non-user given concepts, calculate the row using the pr //
 
-                                    for(int var14 = new Integer(entity); var13 < var14 && !var6; ++var13) {
-                                        String var15 = Integer.toString(var13);
-                                        Row var16 = var11.calculateRow(all_concepts, var15);
-                                        if (var16.is_void) {
-                                            var6 = true;
-                                        }
+        boolean void_calc = false;
+        Vector old_concepts = (Vector)construction.elementAt(0);
+        ProductionRule pr = (ProductionRule)construction.elementAt(1);
+        Vector parameters = (Vector)construction.elementAt(2);
 
-                                        var12.addElement(var16);
-                                    }
-                                }
-
-                                Row var20 = var11.calculateRow(all_concepts, entity);
-                                if (var20.is_void) {
-                                    var6 = true;
-                                }
-
-                                var12.addElement(var20);
-                                var10.addElement(var12);
-                            }
+        Vector old_datatables = new Vector();
+        for(i=0;i<old_concepts.size();i++)
+        {
+            if (!void_calc)
+            {
+                Concept old_concept = (Concept)old_concepts.elementAt(i);
+                if (!old_concept.domain.equals(domain))
+                    old_datatables.addElement(old_concept.datatable);
+                if (old_concept.domain.equals(domain))
+                {
+                    Datatable old_datatable = new Datatable();
+                    if (is_cumulative)
+                    {
+                        int j=1;
+                        int top = (new Integer(entity)).intValue();
+                        while (j<top && !void_calc)
+                        {
+                            String ent_string = Integer.toString(j);
+                            Row old_row = old_concept.calculateRow(all_concepts, ent_string);
+                            if (old_row.is_void) void_calc = true;
+                            old_datatable.addElement(old_row);
+                            j++;
                         }
                     }
-
-                    if (!var6) {
-                        Datatable var19 = var8.transformTable(var10, var7, var9, all_concepts);
-                        var3 = var19.rowWithEntity(entity);
-                    }
-
-                    if (var6) {
-                        return new Row(entity, "void");
-                    } else {
-                        this.additional_datatable.addElement(var3);
-                        return var3;
-                    }
+                    Row old_row = old_concept.calculateRow(all_concepts, entity);
+                    if (old_row.is_void) void_calc = true;
+                    old_datatable.addElement(old_row);
+                    old_datatables.addElement(old_datatable);
                 }
             }
         }
+        if (!void_calc)
+        {
+
+            Datatable row_table =
+                    pr.transformTable(old_datatables, old_concepts, parameters, all_concepts);
+            output = (Row)row_table.rowWithEntity(entity);
+        }
+        if (void_calc) return (new Row(entity,"void"));
+        additional_datatable.addElement(output);
+        return output;
     }
 
-    /**
-     * Returns the complexity of a new concept formed by composing this concept with the other concept specified.
+    /** Returns the complexity of a new concept formed by composing this concept with the
+     * other concept specified.
      */
-    public int complexityWith(Concept other_concept) {
-        int var2 = 0;
 
-        int var3;
-        for(var3 = this.ancestor_ids.size(); var2 < other_concept.ancestor_ids.size(); ++var2) {
-            if (!this.ancestor_ids.contains((String)other_concept.ancestor_ids.elementAt(var2))) {
-                ++var3;
-            }
+    public int complexityWith(Concept other_concept)
+    {
+        int i=0;
+        int output = ancestor_ids.size();
+        while (i<other_concept.ancestor_ids.size())
+        {
+            if (!ancestor_ids.contains((String)other_concept.ancestor_ids.elementAt(i)))
+                output++;
+            i++;
         }
-
-        return var3;
+        return output;
     }
 
-    /**
-     * This returns a string which details the id, name, definition, domain, types, ancestors, construction history and datatable of the concept.
+    /** This returns a string which details the id, name, definition, domain, types,
+     * ancestors, construction history and datatable of the concept.
      */
-    public String fullDetails(String[] attributes_in, int dp) {
-        return this.fullDetails("ascii", attributes_in, dp);
+    public String fullDetails(String[] attributes_in, int dp)
+    {
+        return fullDetails("ascii", attributes_in, dp);
     }
 
-    public String fullDetails(String markup_type, String[] attributes_in, int dp) {
-        Vector var4 = new Vector();
-
-        for(int var5 = 0; var5 < attributes_in.length; ++var5) {
-            var4.addElement(attributes_in[var5]);
-        }
-
-        if (markup_type.equals("html")) {
-            return this.fullHTMLDetails(var4, dp);
-        } else {
-            return markup_type.equals("ascii") ? this.fullASCIIDetails(var4, dp) : "";
-        }
+    public String fullDetails(String markup_type, String[] attributes_in, int dp)
+    {
+        Vector attributes = new Vector();
+        for (int i=0; i<attributes_in.length; i++)
+            attributes.addElement(attributes_in[i]);
+        if (markup_type.equals("html"))
+            return fullHTMLDetails(attributes, dp);
+        if (markup_type.equals("ascii"))
+            return fullASCIIDetails(attributes, dp);
+        return "";
     }
 
-    public String fullHTMLDetails(Vector attributes, int dp) {
-        String var3 = "";
-        if (attributes.contains("id")) {
-            var3 = var3 + "<b>" + this.id + "</b>";
+    public String fullHTMLDetails(Vector attributes, int dp)
+    {
+        String output = "";
+
+        // Identifier and definitions //
+
+        if (attributes.contains("id"))
+            output = output + "<b>" + id + "</b>";
+        if (attributes.contains("name") && !name.equals(""))
+        {
+            output = output + " &nbsp;&nbsp;<b>\"" + name + "\"</b>";
         }
 
-        if (attributes.contains("name") && !this.name.equals("")) {
-            var3 = var3 + " &nbsp;&nbsp;<b>\"" + this.name + "\"</b>";
-        }
+        if (attributes.contains("id") || attributes.contains("name"))
+            output = output + "\n";
 
-        if (attributes.contains("id") || attributes.contains("name")) {
-            var3 = var3 + "\n";
-        }
+        int num_definitions = 0;
+        String main_language = "";
 
-        int var4 = 0;
-        String var5 = "";
-        if (attributes.contains("simplified def")) {
-            ++var4;
+        if (attributes.contains("simplified def"))
+            num_definitions++;
+        if (attributes.contains("ascii def"))
+        {
+            num_definitions++;
+            main_language = "ascii";
         }
-
-        if (attributes.contains("ascii def")) {
-            ++var4;
-            var5 = "ascii";
+        if (attributes.contains("otter def"))
+        {
+            num_definitions++;
+            main_language = "otter";
         }
-
-        if (attributes.contains("otter def")) {
-            ++var4;
-            var5 = "otter";
+        if (attributes.contains("prolog def"))
+        {
+            num_definitions++;
+            main_language = "prolog";
         }
-
-        if (attributes.contains("prolog def")) {
-            ++var4;
-            var5 = "prolog";
+        if (attributes.contains("tptp def"))
+        {
+            num_definitions++;
+            main_language = "tptp";
         }
+        if (attributes.contains("skolemised def"))
+            num_definitions++;
+        String list_add = "<li>";
+        if (num_definitions<=1)
+            list_add = "";
+        else
+            main_language = "ascii";
 
-        if (attributes.contains("tptp def")) {
-            ++var4;
-            var5 = "tptp";
+        String def_string = "";
+
+        if (attributes.contains("simplified def"))
+        {
+            boolean tmp_bool = definition_writer.remove_existence_variables;
+            definition_writer.remove_existence_variables = true;
+            def_string =
+                    def_string + list_add + "<b>" + replaceLTForHTML(writeDefinitionWithStartLetters("otter")) + "</b>\n";
+            definition_writer.remove_existence_variables = tmp_bool;
         }
+        if (attributes.contains("ascii def"))
+            def_string =
+                    def_string + list_add + "<b>" + replaceLTForHTML(writeDefinitionWithStartLetters("ascii")) + "</b>\n";
+        if (attributes.contains("otter def"))
+            def_string =
+                    def_string + list_add + "<b>" + replaceLTForHTML(writeDefinitionWithStartLetters("otter")) + "</b>\n";
+        if (attributes.contains("prolog def"))
+            def_string =
+                    def_string + list_add + "<b>" + replaceLTForHTML(writeDefinitionWithStartLetters("prolog")) + "</b>\n";
+        if (attributes.contains("tptp def"))
+            def_string =
+                    def_string + list_add + "<b>" + replaceLTForHTML(writeDefinitionWithStartLetters("tptp")) + "</b>\n";
+        if (attributes.contains("skolemised def"))
+            def_string =
+                    def_string + list_add + "<b>" + replaceLTForHTML(writeSkolemisedRepresentation()) + "</b>\n";
 
-        if (attributes.contains("skolemised def")) {
-            ++var4;
-        }
-
-        String var6 = "<li>";
-        if (var4 <= 1) {
-            var6 = "";
-        } else {
-            var5 = "ascii";
-        }
-
-        String var7 = "";
-        if (attributes.contains("simplified def")) {
-            boolean var8 = this.definition_writer.remove_existence_variables;
-            this.definition_writer.remove_existence_variables = true;
-            var7 = var7 + var6 + "<b>" + this.replaceLTForHTML(this.writeDefinitionWithStartLetters("otter")) + "</b>\n";
-            this.definition_writer.remove_existence_variables = var8;
-        }
-
-        if (attributes.contains("ascii def")) {
-            var7 = var7 + var6 + "<b>" + this.replaceLTForHTML(this.writeDefinitionWithStartLetters("ascii")) + "</b>\n";
-        }
-
-        if (attributes.contains("otter def")) {
-            var7 = var7 + var6 + "<b>" + this.replaceLTForHTML(this.writeDefinitionWithStartLetters("otter")) + "</b>\n";
-        }
-
-        if (attributes.contains("prolog def")) {
-            var7 = var7 + var6 + "<b>" + this.replaceLTForHTML(this.writeDefinitionWithStartLetters("prolog")) + "</b>\n";
-        }
-
-        if (attributes.contains("tptp def")) {
-            var7 = var7 + var6 + "<b>" + this.replaceLTForHTML(this.writeDefinitionWithStartLetters("tptp")) + "</b>\n";
-        }
-
-        if (attributes.contains("skolemised def")) {
-            var7 = var7 + var6 + "<b>" + this.replaceLTForHTML(this.writeSkolemisedRepresentation()) + "</b>\n";
-        }
-
-        if (var4 > 1) {
-            var3 = var3 + "<ul>" + var7 + "</ul>\n";
-        } else if (var4 == 1) {
-            var3 = var3 + "<br><table border=1 cellpadding=3 fgcolor=white bgcolor=\"#ffff99\"><tr><td><font color=blue>" + var7 + "</font></td></tr></table><br>\n";
-        }
-
-        if (!var3.equals("")) {
-            var3 = var3 + "<hr>\n";
-        }
-
-        String var16 = var3;
-        var3 = var3 + "\n<table border=0><tr><td align=center><font size=4 color=red>Measures</font></td>";
-        var3 = var3 + "<td align=center><font size=4 color=green>Examples</font></td></tr>\n";
-        var3 = var3 + "<tr valign=top><td><table border=1><tr><td>Measure</td><td>Value</td><td>Normalised</td></tr>\n";
-        if (attributes.contains("total score")) {
-            var3 = var3 + "<tr><td>Total score</td><td>" + this.decimalPlaces(this.interestingness, dp) + "</td><td></td></tr>\n";
-        }
-
-        if (attributes.contains("arity")) {
-            var3 = var3 + "<tr><td>Arity</td><td>" + this.decimalPlaces(this.arity, dp) + "</td><td></td></tr>\n";
-        }
-
-        if (attributes.contains("applicability")) {
-            var3 = var3 + "<tr><td>Applicability</td><td>" + this.decimalPlaces(this.applicability, dp) + "</td><td>" + this.decimalPlaces(this.normalised_applicability, dp) + "</td></tr>\n";
-        }
-
-        if (attributes.contains("child num")) {
-            var3 = var3 + "<tr><td>Children number</td><td>" + this.decimalPlaces(this.number_of_children, dp) + "</td><td></td></tr>\n";
-        }
-
-        if (attributes.contains("child score")) {
-            var3 = var3 + "<tr><td>Children score</td><td>" + this.decimalPlaces(this.children_score, dp) + "</td><td>" + this.decimalPlaces(this.children_score, dp) + "</td></tr>\n";
-        }
-
-        if (attributes.contains("comprehens")) {
-            var3 = var3 + "<tr><td>Comprehensibility</td><td>" + this.decimalPlaces(this.comprehensibility, dp) + "</td><td>" + this.decimalPlaces(this.normalised_comprehensibility, dp) + "</td></tr>\n";
-        }
-
-        if (attributes.contains("complexity")) {
-            var3 = var3 + "<tr><td>Complexity</td><td>" + this.decimalPlaces(this.complexity, dp) + "</td><td></td></tr>\n";
-        }
-
-        if (attributes.contains("coverage")) {
-            var3 = var3 + "<tr><td>Coverage</td><td>" + this.decimalPlaces(this.coverage, dp) + "</td><td>" + this.decimalPlaces(this.normalised_coverage, dp) + "</td></tr>\n";
-        }
-
-        if (attributes.contains("devel steps")) {
-            var3 = var3 + "<tr><td>Development steps</td><td>" + this.decimalPlaces(this.development_steps_num, dp) + "</td><td>" + this.decimalPlaces(this.normalised_development_steps_num, dp) + "</td></tr>\n";
-        }
-
-        if (attributes.contains("discrimination")) {
-            var3 = var3 + "<tr><td>Discrimination</td><td>" + this.decimalPlaces(this.discrimination, dp) + "</td><td>" + this.decimalPlaces(this.normalised_discrimination_score, dp) + "</td></tr>\n";
-        }
-
-        if (attributes.contains("equiv conj score")) {
-            var3 = var3 + "<tr><td>Equiv Conjecture score</td><td>" + this.decimalPlaces(this.equiv_conj_score, dp) + "</td><td>" + this.decimalPlaces(this.normalised_equiv_conj_score, dp) + "</td></tr>\n";
-        }
-
-        if (attributes.contains("equiv conj num")) {
-            var3 = var3 + "<tr><td>Equiv Conjecture num</td><td>" + this.decimalPlaces(this.equiv_conjectures.size(), dp) + "</td><td>" + this.decimalPlaces(this.normalised_equiv_conj_num, dp) + "</td></tr>\n";
-        }
-
-        if (attributes.contains("highlight")) {
-            var3 = var3 + "<tr><td>Highlight</td><td>" + this.decimalPlaces(this.highlight_score, dp) + "</td><td></td></tr>\n";
-        }
-
-        if (attributes.contains("ne conj score")) {
-            var3 = var3 + "<tr><td>Non-exists Conjecture score</td><td>" + this.decimalPlaces(this.ne_conj_score, dp) + "</td><td>" + this.decimalPlaces(this.normalised_ne_conj_score, dp) + "</td></tr>\n";
-        }
-
-        if (attributes.contains("ne conj num")) {
-            var3 = var3 + "<tr><td>Non-exists Conjecture num</td><td>" + this.decimalPlaces(this.ne_conjectures.size(), dp) + "</td><td>" + this.decimalPlaces(this.normalised_ne_conj_num, dp) + "</td></tr>\n";
-        }
-
-        if (attributes.contains("neg applic")) {
-            var3 = var3 + "<tr><td>Negative Applicability</td><td>" + this.decimalPlaces(this.negative_applicability, dp) + "</td><td>" + this.decimalPlaces(this.normalised_negative_applicability, dp) + "</td></tr>\n";
-        }
-
-        if (attributes.contains("imp conj score")) {
-            var3 = var3 + "<tr><td>Implicate Conjecture score</td><td>" + this.decimalPlaces(this.imp_conj_score, dp) + "</td><td>" + this.decimalPlaces(this.normalised_imp_conj_score, dp) + "</td></tr>\n";
-        }
-
-        if (attributes.contains("imp conj num")) {
-            var3 = var3 + "<tr><td>Implicate Conjecture num</td><td>" + this.decimalPlaces(this.imp_conjectures.size(), dp) + "</td><td>" + this.decimalPlaces(this.normalised_imp_conj_num, dp) + "</td></tr>\n";
-        }
-
-        if (attributes.contains("invariance")) {
-            var3 = var3 + "<tr><td>Invariance</td><td>" + this.decimalPlaces(this.invariance, dp) + "</td><td>" + this.decimalPlaces(this.normalised_invariance_score, dp) + "</td></tr>\n";
-        }
-
-        if (attributes.contains("novelty")) {
-            var3 = var3 + "<tr><td>Novelty</td><td>" + this.decimalPlaces(this.novelty, dp) + "</td><td>" + this.decimalPlaces(this.normalised_novelty, dp) + "</td></tr>\n";
-        }
-
-        if (attributes.contains("parent score")) {
-            var3 = var3 + "<tr><td>Parent score</td><td>" + this.decimalPlaces(this.parent_score, dp) + "<td></td></td></tr>\n";
-        }
-
-        if (attributes.contains("parsimony")) {
-            var3 = var3 + "<tr><td>Parsimony</td><td>" + this.decimalPlaces(this.parsimony, dp) + "</td><td>" + this.decimalPlaces(this.normalised_parsimony, dp) + "</td></tr>\n";
-        }
-
-        if (attributes.contains("pi conj score")) {
-            var3 = var3 + "<tr><td>PI Conjecture score</td><td>" + this.decimalPlaces(this.pi_conj_score, dp) + "</td><td>" + this.decimalPlaces(this.normalised_pi_conj_score, dp) + "</td></tr>\n";
-        }
-
-        if (attributes.contains("pi conj num")) {
-            var3 = var3 + "<tr><td>PI Conjecture num</td><td>" + this.decimalPlaces(this.pi_conjectures.size(), dp) + "</td><td>" + this.decimalPlaces(this.normalised_pi_conj_num, dp) + "</td></tr>\n";
-        }
-
-        if (attributes.contains("pos applic")) {
-            var3 = var3 + "<tr><td>Positive Applicability</td><td>" + this.decimalPlaces(this.positive_applicability, dp) + "</td><td>" + this.decimalPlaces(this.normalised_positive_applicability, dp) + "</td></tr>\n";
-        }
-
-        if (attributes.contains("pred power")) {
-            var3 = var3 + "<tr><td>Predictive Power</td><td>" + this.decimalPlaces(this.predictive_power, dp) + "</td><td></td></tr>\n";
-        }
-
-        if (attributes.contains("productivity")) {
-            var3 = var3 + "<tr><td>Productivity</td><td>" + this.decimalPlaces(this.productivity, dp) + "</td><td>" + this.decimalPlaces(this.normalised_productivity, dp) + "</td></tr>\n";
-        }
-
-        if (attributes.contains("variety")) {
-            var3 = var3 + "<tr><td>Variety</td><td>" + this.decimalPlaces(this.variety, dp) + "</td><td>" + this.decimalPlaces(this.normalised_variety, dp) + "</td></tr>\n";
-        }
-
-        var3 = var3 + "</table></td><td>";
-        if (attributes.contains("examples")) {
-            var3 = var3 + this.prettyPrintExamplesHTML(this.datatable) + "\n";
-        }
-
-        if (attributes.contains("datatable") && attributes.contains("examples")) {
-            var3 = var3 + "\n<hr>\n";
-        }
-
-        if (attributes.contains("datatable")) {
-            var3 = var3 + "The datatable is:<pre>\n" + this.datatable.toTable() + "</pre>\n";
-        }
-
-        if (attributes.contains("add examples")) {
-            if (this.additional_datatable.isEmpty()) {
-                var3 = var3 + "No additional entities for this concept.<br>\n";
-            } else {
-                var3 = var3 + "The additional table is:\n";
-                var3 = var3 + "<pre>" + this.additional_datatable.toTable() + "</pre>\n";
+        if (num_definitions>1)
+            output = output + "<ul>" + def_string + "</ul>\n";
+        else
+        {
+            if (num_definitions==1)
+            {
+                output = output +
+                        "<br><table border=1 cellpadding=3 fgcolor=white bgcolor=\"#ffff99\"><tr><td><font color=blue>"+
+                        def_string+"</font></td></tr></table><br>\n";
             }
         }
 
-        var3 = var3 + "</td></tr></table><p>";
-        if (!var16.equals(var3)) {
-            var3 = var3 + "<hr>\n";
+        if (!(output.equals("")))
+            output = output + "<hr>\n";
+        String snapshot = output;
+
+        // Measures //
+
+        output = output + "\n<table border=0><tr><td align=center><font size=4 color=red>Measures</font></td>";
+        output = output + "<td align=center><font size=4 color=green>Examples</font></td></tr>\n";
+        output = output + "<tr valign=top><td><table border=1><tr><td>Measure</td><td>Value</td><td>Normalised</td></tr>\n";
+
+        if (attributes.contains("total score"))
+            output = output + "<tr><td>Total score</td><td>" + decimalPlaces(interestingness, dp) + "</td><td></td></tr>\n";
+
+        if (attributes.contains("arity"))
+            output = output + "<tr><td>Arity</td><td>" + decimalPlaces(arity, dp) + "</td><td></td></tr>\n";
+        if (attributes.contains("applicability"))
+        {
+            output=output+"<tr><td>Applicability</td><td>" + decimalPlaces(applicability, dp) +
+                    "</td><td>" + decimalPlaces(normalised_applicability, dp) + "</td></tr>\n";
+        }
+        if (attributes.contains("child num"))
+            output=output+"<tr><td>Children number</td><td>" + decimalPlaces(number_of_children, dp)
+                    + "</td><td></td></tr>\n";
+        if (attributes.contains("child score"))
+        {
+            output=output+"<tr><td>Children score</td><td>" + decimalPlaces(children_score, dp) +
+                    "</td><td>" + decimalPlaces(children_score, dp) + "</td></tr>\n";
+        }
+        if (attributes.contains("comprehens"))
+        {
+            output=output+"<tr><td>Comprehensibility</td><td>" + decimalPlaces(comprehensibility, dp) +
+                    "</td><td>" + decimalPlaces(normalised_comprehensibility, dp) + "</td></tr>\n";
+        }
+        if (attributes.contains("complexity"))
+            output=output + "<tr><td>Complexity</td><td>" + decimalPlaces(complexity, dp) + "</td><td></td></tr>\n";
+        if (attributes.contains("coverage"))
+        {
+            output=output+"<tr><td>Coverage</td><td>" + decimalPlaces(coverage, dp) +
+                    "</td><td>" + decimalPlaces(normalised_coverage, dp) + "</td></tr>\n";
+        }
+        if (attributes.contains("devel steps"))
+        {
+            output=output+"<tr><td>Development steps</td><td>" + decimalPlaces(development_steps_num, dp) +
+                    "</td><td>" + decimalPlaces(normalised_development_steps_num, dp) + "</td></tr>\n";
+        }
+        if (attributes.contains("discrimination"))
+        {
+            output=output+"<tr><td>Discrimination</td><td>" + decimalPlaces(discrimination, dp) +
+                    "</td><td>" + decimalPlaces(normalised_discrimination_score, dp) + "</td></tr>\n";
+        }
+        if (attributes.contains("equiv conj score"))
+        {
+            output=output+"<tr><td>Equiv Conjecture score</td><td>" + decimalPlaces(equiv_conj_score, dp) +
+                    "</td><td>" + decimalPlaces(normalised_equiv_conj_score, dp) + "</td></tr>\n";
+        }
+        if (attributes.contains("equiv conj num"))
+        {
+            output=output+"<tr><td>Equiv Conjecture num</td><td>" + decimalPlaces(equiv_conjectures.size(), dp) +
+                    "</td><td>" + decimalPlaces(normalised_equiv_conj_num, dp) + "</td></tr>\n";
+        }
+        if (attributes.contains("highlight"))
+            output=output+"<tr><td>Highlight</td><td>" + decimalPlaces(highlight_score, dp) + "</td><td></td></tr>\n";
+        if (attributes.contains("ne conj score"))
+        {
+            output=output+"<tr><td>Non-exists Conjecture score</td><td>" + decimalPlaces(ne_conj_score, dp) +
+                    "</td><td>" + decimalPlaces(normalised_ne_conj_score, dp) + "</td></tr>\n";
+        }
+        if (attributes.contains("ne conj num"))
+        {
+            output = output + "<tr><td>Non-exists Conjecture num</td><td>" +
+                    decimalPlaces(ne_conjectures.size(), dp) +
+                    "</td><td>" + decimalPlaces(normalised_ne_conj_num, dp) + "</td></tr>\n";
+        }
+        if (attributes.contains("neg applic"))
+        {
+            output=output+"<tr><td>Negative Applicability</td><td>" + decimalPlaces(negative_applicability, dp) +
+                    "</td><td>" + decimalPlaces(normalised_negative_applicability, dp) + "</td></tr>\n";
+        }
+        if (attributes.contains("imp conj score"))
+        {
+            output=output+"<tr><td>Implicate Conjecture score</td><td>" + decimalPlaces(imp_conj_score, dp) +
+                    "</td><td>" + decimalPlaces(normalised_imp_conj_score, dp) + "</td></tr>\n";
+        }
+        if (attributes.contains("imp conj num"))
+        {
+            output=output+"<tr><td>Implicate Conjecture num</td><td>" + decimalPlaces(imp_conjectures.size(), dp) +
+                    "</td><td>" + decimalPlaces(normalised_imp_conj_num, dp) + "</td></tr>\n";
+        }
+        if (attributes.contains("invariance"))
+        {
+            output=output+"<tr><td>Invariance</td><td>" + decimalPlaces(invariance, dp) +
+                    "</td><td>" + decimalPlaces(normalised_invariance_score, dp) + "</td></tr>\n";
+        }
+        if (attributes.contains("novelty"))
+        {
+            output=output+"<tr><td>Novelty</td><td>" + decimalPlaces(novelty, dp) +
+                    "</td><td>" + decimalPlaces(normalised_novelty, dp) + "</td></tr>\n";
+        }
+        if (attributes.contains("parent score"))
+        {
+            output=output+"<tr><td>Parent score</td><td>" + decimalPlaces(parent_score, dp) +
+                    "<td></td></td></tr>\n";
+        }
+        if (attributes.contains("parsimony"))
+        {
+            output=output+"<tr><td>Parsimony</td><td>" + decimalPlaces(parsimony, dp) +
+                    "</td><td>" + decimalPlaces(normalised_parsimony, dp) + "</td></tr>\n";
+        }
+        if (attributes.contains("pi conj score"))
+        {
+            output=output+"<tr><td>PI Conjecture score</td><td>" + decimalPlaces(pi_conj_score, dp) +
+                    "</td><td>" + decimalPlaces(normalised_pi_conj_score, dp) + "</td></tr>\n";
+        }
+        if (attributes.contains("pi conj num"))
+        {
+            output=output+"<tr><td>PI Conjecture num</td><td>" + decimalPlaces(pi_conjectures.size(), dp) +
+                    "</td><td>" + decimalPlaces(normalised_pi_conj_num, dp) + "</td></tr>\n";
+        }
+        if (attributes.contains("pos applic"))
+        {
+            output=output+"<tr><td>Positive Applicability</td><td>" + decimalPlaces(positive_applicability, dp) +
+                    "</td><td>" + decimalPlaces(normalised_positive_applicability, dp) + "</td></tr>\n";
+        }
+        if (attributes.contains("pred power"))
+        {
+            output=output+"<tr><td>Predictive Power</td><td>" +
+                    decimalPlaces(predictive_power, dp) + "</td><td></td></tr>\n";
+        }
+        if (attributes.contains("productivity"))
+        {
+            output=output+"<tr><td>Productivity</td><td>" + decimalPlaces(productivity, dp) +
+                    "</td><td>" + decimalPlaces(normalised_productivity, dp) + "</td></tr>\n";
+        }
+        if (attributes.contains("variety"))
+        {
+            output=output+"<tr><td>Variety</td><td>" + decimalPlaces(variety, dp) +
+                    "</td><td>" + decimalPlaces(normalised_variety, dp) + "</td></tr>\n";
         }
 
-        var16 = var3;
-        var3 = var3 + "<b><u>Construction details</b></u><br>\n";
-        if (attributes.contains("const step")) {
-            if (this.is_user_given) {
-                var3 = var3 + "This concept was supplied by the user.<br>\n";
-            } else {
-                var3 = var3 + "Constructed with this step: " + this.construction.asString() + ".<br>\n";
+        output = output + "</table></td><td>";
+
+        if (attributes.contains("examples"))
+            output = output + prettyPrintExamplesHTML(datatable)+"\n";
+
+        if (attributes.contains("datatable") && attributes.contains("examples"))
+            output = output + "\n<hr>\n";
+        if (attributes.contains("datatable"))
+        {
+            output = output + "The datatable is:<pre>\n" +
+                    datatable.toTable() + "</pre>\n";
+        }
+
+        if (attributes.contains("add examples"))
+        {
+            if (additional_datatable.isEmpty())
+                output = output + "No additional entities for this concept.<br>\n";
+            else
+            {
+                output = output + "The additional table is:\n";
+                output = output + "<pre>" + additional_datatable.toTable() + "</pre>\n";
             }
         }
 
-        if (attributes.contains("ancestors")) {
-            var3 = var3 + "The ancestors of this concept are:" + this.ancestor_ids.toString() + "<br>\n";
+        output = output + "</td></tr></table><p>";
+
+        if (!(snapshot.equals(output)))
+            output=output+"<hr>\n";
+        snapshot = output;
+
+        // Construction details //
+
+        output = output + "<b><u>Construction details</b></u><br>\n";
+
+        if (attributes.contains("const step"))
+        {
+            if (is_user_given)
+                output = output + "This concept was supplied by the user.<br>\n";
+            else
+                output = output + "Constructed with this step: " + construction.asString()+".<br>\n";
         }
 
-        String var9;
-        if (attributes.contains("const time")) {
-            var9 = "s";
-            String var10 = Long.toString(this.when_constructed).trim();
-            if (var10.equals("1")) {
-                var9 = "";
-            }
+        if (attributes.contains("ancestors"))
+            output = output + "The ancestors of this concept are:" +  ancestor_ids.toString() + "<br>\n";
 
-            var3 = var3 + "Constructed after " + Long.toString(this.when_constructed) + " second" + var9 + ", " + Integer.toString(this.step_number) + " steps.<br>\n";
+        if (attributes.contains("const time"))
+        {
+            String s_or_not = "s";
+            String seconds = Long.toString(when_constructed).trim();
+            if (seconds.equals("1"))
+                s_or_not = "";
+            output=output+"Constructed after "+Long.toString(when_constructed) +
+                    " second"+s_or_not+", "+Integer.toString(step_number)+ " steps.<br>\n";
         }
 
-        if (attributes.contains("cross domain")) {
-            var9 = "";
-            if (!this.is_cross_domain) {
-                var9 = "not ";
-            }
-
-            var3 = var3 + "This is " + var9 + "a cross domain concept.<br>\n";
+        if (attributes.contains("cross domain"))
+        {
+            String yn = "";
+            if (!is_cross_domain)
+                yn = "not ";
+            output=output+"This is "+yn+"a cross domain concept.<br>\n";
         }
 
-        if (attributes.contains("entity instant")) {
-            var9 = "";
-            if (!this.is_entity_instantiations) {
-                var9 = "not ";
-            }
-
-            var3 = var3 + "This is " + var9 + "an instantiation of entities.<br>\n";
+        if (attributes.contains("entity instant"))
+        {
+            String yn = "";
+            if (!is_entity_instantiations)
+                yn = "not ";
+            output=output+"This is "+yn+"an instantiation of entities.<br>\n";
         }
 
-        if (attributes.contains("types")) {
-            var3 = var3 + "The object types in the datatable are: " + this.types.toString() + "<br>\n";
+        if (attributes.contains("types"))
+            output = output + "The object types in the datatable are: " + types.toString()+"<br>\n";
+
+        if (attributes.contains("categorisation"))
+        {
+            output = output + "The categorisation this concept achieves is:<br>\n";
+            output=output+categorisation.toString()+"<br>\n";
         }
 
-        if (attributes.contains("categorisation")) {
-            var3 = var3 + "The categorisation this concept achieves is:<br>\n";
-            var3 = var3 + this.categorisation.toString() + "<br>\n";
-        }
+        if (!(snapshot.equals(output)))
+            output=output+"<hr>\n";
+        snapshot = output;
 
-        if (!var16.equals(var3)) {
-            var3 = var3 + "<hr>\n";
-        }
+        // Conjectures //
 
-        if (!var3.equals(var3)) {
-            var3 = var3 + "<hr>\n";
-        }
+        if (!(snapshot.equals(output)))
+            output=output+"<hr>\n";
+        snapshot = output;
 
-        var16 = var3;
-        var3 = var3 + "<b><u>Conjectures about this concept:</u></b><br>\n";
-        int var21;
-        if (attributes.contains("implications")) {
-            if (this.implications.size() > 0) {
-                var3 = var3 + "Concepts implied by this concept:<br>\n";
+        output = output + "<b><u>Conjectures about this concept:</u></b><br>\n";
 
-                Implication var17;
-                for(var21 = 0; var21 < this.implications.size(); ++var21) {
-                    var17 = (Implication)this.implications.elementAt(var21);
-                    if (var17.lh_concept == this) {
-                        var3 = var3 + var17.rh_concept.id + " " + var17.rh_concept.writeDefinitionWithStartLetters(var5) + " [" + var17.id + "]<br>\n";
-                    }
+        if (attributes.contains("implications"))
+        {
+            if (implications.size()>0)
+            {
+                output = output + "Concepts implied by this concept:<br>\n";
+                for (int i=0; i<implications.size(); i++)
+                {
+                    Implication imp = (Implication)implications.elementAt(i);
+                    if (imp.lh_concept==this)
+                        output = output + imp.rh_concept.id + " "
+                                + imp.rh_concept.writeDefinitionWithStartLetters(main_language) + " [" + imp.id + "]<br>\n";
                 }
-
-                var3 = var3 + "\nConcepts which imply this concept:<br>\n";
-
-                for(var21 = 0; var21 < this.implications.size(); ++var21) {
-                    var17 = (Implication)this.implications.elementAt(var21);
-                    if (var17.rh_concept == this) {
-                        var3 = var3 + var17.lh_concept.id + " " + var17.lh_concept.writeDefinitionWithStartLetters(var5) + " [" + var17.id + "]<br>\n";
-                    }
+                output = output + "\nConcepts which imply this concept:<br>\n";
+                for (int i=0; i<implications.size(); i++)
+                {
+                    Implication imp = (Implication)implications.elementAt(i);
+                    if (imp.rh_concept==this)
+                        output = output + imp.lh_concept.id + " "
+                                + imp.lh_concept.writeDefinitionWithStartLetters(main_language) + " [" + imp.id + "]<br>\n";
                 }
-
-                var3 = var3 + "\n\n";
-            } else {
-                var3 = var3 + "There are no concept implications involving this concept.<br>\n\n";
+                output = output + "\n\n";
             }
-        }
-
-        if (attributes.contains("generalisations")) {
-            var3 = var3 + "The generalisations of this concept are:<br>\n" + this.writeGeneralisationsHTML(var5) + "\n";
-        }
-
-        if (attributes.contains("alt defs")) {
-            if (this.conjectured_equivalent_concepts.isEmpty()) {
-                var3 = var3 + "There are no alternative definitions for this concept.<br>\n";
-            } else {
-                var3 = var3 + "The alternative definitions of this concept are:<br>\n" + this.allDefinitionsHTML(var5);
-            }
-        }
-
-        if (attributes.contains("rel equivs")) {
-            if (this.relevant_equivalences.isEmpty()) {
-                var3 = var3 + "There are no relevant equivalences for this concept.<br>\n";
-            } else {
-                var3 = var3 + "The relevant equivalences for this concept are:<br>\n";
-
-                for(var21 = 0; var21 < this.relevant_equivalences.size(); ++var21) {
-                    Equivalence var18 = (Equivalence)this.relevant_equivalences.elementAt(var21);
-                    var3 = var3 + this.replaceLTForHTML(var18.writeConjecture(var5)) + "<br>\n";
-                }
-            }
-        }
-
-        Implicate var19;
-        if (attributes.contains("rel imps")) {
-            if (this.relevant_implicates.isEmpty()) {
-                var3 = var3 + "There are no relevant implicates for this concept.<br>\n";
-            } else {
-                var3 = var3 + "The relevant implicates for this concept are:<br>\n";
-
-                for(var21 = 0; var21 < this.relevant_implicates.size(); ++var21) {
-                    var19 = (Implicate)this.relevant_implicates.elementAt(var21);
-                    var3 = var3 + this.replaceLTForHTML(var19.writeConjecture(var5) + "\n");
-                }
-            }
-        }
-
-        if (attributes.contains("near equivs")) {
-            if (this.near_equivalences.isEmpty()) {
-                var3 = var3 + "\nThere are no near-equivalent concepts.<br>\n";
-            } else {
-                var3 = var3 + "\nThe near-equivalence concepts are:<br>\n";
-
-                for(var21 = 0; var21 < this.near_equivalences.size(); ++var21) {
-                    NearEquivalence var20 = (NearEquivalence)this.near_equivalences.elementAt(var21);
-                    var3 = var3 + this.decimalPlaces(var20.score, 2) + ":" + var20.rh_concept.id + ". " + this.replaceLTForHTML(var20.rh_concept.writeDefinitionWithStartLetters(var5)) + var20.counterexamples.toString() + "<br>\n";
-                }
-            }
-        }
-
-        if (attributes.contains("implied specs")) {
-            if (this.implicates.size() > 0) {
-                var3 = var3 + "These specifications are implied in addition:\n";
-
-                for(var21 = 0; var21 < this.implicates.size(); ++var21) {
-                    var19 = (Implicate)this.implicates.elementAt(var21);
-                    var3 = var3 + this.replaceLTForHTML(var19.writeGoal("otter")) + "<br>\n";
-                }
-            } else {
-                var3 = var3 + "There are no specifications implied in addition<br>\n";
-            }
-
-            var9 = "";
-            Vector var22 = new Vector();
-
-            for(int var11 = 0; var11 < this.generalisations.size(); ++var11) {
-                Concept var12 = (Concept)this.generalisations.elementAt(var11);
-
-                for(int var13 = 0; var13 < var12.implicates.size(); ++var13) {
-                    Implicate var14 = (Implicate)var12.implicates.elementAt(var13);
-                    String var15 = var14.writeGoal("otter");
-                    if (!var22.contains(var15)) {
-                        var9 = var9 + var14.writeGoal("otter") + "<br>\n";
-                        var22.addElement(var15);
-                    }
-                }
-            }
-
-            if (!var9.equals("")) {
-                var3 = var3 + "The specifications implied by the generalisations are:\n" + var9;
-            }
-        }
-
-        if (!var16.equals(var3)) {
-            var3 = var3 + "<hr>\n";
-        }
-
-        var3 = var3 + "<b><u>Internal details</u></b><br>\n";
-        if (attributes.contains("functions")) {
-            if (this.functions.isEmpty()) {
-                var3 = var3 + "There are no function specifications for this concept.<br>\n";
-            } else {
-                var3 = var3 + "The function specifications for this concept are:<br>\n";
-
-                for(var21 = 0; var21 < this.functions.size(); ++var21) {
-                    Function var23 = (Function)this.functions.elementAt(var21);
-                    var3 = var3 + var23.writeFunction();
-                    if (var21 < this.functions.size() - 1) {
-                        var3 = var3 + " & ";
-                    }
-                }
-
-                var3 = var3 + "<br>";
-            }
-        }
-
-        if (attributes.contains("specifications")) {
-            var3 = var3 + "These are the specifications inside the concept definition:<br>\n";
-            var3 = var3 + "\n" + this.writeSpecDetailsHTML();
-        }
-
-        return var3;
-    }
-
-    public String fullASCIIDetails(Vector attributes, int dp) {
-        String var3 = "";
-        if (attributes.contains("id")) {
-            var3 = var3 + this.id;
-        }
-
-        if (attributes.contains("name")) {
-            var3 = var3 + " " + this.name + " " + this.toString();
-        }
-
-        if (attributes.contains("id") || attributes.contains("name")) {
-            var3 = var3 + "\n";
-        }
-
-        if (attributes.contains("simplified def")) {
-            boolean var4 = this.definition_writer.remove_existence_variables;
-            this.definition_writer.remove_existence_variables = true;
-            var3 = var3 + this.writeDefinitionWithStartLetters("otter") + "\n";
-            this.definition_writer.remove_existence_variables = var4;
-        }
-
-        if (attributes.contains("ascii def")) {
-            var3 = var3 + this.writeDefinitionWithStartLetters("ascii") + "\n";
-        }
-
-        if (attributes.contains("otter def")) {
-            var3 = var3 + this.writeDefinitionWithStartLetters("otter") + "\n";
-        }
-
-        if (attributes.contains("prolog def")) {
-            var3 = var3 + this.writeDefinitionWithStartLetters("prolog") + "\n";
-        }
-
-        if (attributes.contains("tptp def")) {
-            var3 = var3 + this.writeDefinitionWithStartLetters("tptp") + "\n";
-        }
-
-        if (attributes.contains("skolemised def")) {
-            var3 = var3 + this.writeSkolemisedRepresentation() + "\n";
-        }
-
-        if (!var3.equals("")) {
-            var3 = var3 + "-----------------\n";
-        }
-
-        if (attributes.contains("total score")) {
-            var3 = var3 + "Total score = " + this.decimalPlaces(this.interestingness, dp) + "\n";
-        }
-
-        if (attributes.contains("arity")) {
-            var3 = var3 + "Arity = " + this.decimalPlaces(this.arity, dp) + "\n";
-        }
-
-        if (attributes.contains("applicability")) {
-            var3 = var3 + "Applicability = " + this.decimalPlaces(this.applicability, dp) + " " + this.decimalPlaces(this.normalised_applicability, dp) + ")\n";
-        }
-
-        if (attributes.contains("child num")) {
-            var3 = var3 + "Children number = " + this.decimalPlaces(this.number_of_children, dp) + "\n";
-        }
-
-        if (attributes.contains("child score")) {
-            var3 = var3 + "Children score = " + this.decimalPlaces(this.children_score, dp) + " (" + this.decimalPlaces(this.children_score, dp) + ")\n";
-        }
-
-        if (attributes.contains("comprehens")) {
-            var3 = var3 + "Comprehensibility = " + this.decimalPlaces(this.comprehensibility, dp) + " (" + this.decimalPlaces(this.normalised_comprehensibility, dp) + ")\n";
-        }
-
-        if (attributes.contains("complexity")) {
-            var3 = var3 + "Complexity = " + this.decimalPlaces(this.complexity, dp) + "\n";
-        }
-
-        if (attributes.contains("coverage")) {
-            var3 = var3 + "Coverage = " + this.decimalPlaces(this.coverage, dp) + " (" + this.decimalPlaces(this.normalised_coverage, dp) + ")\n";
-        }
-
-        if (attributes.contains("devel steps")) {
-            var3 = var3 + "Development steps = " + this.decimalPlaces(this.development_steps_num, dp) + " (" + this.decimalPlaces(this.normalised_development_steps_num, dp) + ")\n";
-        }
-
-        if (attributes.contains("discrimination")) {
-            var3 = var3 + "Discrimination = " + this.decimalPlaces(this.discrimination, dp) + " (" + this.decimalPlaces(this.normalised_discrimination_score, dp) + ")\n";
-        }
-
-        if (attributes.contains("equiv conj score")) {
-            var3 = var3 + "Equiv Conjecture score = " + this.decimalPlaces(this.equiv_conj_score, dp) + " (" + this.decimalPlaces(this.normalised_equiv_conj_score, dp) + ")\n";
-        }
-
-        if (attributes.contains("equiv conj num")) {
-            var3 = var3 + "Equiv Conjecture num = " + this.decimalPlaces(this.equiv_conjectures.size(), dp) + " (" + this.decimalPlaces(this.normalised_equiv_conj_num, dp) + ")\n";
-        }
-
-        if (attributes.contains("highlight")) {
-            var3 = var3 + "Highlight = " + this.decimalPlaces(this.highlight_score, dp) + "\n";
-        }
-
-        if (attributes.contains("ne conj score")) {
-            var3 = var3 + "Non-exists Conjecture score = " + this.decimalPlaces(this.ne_conj_score, dp) + " (" + this.decimalPlaces(this.normalised_ne_conj_score, dp) + ")\n";
-        }
-
-        if (attributes.contains("ne conj num")) {
-            var3 = var3 + "Non-exists Conjecture num = " + this.decimalPlaces(this.ne_conjectures.size(), dp) + " (" + this.decimalPlaces(this.normalised_ne_conj_num, dp) + ")\n";
-        }
-
-        if (attributes.contains("neg applic")) {
-            var3 = var3 + "Negative Applicability = " + this.decimalPlaces(this.negative_applicability, dp) + " (" + this.decimalPlaces(this.normalised_negative_applicability, dp) + ")\n";
-        }
-
-        if (attributes.contains("imp conj score")) {
-            var3 = var3 + "Implicate Conjecture score = " + this.decimalPlaces(this.imp_conj_score, dp) + " (" + this.decimalPlaces(this.normalised_imp_conj_score, dp) + ")\n";
-        }
-
-        if (attributes.contains("imp conj num")) {
-            var3 = var3 + "Implicate Conjecture num = " + this.decimalPlaces(this.imp_conjectures.size(), dp) + " (" + this.decimalPlaces(this.normalised_imp_conj_num, dp) + ")\n";
-        }
-
-        if (attributes.contains("invariance")) {
-            var3 = var3 + "Invariance = " + this.decimalPlaces(this.invariance, dp) + " (" + this.decimalPlaces(this.normalised_invariance_score, dp) + ")\n";
-        }
-
-        if (attributes.contains("novelty")) {
-            var3 = var3 + "Novelty = " + this.decimalPlaces(this.novelty, dp) + " (" + this.decimalPlaces(this.normalised_novelty, dp) + ")\n";
-        }
-
-        if (attributes.contains("parent score")) {
-            var3 = var3 + "Parent score = " + this.decimalPlaces(this.parent_score, dp) + " (" + this.decimalPlaces(this.parent_score, dp) + ")\n";
-        }
-
-        if (attributes.contains("parsimony")) {
-            var3 = var3 + "Parsimony = " + this.decimalPlaces(this.parsimony, dp) + " (" + this.decimalPlaces(this.normalised_parsimony, dp) + ")\n";
-        }
-
-        if (attributes.contains("pi conj score")) {
-            var3 = var3 + "PI Conjecture score = " + this.decimalPlaces(this.pi_conj_score, dp) + " (" + this.decimalPlaces(this.normalised_pi_conj_score, dp) + ")\n";
-        }
-
-        if (attributes.contains("pi conj num")) {
-            var3 = var3 + "PI Conjecture num = " + this.decimalPlaces(this.pi_conjectures.size(), dp) + " (" + this.decimalPlaces(this.normalised_pi_conj_num, dp) + ")\n";
-        }
-
-        if (attributes.contains("pos applic")) {
-            var3 = var3 + "Positive Applicability = " + this.decimalPlaces(this.positive_applicability, dp) + " (" + this.decimalPlaces(this.normalised_positive_applicability, dp) + ")\n";
-        }
-
-        if (attributes.contains("pred power")) {
-            var3 = var3 + "Predictive Power = " + this.decimalPlaces(this.predictive_power, dp) + "\n";
-        }
-
-        if (attributes.contains("productivity")) {
-            var3 = var3 + "Productivity = " + this.decimalPlaces(this.productivity, dp) + " (" + this.decimalPlaces(this.normalised_productivity, dp) + ")\n";
-        }
-
-        if (attributes.contains("variety")) {
-            var3 = var3 + "Variety = " + this.decimalPlaces(this.variety, dp) + " (" + this.decimalPlaces(this.normalised_variety, dp) + ")\n";
-        }
-
-        if (!var3.equals(var3)) {
-            var3 = var3 + "-----------------\n";
-        }
-
-        if (attributes.contains("const step")) {
-            if (this.is_user_given) {
-                var3 = var3 + "This concept was supplied by the user.\n";
-            } else {
-                var3 = var3 + "Constructed with this step: " + this.construction.asString() + ".\n";
-            }
-        }
-
-        if (attributes.contains("ancestors")) {
-            var3 = var3 + "The ancestors of this concept are:" + this.ancestor_ids.toString() + "\n";
-        }
-
-        String var5;
-        if (attributes.contains("const time")) {
-            var5 = "s";
-            String var6 = Long.toString(this.when_constructed);
-            if (var6.equals("1")) {
-                var5 = "";
-            }
-
-            var3 = var3 + "Constructed after " + Long.toString(this.when_constructed) + " second" + var5 + ", " + Integer.toString(this.step_number) + " steps.\n";
-        }
-
-        if (attributes.contains("cross domain")) {
-            var5 = "";
-            if (!this.is_cross_domain) {
-                var5 = "not ";
-            }
-
-            var3 = var3 + "This is " + var5 + "a cross domain concept.\n";
-        }
-
-        if (attributes.contains("entity instant")) {
-            var5 = "";
-            if (!this.is_entity_instantiations) {
-                var5 = "not ";
-            }
-
-            var3 = var3 + "This is " + var5 + "an instantiation of entities.\n";
-        }
-
-        if (!var3.equals(var3)) {
-            var3 = var3 + "-----------------\n";
-        }
-
-        if (attributes.contains("examples")) {
-            var3 = var3 + this.prettyPrintExamples(this.datatable) + "\n";
-        }
-
-        if (attributes.contains("datatable")) {
-            var3 = var3 + "The datatable is:\n" + this.datatable.toTable() + "\n";
-        }
-
-        if (attributes.contains("types")) {
-            var3 = var3 + "The object types in the datatable are: " + this.types.toString() + "\n";
-        }
-
-        int var15;
-        if (attributes.contains("functions")) {
-            if (this.functions.isEmpty()) {
-                var3 = var3 + "There are no function specifications for this concept.\n";
-            } else {
-                var3 = var3 + "The function specifications for this concept are:\n";
-
-                for(var15 = 0; var15 < this.functions.size(); ++var15) {
-                    Function var12 = (Function)this.functions.elementAt(var15);
-                    var3 = var3 + var12.writeFunction();
-                    if (var15 < this.functions.size() - 1) {
-                        var3 = var3 + " & ";
-                    }
-                }
-
-                var3 = var3 + "\n\n";
-            }
-        }
-
-        if (attributes.contains("categorisation")) {
-            var3 = var3 + "The categorisation the examples of this concept achieves is:\n";
-            var3 = var3 + this.categorisation.toString() + "\n\n";
-        }
-
-        if (attributes.contains("add examples")) {
-            if (this.additional_datatable.isEmpty()) {
-                var3 = var3 + "There are no additional entities for this concept.\n";
-            } else {
-                var3 = var3 + "From the additional table:\n";
-                var3 = var3 + this.prettyPrintExamples(this.additional_datatable) + "\n";
-            }
-        }
-
-        if (!var3.equals(var3)) {
-            var3 = var3 + "-----------------\n";
-        }
-
-        if (attributes.contains("implications")) {
-            if (this.implications.size() > 0) {
-                var3 = var3 + "Concepts implied by this concept:\n";
-
-                Implication var13;
-                for(var15 = 0; var15 < this.implications.size(); ++var15) {
-                    var13 = (Implication)this.implications.elementAt(var15);
-                    if (var13.lh_concept == this) {
-                        var3 = var3 + var13.rh_concept.id + " " + var13.rh_concept.writeDefinitionWithStartLetters("otter") + " [" + var13.id + "]\n";
-                    }
-                }
-
-                var3 = var3 + "\nConcepts which imply this concept:\n";
-
-                for(var15 = 0; var15 < this.implications.size(); ++var15) {
-                    var13 = (Implication)this.implications.elementAt(var15);
-                    if (var13.rh_concept == this) {
-                        var3 = var3 + var13.lh_concept.id + " " + var13.lh_concept.writeDefinitionWithStartLetters("otter") + " [" + var13.id + "]\n";
-                    }
-                }
-
-                var3 = var3 + "\n\n";
-            } else {
-                var3 = var3 + "There are no concept implications involving this concept\n\n";
-            }
-        }
-
-        if (attributes.contains("generalisations")) {
-            var3 = var3 + "The generalisations of this concept are:\n" + this.writeGeneralisations("ascii") + "\n";
-        }
-
-        if (attributes.contains("alt defs ascii")) {
-            if (this.conjectured_equivalent_concepts.isEmpty()) {
-                var3 = var3 + "There are no alternative definitions for this concept.\n";
-            } else {
-                var3 = var3 + "The alternative definitions of this concept are:\n" + this.allDefinitions("ascii");
-            }
-        }
-
-        if (attributes.contains("alt defs prolog")) {
-            if (this.conjectured_equivalent_concepts.isEmpty()) {
-                var3 = var3 + "There are no alternative definitions for this concept.\n";
-            } else {
-                var3 = var3 + "The alternative definitions of this concept are:\n" + this.allDefinitions("prolog");
-            }
-        }
-
-        Equivalence var14;
-        if (attributes.contains("rel equivs prolog")) {
-            if (this.relevant_equivalences.isEmpty()) {
-                var3 = var3 + "There are no relevant equivalences for this concept.\n";
-            } else {
-                var3 = var3 + "The relevant equivalences for this concept are:\n";
-
-                for(var15 = 0; var15 < this.relevant_equivalences.size(); ++var15) {
-                    var14 = (Equivalence)this.relevant_equivalences.elementAt(var15);
-                    var3 = var3 + var14.writeConjecture("prolog") + "\n";
+            else
+                output = output + "There are no concept implications involving this concept.<br>\n\n";
+        }
+
+        if (attributes.contains("generalisations"))
+        {
+            output=output+"The generalisations of this concept are:<br>\n"+
+                    writeGeneralisationsHTML(main_language) + "\n";
+        }
+
+        if (attributes.contains("alt defs"))
+        {
+            if (conjectured_equivalent_concepts.isEmpty())
+                output=output+"There are no alternative definitions for this concept.<br>\n";
+            else
+                output=output+"The alternative definitions of this concept are:<br>\n"+allDefinitionsHTML(main_language);
+        }
+
+        if (attributes.contains("rel equivs"))
+        {
+            if (relevant_equivalences.isEmpty())
+                output=output+"There are no relevant equivalences for this concept.<br>\n";
+            else
+            {
+                output=output+"The relevant equivalences for this concept are:<br>\n";
+                for (int i=0; i<relevant_equivalences.size(); i++)
+                {
+                    Equivalence equiv = (Equivalence)relevant_equivalences.elementAt(i);
+                    output = output + replaceLTForHTML(equiv.writeConjecture(main_language)) + "<br>\n";
                 }
             }
         }
 
-        if (attributes.contains("rel equivs ascii")) {
-            if (this.relevant_equivalences.isEmpty()) {
-                var3 = var3 + "There are no relevant equivalences for this concept.\n";
-            } else {
-                var3 = var3 + "The relevant equivalences for this concept are:\n";
-
-                for(var15 = 0; var15 < this.relevant_equivalences.size(); ++var15) {
-                    var14 = (Equivalence)this.relevant_equivalences.elementAt(var15);
-                    var3 = var3 + var14.writeConjecture("ascii") + "\n";
+        if (attributes.contains("rel imps"))
+        {
+            if (relevant_implicates.isEmpty())
+                output=output+"There are no relevant implicates for this concept.<br>\n";
+            else
+            {
+                output=output+"The relevant implicates for this concept are:<br>\n";
+                for (int i=0; i<relevant_implicates.size(); i++)
+                {
+                    Implicate imp = (Implicate)relevant_implicates.elementAt(i);
+                    output = output + replaceLTForHTML(imp.writeConjecture(main_language) + "\n");
                 }
             }
         }
 
-        Implicate var16;
-        if (attributes.contains("rel imps prolog")) {
-            if (this.relevant_implicates.isEmpty()) {
-                var3 = var3 + "There are no relevant implicates for this concept.\n";
-            } else {
-                var3 = var3 + "The relevant implicates for this concept are:\n";
-
-                for(var15 = 0; var15 < this.relevant_implicates.size(); ++var15) {
-                    var16 = (Implicate)this.relevant_implicates.elementAt(var15);
-                    var3 = var3 + var16.writeConjecture("prolog") + "\n";
+        if (attributes.contains("near equivs"))
+        {
+            if (near_equivalences.isEmpty())
+                output=output+"\nThere are no near-equivalent concepts.<br>\n";
+            else
+            {
+                output=output+"\nThe near-equivalence concepts are:<br>\n";
+                for (int i=0; i<near_equivalences.size(); i++)
+                {
+                    NearEquivalence near_equiv = (NearEquivalence)near_equivalences.elementAt(i);
+                    output = output + decimalPlaces(near_equiv.score, 2) + ":" + near_equiv.rh_concept.id+". " +
+                            replaceLTForHTML(near_equiv.rh_concept.writeDefinitionWithStartLetters(main_language))+
+                            near_equiv.counterexamples.toString() + "<br>\n";
                 }
             }
         }
 
-        if (attributes.contains("rel imps ascii")) {
-            if (this.relevant_implicates.isEmpty()) {
-                var3 = var3 + "There are no relevant implicates for this concept.\n";
-            } else {
-                var3 = var3 + "The relevant implicates for this concept are:\n";
-
-                for(var15 = 0; var15 < this.relevant_implicates.size(); ++var15) {
-                    var16 = (Implicate)this.relevant_implicates.elementAt(var15);
-                    var3 = var3 + var16.writeConjecture("ascii") + "\n";
+        if (attributes.contains("implied specs"))
+        {
+            if (implicates.size()>0)
+            {
+                output = output + "These specifications are implied in addition:\n";
+                for (int i=0; i<implicates.size(); i++)
+                {
+                    Implicate implicate = (Implicate)implicates.elementAt(i);
+                    output = output + replaceLTForHTML(implicate.writeGoal("otter")) + "<br>\n";
                 }
             }
-        }
-
-        NearEquivalence var17;
-        if (attributes.contains("near equivs prolog")) {
-            if (this.near_equivalences.isEmpty()) {
-                var3 = var3 + "\nThere are no near-equivalent concepts.\n";
-            } else {
-                var3 = var3 + "\nThe near-equivalence concepts are:\n";
-
-                for(var15 = 0; var15 < this.near_equivalences.size(); ++var15) {
-                    var17 = (NearEquivalence)this.near_equivalences.elementAt(var15);
-                    var3 = var3 + this.decimalPlaces(var17.score, 2) + ":" + var17.rh_concept.id + ". " + var17.rh_concept.writeDefinitionWithStartLetters("prolog") + var17.counterexamples.toString() + "\n";
-                }
-            }
-        }
-
-        if (attributes.contains("near equivs ascii")) {
-            if (this.near_equivalences.isEmpty()) {
-                var3 = var3 + "\nThere are no near-equivalent concepts.\n";
-            } else {
-                var3 = var3 + "\nThe near-equivalence concepts are:\n";
-
-                for(var15 = 0; var15 < this.near_equivalences.size(); ++var15) {
-                    var17 = (NearEquivalence)this.near_equivalences.elementAt(var15);
-                    var3 = var3 + this.decimalPlaces(var17.score, 2) + ":" + var17.rh_concept.id + ". " + var17.rh_concept.writeDefinitionWithStartLetters("ascii") + var17.counterexamples.toString() + "\n";
-                }
-            }
-        }
-
-        if (!var3.equals(var3)) {
-            var3 = var3 + "-----------------\n";
-        }
-
-        if (attributes.contains("implied specs")) {
-            if (this.implicates.size() > 0) {
-                var3 = var3 + "These specifications are implied in addition:\n";
-
-                for(var15 = 0; var15 < this.implicates.size(); ++var15) {
-                    var16 = (Implicate)this.implicates.elementAt(var15);
-                    var3 = var3 + var16.writeGoal("otter") + "\n";
-                }
-            } else {
-                var3 = var3 + "There are no specifications implied in addition\n";
-            }
-
-            var5 = "";
-            Vector var18 = new Vector();
-
-            for(int var7 = 0; var7 < this.generalisations.size(); ++var7) {
-                Concept var8 = (Concept)this.generalisations.elementAt(var7);
-
-                for(int var9 = 0; var9 < var8.implicates.size(); ++var9) {
-                    Implicate var10 = (Implicate)var8.implicates.elementAt(var9);
-                    String var11 = var10.writeGoal("otter");
-                    if (!var18.contains(var11)) {
-                        var5 = var5 + var10.writeGoal("otter") + "\n";
-                        var18.addElement(var11);
+            else
+                output = output + "There are no specifications implied in addition<br>\n";
+            String generalisation_implicates = "";
+            Vector gen_imp_strings_seen = new Vector();
+            for (int i=0; i<generalisations.size(); i++)
+            {
+                Concept generalisation = (Concept)generalisations.elementAt(i);
+                for (int j=0; j<generalisation.implicates.size(); j++)
+                {
+                    Implicate gen_implicate = (Implicate)generalisation.implicates.elementAt(j);
+                    String gen_imp_string = gen_implicate.writeGoal("otter");
+                    if (!gen_imp_strings_seen.contains(gen_imp_string))
+                    {
+                        generalisation_implicates = generalisation_implicates +
+                                gen_implicate.writeGoal("otter") + "<br>\n";
+                        gen_imp_strings_seen.addElement(gen_imp_string);
                     }
                 }
             }
+            if (!generalisation_implicates.equals(""))
+                output = output + "The specifications implied by the generalisations are:\n" + generalisation_implicates;
+        }
 
-            if (!var5.equals("")) {
-                var3 = var3 + "The specifications implied by the generalisations are:\n" + var5;
+        if (!(snapshot.equals(output)))
+            output=output+"<hr>\n";
+        snapshot = output;
+
+        // Specifications //
+
+        output = output + "<b><u>Internal details</u></b><br>\n";
+
+        if (attributes.contains("functions"))
+        {
+            if (functions.isEmpty())
+                output = output + "There are no function specifications for this concept.<br>\n";
+            else
+            {
+                output = output + "The function specifications for this concept are:<br>\n";
+                for (int i=0; i<functions.size(); i++)
+                {
+                    Function function = (Function)functions.elementAt(i);
+                    output = output + function.writeFunction();
+                    if (i<functions.size()-1)
+                        output = output + " & ";
+                }
+                output = output + "<br>";
             }
         }
 
-        if (!var3.equals(var3)) {
-            var3 = var3 + "-----------------\n";
+        if (attributes.contains("specifications"))
+        {
+            output=output+"These are the specifications inside the concept definition:<br>\n";
+            output=output+"\n"+writeSpecDetailsHTML();
         }
-
-        if (attributes.contains("specifications")) {
-            var3 = var3 + "These are the specifications inside the concept definition:\n";
-            var3 = var3 + "\n" + this.writeSpecDetails();
-        }
-
-        if (attributes.contains("anc defs prolog")) {
-            var3 = var3 + "The ancestors of this concept are:\n";
-            var3 = var3 + this.writeAncestorsAndEquivalents("prolog");
-        }
-
-        return var3;
+        return output;
     }
 
-    public String prettyPrintExamplesHTML(Datatable datatable_to_pretty_print) {
-        String var2 = "";
-        int var3;
-        Row var4;
-        if (this.arity == 1) {
-            var2 = var2 + "<table border=0><tr><td>The positives are:\n<ol>\n";
 
-            for(var3 = 0; var3 < datatable_to_pretty_print.size(); ++var3) {
-                var4 = (Row)datatable_to_pretty_print.elementAt(var3);
-                if (!var4.tuples.isEmpty()) {
-                    var2 = var2 + "<li>" + var4.entity + "\n";
+    public String fullASCIIDetails(Vector attributes, int dp)
+    {
+        String output = "";
+
+        // Identifier and definitions //
+
+        if (attributes.contains("id"))
+            output = output + id;
+        if (attributes.contains("name"))
+            output = output + " " + name + " " + this.toString();
+
+        if (attributes.contains("id") || attributes.contains("name"))
+            output = output + "\n";
+
+        if (attributes.contains("simplified def"))
+        {
+            boolean tmp_bool = definition_writer.remove_existence_variables;
+            definition_writer.remove_existence_variables = true;
+            output = output + writeDefinitionWithStartLetters("otter") + "\n";
+            definition_writer.remove_existence_variables = tmp_bool;
+        }
+        if (attributes.contains("ascii def"))
+            output = output + writeDefinitionWithStartLetters("ascii") + "\n";
+        if (attributes.contains("otter def"))
+            output = output + writeDefinitionWithStartLetters("otter") + "\n";
+        if (attributes.contains("prolog def"))
+            output = output + writeDefinitionWithStartLetters("prolog") + "\n";
+        if (attributes.contains("tptp def"))
+            output = output + writeDefinitionWithStartLetters("tptp") + "\n";
+        if (attributes.contains("skolemised def"))
+            output = output + writeSkolemisedRepresentation() + "\n";
+        if (!(output.equals("")))
+            output = output + "-----------------\n";
+        String snapshot = output;
+
+        // Measures and total score //
+
+        if (attributes.contains("total score"))
+            output = output + "Total score = " + decimalPlaces(interestingness, dp) + "\n";
+        if (attributes.contains("arity"))
+            output = output + "Arity = " + decimalPlaces(arity, dp) + "\n";
+        if (attributes.contains("applicability"))
+        {
+            output=output+"Applicability = " + decimalPlaces(applicability, dp) +
+                    " " + decimalPlaces(normalised_applicability, dp) + ")\n";
+        }
+        if (attributes.contains("child num"))
+            output=output+"Children number = " + decimalPlaces(number_of_children, dp)+ "\n";
+        if (attributes.contains("child score"))
+        {
+            output=output+"Children score = " + decimalPlaces(children_score, dp) +
+                    " (" + decimalPlaces(children_score, dp) + ")\n";
+        }
+        if (attributes.contains("comprehens"))
+        {
+            output=output+"Comprehensibility = " + decimalPlaces(comprehensibility, dp) +
+                    " (" + decimalPlaces(normalised_comprehensibility, dp) + ")\n";
+        }
+        if (attributes.contains("complexity"))
+            output=output + "Complexity = " + decimalPlaces(complexity, dp) + "\n";
+        if (attributes.contains("coverage"))
+        {
+            output=output+"Coverage = " + decimalPlaces(coverage, dp) +
+                    " (" + decimalPlaces(normalised_coverage, dp) + ")\n";
+        }
+        if (attributes.contains("devel steps"))
+        {
+            output=output+"Development steps = " + decimalPlaces(development_steps_num, dp) +
+                    " (" + decimalPlaces(normalised_development_steps_num, dp) + ")\n";
+        }
+        if (attributes.contains("discrimination"))
+        {
+            output=output+"Discrimination = " + decimalPlaces(discrimination, dp) +
+                    " (" + decimalPlaces(normalised_discrimination_score, dp) + ")\n";
+        }
+        if (attributes.contains("equiv conj score"))
+        {
+            output=output+"Equiv Conjecture score = " + decimalPlaces(equiv_conj_score, dp) +
+                    " (" + decimalPlaces(normalised_equiv_conj_score, dp) + ")\n";
+        }
+        if (attributes.contains("equiv conj num"))
+        {
+            output=output+"Equiv Conjecture num = " + decimalPlaces(equiv_conjectures.size(), dp) +
+                    " (" + decimalPlaces(normalised_equiv_conj_num, dp) + ")\n";
+        }
+        if (attributes.contains("highlight"))
+            output=output + "Highlight = " + decimalPlaces(highlight_score, dp) + "\n";
+        if (attributes.contains("ne conj score"))
+        {
+            output=output+"Non-exists Conjecture score = " + decimalPlaces(ne_conj_score, dp) +
+                    " (" + decimalPlaces(normalised_ne_conj_score, dp) + ")\n";
+        }
+        if (attributes.contains("ne conj num"))
+        {
+            output=output+"Non-exists Conjecture num = " + decimalPlaces(ne_conjectures.size(), dp) +
+                    " (" + decimalPlaces(normalised_ne_conj_num, dp) + ")\n";
+        }
+        if (attributes.contains("neg applic"))
+        {
+            output=output+"Negative Applicability = " + decimalPlaces(negative_applicability, dp) +
+                    " (" + decimalPlaces(normalised_negative_applicability, dp) + ")\n";
+        }
+        if (attributes.contains("imp conj score"))
+        {
+            output=output+"Implicate Conjecture score = " + decimalPlaces(imp_conj_score, dp) +
+                    " (" + decimalPlaces(normalised_imp_conj_score, dp) + ")\n";
+        }
+        if (attributes.contains("imp conj num"))
+        {
+            output=output+"Implicate Conjecture num = " + decimalPlaces(imp_conjectures.size(), dp) +
+                    " (" + decimalPlaces(normalised_imp_conj_num, dp) + ")\n";
+        }
+        if (attributes.contains("invariance"))
+        {
+            output=output+"Invariance = " + decimalPlaces(invariance, dp) +
+                    " (" + decimalPlaces(normalised_invariance_score, dp) + ")\n";
+        }
+        if (attributes.contains("novelty"))
+        {
+            output=output+"Novelty = " + decimalPlaces(novelty, dp) +
+                    " (" + decimalPlaces(normalised_novelty, dp) + ")\n";
+        }
+        if (attributes.contains("parent score"))
+        {
+            output=output+"Parent score = " + decimalPlaces(parent_score, dp) +
+                    " (" + decimalPlaces(parent_score, dp) + ")\n";
+        }
+        if (attributes.contains("parsimony"))
+        {
+            output=output+"Parsimony = " + decimalPlaces(parsimony, dp) +
+                    " (" + decimalPlaces(normalised_parsimony, dp) + ")\n";
+        }
+        if (attributes.contains("pi conj score"))
+        {
+            output=output+"PI Conjecture score = " + decimalPlaces(pi_conj_score, dp) +
+                    " (" + decimalPlaces(normalised_pi_conj_score, dp) + ")\n";
+        }
+        if (attributes.contains("pi conj num"))
+        {
+            output=output+"PI Conjecture num = " + decimalPlaces(pi_conjectures.size(), dp) +
+                    " (" + decimalPlaces(normalised_pi_conj_num, dp) + ")\n";
+        }
+        if (attributes.contains("pos applic"))
+        {
+            output=output+"Positive Applicability = " + decimalPlaces(positive_applicability, dp) +
+                    " (" + decimalPlaces(normalised_positive_applicability, dp) + ")\n";
+        }
+        if (attributes.contains("pred power"))
+        {
+            output=output+"Predictive Power = " + decimalPlaces(predictive_power, dp) + "\n";
+        }
+        if (attributes.contains("productivity"))
+        {
+            output=output+"Productivity = " + decimalPlaces(productivity, dp) +
+                    " (" + decimalPlaces(normalised_productivity, dp) + ")\n";
+        }
+        if (attributes.contains("variety"))
+        {
+            output=output+"Variety = " + decimalPlaces(variety, dp) +
+                    " (" + decimalPlaces(normalised_variety, dp) + ")\n";
+        }
+
+        // Construction //
+
+        if (!(snapshot.equals(output)))
+            output=output+"-----------------\n";
+        snapshot = output;
+
+        if (attributes.contains("const step"))
+        {
+            if (is_user_given)
+                output = output + "This concept was supplied by the user.\n";
+            else
+                output = output + "Constructed with this step: " + construction.asString()+".\n";
+        }
+
+        if (attributes.contains("ancestors"))
+            output = output + "The ancestors of this concept are:" +  ancestor_ids.toString() + "\n";
+
+        if (attributes.contains("const time"))
+        {
+            String s_or_not = "s";
+            String seconds = Long.toString(when_constructed);
+            if (seconds.equals("1"))
+                s_or_not = "";
+            output=output+"Constructed after "+Long.toString(when_constructed) +
+                    " second"+s_or_not+", "+Integer.toString(step_number)+ " steps.\n";
+        }
+
+        if (attributes.contains("cross domain"))
+        {
+            String yn = "";
+            if (!is_cross_domain)
+                yn = "not ";
+            output=output+"This is "+yn+"a cross domain concept.\n";
+        }
+
+        if (attributes.contains("entity instant"))
+        {
+            String yn = "";
+            if (!is_entity_instantiations)
+                yn = "not ";
+            output=output+"This is "+yn+"an instantiation of entities.\n";
+        }
+
+        // Examples //
+
+        if (!(snapshot.equals(output)))
+            output=output+"-----------------\n";
+        snapshot = output;
+
+        if (attributes.contains("examples"))
+            output = output + prettyPrintExamples(datatable)+"\n";
+
+        if (attributes.contains("datatable"))
+        {
+            output = output + "The datatable is:\n" +
+                    datatable.toTable() + "\n";
+        }
+
+        if (attributes.contains("types"))
+            output = output + "The object types in the datatable are: " + types.toString()+"\n";
+
+        if (attributes.contains("functions"))
+        {
+            if (functions.isEmpty())
+                output = output + "There are no function specifications for this concept.\n";
+            else
+            {
+                output = output + "The function specifications for this concept are:\n";
+                for (int i=0; i<functions.size(); i++)
+                {
+                    Function function = (Function)functions.elementAt(i);
+                    output = output + function.writeFunction();
+                    if (i<functions.size()-1)
+                        output = output + " & ";
                 }
-            }
-
-            var2 = var2 + "\n</ol></td><td>&nbsp;</td><td>";
-            var2 = var2 + "The negatives are:\n<ol>\n";
-
-            for(var3 = 0; var3 < datatable_to_pretty_print.size(); ++var3) {
-                var4 = (Row)datatable_to_pretty_print.elementAt(var3);
-                if (var4.tuples.isEmpty()) {
-                    var2 = var2 + "<li>" + var4.entity + "\n";
-                }
-            }
-
-            var2 = var2 + "</td></tr></table>\n";
-        } else {
-            for(var3 = 0; var3 < datatable_to_pretty_print.size(); ++var3) {
-                var4 = (Row)datatable_to_pretty_print.elementAt(var3);
-                var2 = var2 + "f(" + var4.entity + ")=";
-                var2 = var2 + var4.tuples.toString();
-                var2 = var2 + "<br>";
+                output = output + "\n\n";
             }
         }
 
-        return var2;
-    }
+        if (attributes.contains("categorisation"))
+        {
+            output = output + "The categorisation the examples of this concept achieves is:\n";
+            output=output+categorisation.toString()+"\n\n";
+        }
 
-    public String prettyPrintExamples(Datatable datatable_to_pretty_print) {
-        String var2 = "";
-        if (this.arity == 1) {
-            var2 = var2 + "The " + (String)this.types.elementAt(0) + "s with this property are:\n";
-            boolean var3 = false;
+        if (attributes.contains("add examples"))
+        {
+            if (additional_datatable.isEmpty())
+                output = output + "There are no additional entities for this concept.\n";
+            else
+            {
+                output = output + "From the additional table:\n";
+                output = output + prettyPrintExamples(additional_datatable) + "\n";
+            }
+        }
 
-            int var4;
-            Row var5;
-            for(var4 = 0; var4 < datatable_to_pretty_print.size(); ++var4) {
-                var5 = (Row)datatable_to_pretty_print.elementAt(var4);
-                if (!var5.tuples.isEmpty()) {
-                    if (var3) {
-                        var2 = var2 + ", ";
+        // Conjectures //
+
+        if (!(snapshot.equals(output)))
+            output=output+"-----------------\n";
+        snapshot = output;
+
+        if (attributes.contains("implications"))
+        {
+            if (implications.size()>0)
+            {
+                output = output + "Concepts implied by this concept:\n";
+                for (int i=0; i<implications.size(); i++)
+                {
+                    Implication imp = (Implication)implications.elementAt(i);
+                    if (imp.lh_concept==this)
+                        output = output + imp.rh_concept.id + " "
+                                + imp.rh_concept.writeDefinitionWithStartLetters("otter") + " [" + imp.id + "]\n";
+                }
+                output = output + "\nConcepts which imply this concept:\n";
+                for (int i=0; i<implications.size(); i++)
+                {
+                    Implication imp = (Implication)implications.elementAt(i);
+                    if (imp.rh_concept==this)
+                        output = output + imp.lh_concept.id + " "
+                                + imp.lh_concept.writeDefinitionWithStartLetters("otter") + " [" + imp.id + "]\n";
+                }
+                output = output + "\n\n";
+            }
+            else
+                output = output + "There are no concept implications involving this concept\n\n";
+        }
+
+        if (attributes.contains("generalisations"))
+        {
+            output=output+"The generalisations of this concept are:\n"+
+                    writeGeneralisations("ascii") + "\n";
+        }
+
+        if (attributes.contains("alt defs ascii"))
+        {
+            if (conjectured_equivalent_concepts.isEmpty())
+                output=output+"There are no alternative definitions for this concept.\n";
+            else
+                output=output+"The alternative definitions of this concept are:\n"+allDefinitions("ascii");
+        }
+
+        if (attributes.contains("alt defs prolog"))
+        {
+            if (conjectured_equivalent_concepts.isEmpty())
+                output=output+"There are no alternative definitions for this concept.\n";
+            else
+                output=output+"The alternative definitions of this concept are:\n"+allDefinitions("prolog");
+        }
+
+        if (attributes.contains("rel equivs prolog"))
+        {
+            if (relevant_equivalences.isEmpty())
+                output=output+"There are no relevant equivalences for this concept.\n";
+            else
+            {
+                output=output+"The relevant equivalences for this concept are:\n";
+                for (int i=0; i<relevant_equivalences.size(); i++)
+                {
+                    Equivalence equiv = (Equivalence)relevant_equivalences.elementAt(i);
+                    output = output + equiv.writeConjecture("prolog") + "\n";
+                }
+            }
+        }
+
+        if (attributes.contains("rel equivs ascii"))
+        {
+            if (relevant_equivalences.isEmpty())
+                output=output+"There are no relevant equivalences for this concept.\n";
+            else
+            {
+                output=output+"The relevant equivalences for this concept are:\n";
+                for (int i=0; i<relevant_equivalences.size(); i++)
+                {
+                    Equivalence equiv = (Equivalence)relevant_equivalences.elementAt(i);
+                    output = output + equiv.writeConjecture("ascii") + "\n";
+                }
+            }
+        }
+
+        if (attributes.contains("rel imps prolog"))
+        {
+            if (relevant_implicates.isEmpty())
+                output=output+"There are no relevant implicates for this concept.\n";
+            else
+            {
+                output=output+"The relevant implicates for this concept are:\n";
+                for (int i=0; i<relevant_implicates.size(); i++)
+                {
+                    Implicate imp = (Implicate)relevant_implicates.elementAt(i);
+                    output = output + imp.writeConjecture("prolog") + "\n";
+                }
+            }
+        }
+
+        if (attributes.contains("rel imps ascii"))
+        {
+            if (relevant_implicates.isEmpty())
+                output=output+"There are no relevant implicates for this concept.\n";
+            else
+            {
+                output=output+"The relevant implicates for this concept are:\n";
+                for (int i=0; i<relevant_implicates.size(); i++)
+                {
+                    Implicate imp = (Implicate)relevant_implicates.elementAt(i);
+                    output = output + imp.writeConjecture("ascii") + "\n";
+                }
+            }
+        }
+
+        if (attributes.contains("near equivs prolog"))
+        {
+            if (near_equivalences.isEmpty())
+                output=output+"\nThere are no near-equivalent concepts.\n";
+            else
+            {
+                output=output+"\nThe near-equivalence concepts are:\n";
+                for (int i=0; i<near_equivalences.size(); i++)
+                {
+                    NearEquivalence near_equiv = (NearEquivalence)near_equivalences.elementAt(i);
+                    output = output + decimalPlaces(near_equiv.score, 2) + ":" + near_equiv.rh_concept.id+". " +
+                            near_equiv.rh_concept.writeDefinitionWithStartLetters("prolog")+
+                            near_equiv.counterexamples.toString() + "\n";
+                }
+            }
+        }
+
+        if (attributes.contains("near equivs ascii"))
+        {
+            if (near_equivalences.isEmpty())
+                output=output+"\nThere are no near-equivalent concepts.\n";
+            else
+            {
+                output=output+"\nThe near-equivalence concepts are:\n";
+                for (int i=0; i<near_equivalences.size(); i++)
+                {
+                    NearEquivalence near_equiv = (NearEquivalence)near_equivalences.elementAt(i);
+                    output = output + decimalPlaces(near_equiv.score, 2) + ":" + near_equiv.rh_concept.id+". " +
+                            near_equiv.rh_concept.writeDefinitionWithStartLetters("ascii")+
+                            near_equiv.counterexamples.toString() + "\n";
+                }
+            }
+        }
+
+        if (!(snapshot.equals(output)))
+            output=output+"-----------------\n";
+
+        snapshot = output;
+
+        if (attributes.contains("implied specs"))
+        {
+            if (implicates.size()>0)
+            {
+                output = output + "These specifications are implied in addition:\n";
+                for (int i=0; i<implicates.size(); i++)
+                {
+                    Implicate implicate = (Implicate)implicates.elementAt(i);
+                    output = output + implicate.writeGoal("otter") + "\n";
+                }
+            }
+            else
+                output = output + "There are no specifications implied in addition\n";
+            String generalisation_implicates = "";
+            Vector gen_imp_strings_seen = new Vector();
+            for (int i=0; i<generalisations.size(); i++)
+            {
+                Concept generalisation = (Concept)generalisations.elementAt(i);
+                for (int j=0; j<generalisation.implicates.size(); j++)
+                {
+                    Implicate gen_implicate = (Implicate)generalisation.implicates.elementAt(j);
+                    String gen_imp_string = gen_implicate.writeGoal("otter");
+                    if (!gen_imp_strings_seen.contains(gen_imp_string))
+                    {
+                        generalisation_implicates = generalisation_implicates +
+                                gen_implicate.writeGoal("otter") + "\n";
+                        gen_imp_strings_seen.addElement(gen_imp_string);
                     }
-
-                    var2 = var2 + var5.entity;
-                    var3 = true;
                 }
             }
+            if (!generalisation_implicates.equals(""))
+                output = output + "The specifications implied by the generalisations are:\n" + generalisation_implicates;
+        }
 
-            var2 = var2 + "\n";
-            var2 = var2 + "The " + (String)this.types.elementAt(0) + "s without this property are:\n";
-            var3 = false;
+        if (!(snapshot.equals(output)))
+            output=output+"-----------------\n";
 
-            for(var4 = 0; var4 < datatable_to_pretty_print.size(); ++var4) {
-                var5 = (Row)datatable_to_pretty_print.elementAt(var4);
-                if (var5.tuples.isEmpty()) {
-                    if (var3) {
-                        var2 = var2 + ", ";
-                    }
+        // Specifications //
 
-                    var2 = var2 + var5.entity;
-                    var3 = true;
+        if (attributes.contains("specifications"))
+        {
+            output=output+"These are the specifications inside the concept definition:\n";
+            output=output+"\n"+writeSpecDetails();
+        }
+
+        // Ancestor definitions //
+
+        if (attributes.contains("anc defs prolog"))
+        {
+            output = output + "The ancestors of this concept are:\n";
+            output = output + writeAncestorsAndEquivalents("prolog");
+        }
+        return output;
+    }
+
+    public String prettyPrintExamplesHTML(Datatable datatable_to_pretty_print)
+    {
+        String output = "";
+        if (arity==1)
+        {
+            output = output + "<table border=0><tr><td>The positives are:\n<ol>\n";
+            for (int i=0; i<datatable_to_pretty_print.size(); i++)
+            {
+                Row row = (Row)datatable_to_pretty_print.elementAt(i);
+                if (!row.tuples.isEmpty())
+                    output = output + "<li>" + row.entity + "\n";
+            }
+            output = output + "\n</ol></td><td>&nbsp;</td><td>";
+            output = output + "The negatives are:\n<ol>\n";
+            for (int i=0; i<datatable_to_pretty_print.size(); i++)
+            {
+                Row row = (Row)datatable_to_pretty_print.elementAt(i);
+                if (row.tuples.isEmpty())
+                {
+                    output = output + "<li>" + row.entity + "\n";
                 }
             }
-
-            var2 = var2 + "\n";
-        } else {
-            var2 = var2 + "As a function, this concept has these values:\n";
-
-            for(int var6 = 0; var6 < datatable_to_pretty_print.size(); ++var6) {
-                Row var7 = (Row)datatable_to_pretty_print.elementAt(var6);
-                var2 = var2 + "f(" + var7.entity + ")=";
-                var2 = var2 + var7.tuples.toString();
-                var2 = var2 + "\n";
+            output = output + "</td></tr></table>\n";
+        }
+        else
+        {
+            for (int i=0; i<datatable_to_pretty_print.size(); i++)
+            {
+                Row row = (Row)datatable_to_pretty_print.elementAt(i);
+                output = output + "f("+row.entity+")=";
+                output = output + row.tuples.toString();
+                output = output + "<br>";
             }
         }
-
-        return var2;
+        return output;
     }
 
-    /**
-     * This writes the details of the specifications.
-     */
-    public String writeSpecDetails() {
-        String var1 = "";
-
-        for(int var2 = 0; var2 < this.specifications.size(); ++var2) {
-            Specification var3 = (Specification)this.specifications.elementAt(var2);
-            var1 = var1 + var3.fullDetails() + "\n---------------------\n";
-        }
-
-        return var1;
-    }
-
-    /**
-     * This writes the details of the specifications.
-     */
-    public String writeSpecDetailsHTML() {
-        String var1 = "";
-
-        for(int var2 = 0; var2 < this.specifications.size(); ++var2) {
-            Specification var3 = (Specification)this.specifications.elementAt(var2);
-            var1 = var1 + "<pre>" + var3.fullDetails() + "</pre><table width=100><tr><td><hr></td></tr></table>\n";
-        }
-
-        return var1;
-    }
-
-    /**
-     * This returns a string with all the alternative (equivalent) definitions.
-     */
-    public String allDefinitions(String language) {
-        String var2 = "";
-        String var3 = "";
-
-        for(int var4 = 0; var4 < this.conjectured_equivalent_concepts.size(); ++var4) {
-            Concept var5 = (Concept)this.conjectured_equivalent_concepts.elementAt(var4);
-            Conjecture var6 = var5.equivalence_conjecture;
-            if (this.isGeneralisationOf(var5) < 0) {
-                var2 = var2 + "(" + var6.id + ") " + var5.writeDefinition(language);
-                var2 = var2 + " [" + var6.proof_status + "]\n";
-            } else {
-                var3 = var3 + "(" + var6.id + ") " + var5.writeDefinition(language);
-                var3 = var3 + " [" + var6.proof_status + "]\n";
-            }
-        }
-
-        if (!var3.equals("")) {
-            var2 = var2 + "--\n" + var3;
-        }
-
-        return var2;
-    }
-
-    /**
-     * This returns a string with all the alternative (equivalent) definitions.
-     */
-    public String allDefinitionsHTML(String language) {
-        String var2 = "";
-        String var3 = "";
-
-        for(int var4 = 0; var4 < this.conjectured_equivalent_concepts.size(); ++var4) {
-            Concept var5 = (Concept)this.conjectured_equivalent_concepts.elementAt(var4);
-            Conjecture var6 = var5.equivalence_conjecture;
-            if (this.isGeneralisationOf(var5) < 0) {
-                var2 = var2 + "(" + var6.id + ") " + var5.writeDefinition(language);
-                var2 = var2 + " [" + var6.proof_status + "]<br>\n";
-            } else {
-                var3 = var3 + "(" + var6.id + ") " + var5.writeDefinition(language);
-                var3 = var3 + " [" + var6.proof_status + "]<br>\n";
-            }
-        }
-
-        if (!var3.equals("")) {
-            var2 = var2 + "--<br>\n" + var3;
-        }
-
-        return var2;
-    }
-
-    /**
-     * This returns a string with the definitions of all the generalisations of this concept.
-     */
-    public String writeGeneralisations(String language) {
-        String var2 = "";
-
-        for(int var3 = 0; var3 < this.generalisations.size(); ++var3) {
-            Concept var4 = (Concept)this.generalisations.elementAt(var3);
-            var2 = var2 + var4.id + ". " + var4.writeDefinition(language) + "\n";
-        }
-
-        return var2;
-    }
-
-    /**
-     * This returns a string with the definitions of all the generalisations of this concept.
-     */
-    public String writeGeneralisationsHTML(String language) {
-        String var2 = "";
-
-        for(int var3 = 0; var3 < this.generalisations.size(); ++var3) {
-            Concept var4 = (Concept)this.generalisations.elementAt(var3);
-            var2 = var2 + var4.id + ". " + var4.writeDefinition(language) + "<br>\n";
-        }
-
-        return var2;
-    }
-
-    /**
-     * This will write the definition for all the ancestors of the concept. The definitions will be written in the given language.
-     */
-    public String writeAncestors(String language, Theory theory) {
-        String var3 = "";
-
-        for(int var4 = 0; var4 < this.ancestor_ids.size(); ++var4) {
-            String var5 = (String)this.ancestor_ids.elementAt(var4);
-            Concept var6 = theory.getConcept(var5);
-            var3 = var3 + var6.id + ". " + var6.writeDefinition(language) + "\n";
-        }
-
-        return var3;
-    }
-
-    /**
-     * This will transform a number theory concept into a sequence object.
-     * The sequence produced will depend on the arity of the concept.
-     */
-    public Sequence asSequence() {
-        Sequence var1 = new Sequence();
-        int var2;
-        Row var3;
-        Tuples var4;
-        if (this.arity == 1) {
-            for(var2 = 0; var2 < this.datatable.size(); ++var2) {
-                var3 = (Row)this.datatable.elementAt(var2);
-                var4 = var3.tuples;
-                if (var4.size() > 0) {
-                    var1.addElement(var3.entity);
+    public String prettyPrintExamples(Datatable datatable_to_pretty_print)
+    {
+        String output = "";
+        if (arity==1)
+        {
+            output = output + "The " + (String)types.elementAt(0) + "s with this property are:\n";
+            boolean got_one = false;
+            for (int i=0; i<datatable_to_pretty_print.size(); i++)
+            {
+                Row row = (Row)datatable_to_pretty_print.elementAt(i);
+                if (!row.tuples.isEmpty())
+                {
+                    if (got_one) output = output + ", ";
+                    output = output + row.entity;
+                    got_one = true;
                 }
             }
-        }
-
-        if (this.arity == 2) {
-            for(var2 = 0; var2 < this.datatable.size(); ++var2) {
-                var3 = (Row)this.datatable.elementAt(var2);
-                var4 = var3.tuples;
-
-                for(int var5 = 0; var5 < var4.size(); ++var5) {
-                    var1.addElement((String)((Vector)var4.elementAt(var5)).elementAt(0));
+            output = output + "\n";
+            output = output + "The " + (String)types.elementAt(0) + "s without this property are:\n";
+            got_one = false;
+            for (int i=0; i<datatable_to_pretty_print.size(); i++)
+            {
+                Row row = (Row)datatable_to_pretty_print.elementAt(i);
+                if (row.tuples.isEmpty())
+                {
+                    if (got_one) output = output + ", ";
+                    output = output + row.entity;
+                    got_one = true;
                 }
             }
+            output = output + "\n";
         }
-
-        return var1;
+        else
+        {
+            output = output + "As a function, this concept has these values:\n";
+            for (int i=0; i<datatable_to_pretty_print.size(); i++)
+            {
+                Row row = (Row)datatable_to_pretty_print.elementAt(i);
+                output = output + "f("+row.entity+")=";
+                output = output + row.tuples.toString();
+                output = output + "\n";
+            }
+        }
+        return output;
     }
 
-    /**
-     * Checks whether this concept is a generalisation of the given concept. It returns -1 if it is not a generalisation,
-     * 0 if it is a proper generalisation, and 1 if it has exactly the same specifications.
+    /** This writes the details of the specifications.
      */
-    public int isGeneralisationOf(Concept other_concept) {
-        byte var2 = 0;
-        Vector var3 = other_concept.specifications;
-        if (this.specifications.size() > var3.size()) {
+
+    public String writeSpecDetails()
+    {
+        String output = "";
+        for (int i=0; i<specifications.size(); i++)
+        {
+            Specification specification = (Specification)specifications.elementAt(i);
+            output = output + specification.fullDetails()+"\n---------------------\n";
+        }
+        return output;
+    }
+
+    /** This writes the details of the specifications.
+     */
+
+    public String writeSpecDetailsHTML()
+    {
+        String output = "";
+        for (int i=0; i<specifications.size(); i++)
+        {
+            Specification specification = (Specification)specifications.elementAt(i);
+            output = output + "<pre>" + specification.fullDetails() + "</pre><table width=100><tr><td><hr></td></tr></table>\n";
+        }
+        return output;
+    }
+
+    /** This returns a string with all the alternative (equivalent) definitions.
+     */
+
+    public String allDefinitions(String language)
+    {
+        String output = "";
+        String addon = "";
+        for (int i=0;i<conjectured_equivalent_concepts.size();i++)
+        {
+            Concept conjectured_equivalent_concept = (Concept)conjectured_equivalent_concepts.elementAt(i);
+            Conjecture alt_conjecture = conjectured_equivalent_concept.equivalence_conjecture;
+            if (this.isGeneralisationOf(conjectured_equivalent_concept)<0)
+            {
+                output = output + "(" + alt_conjecture.id + ") " + conjectured_equivalent_concept.writeDefinition(language);
+                output = output + " [" + alt_conjecture.proof_status + "]\n";
+            }
+            else
+            {
+                addon = addon + "(" + alt_conjecture.id + ") " + conjectured_equivalent_concept.writeDefinition(language);
+                addon = addon + " [" + alt_conjecture.proof_status + "]\n";
+            }
+        }
+        if (!addon.equals(""))
+            output = output + "--\n" + addon;
+        return output;
+    }
+
+    /** This returns a string with all the alternative (equivalent) definitions.
+     */
+
+    public String allDefinitionsHTML(String language)
+    {
+        String output = "";
+        String addon = "";
+        for (int i=0;i<conjectured_equivalent_concepts.size();i++)
+        {
+            Concept conjectured_equivalent_concept = (Concept)conjectured_equivalent_concepts.elementAt(i);
+            Conjecture alt_conjecture = conjectured_equivalent_concept.equivalence_conjecture;
+            if (this.isGeneralisationOf(conjectured_equivalent_concept)<0)
+            {
+                output = output + "(" + alt_conjecture.id + ") " + conjectured_equivalent_concept.writeDefinition(language);
+                output = output + " [" + alt_conjecture.proof_status + "]<br>\n";
+            }
+            else
+            {
+                addon = addon + "(" + alt_conjecture.id + ") " + conjectured_equivalent_concept.writeDefinition(language);
+                addon = addon + " [" + alt_conjecture.proof_status + "]<br>\n";
+            }
+        }
+        if (!addon.equals(""))
+            output = output + "--<br>\n" + addon;
+        return output;
+    }
+
+    /** This returns a string with the definitions of all the generalisations of this
+     * concept.
+     */
+
+    public String writeGeneralisations(String language)
+    {
+        String output = "";
+        for (int i=0;i<generalisations.size();i++)
+        {
+            Concept generalisation = (Concept)generalisations.elementAt(i);
+            output = output + generalisation.id +". " +
+                    generalisation.writeDefinition(language) + "\n";
+        }
+        return output;
+    }
+
+    /** This returns a string with the definitions of all the generalisations of this
+     * concept.
+     */
+
+    public String writeGeneralisationsHTML(String language)
+    {
+        String output = "";
+        for (int i=0;i<generalisations.size();i++)
+        {
+            Concept generalisation = (Concept)generalisations.elementAt(i);
+            output = output + generalisation.id +". " +
+                    generalisation.writeDefinition(language) + "<br>\n";
+        }
+        return output;
+    }
+
+    /** This will write the definition for all the ancestors of the concept.
+     * The definitions will be written in the given language.
+     */
+
+    public String writeAncestors(String language, Theory theory)
+    {
+        String output = "";
+        for (int i=0; i<ancestor_ids.size(); i++)
+        {
+            String ancestor_id = (String)ancestor_ids.elementAt(i);
+            Concept ancestor = theory.getConcept(ancestor_id);
+            output = output + ancestor.id + ". " + ancestor.writeDefinition(language) + "\n";
+        }
+        return output;
+    }
+
+    /** This will transform a number theory concept into a sequence
+     *  object. The sequence produced will depend on the arity of the concept.
+     */
+
+    public Sequence asSequence()
+    {
+        Sequence output = new Sequence();
+        if (arity==1)
+        {
+            for (int i=0;i<datatable.size();i++)
+            {
+                Row row = (Row)datatable.elementAt(i);
+                Tuples tuples = row.tuples;
+                if (tuples.size()>0) output.addElement(row.entity);
+            }
+        }
+        if (arity==2)
+        {
+            for(int i=0;i<datatable.size();i++)
+            {
+                Row row = (Row)datatable.elementAt(i);
+                Tuples tuples = row.tuples;
+                for(int j=0;j<tuples.size();j++)
+                    output.addElement((String)((Vector)tuples.elementAt(j)).elementAt(0));
+            }
+        }
+        return output;
+    }
+
+    /** Checks whether this concept is a generalisation of the given concept.
+     * It returns -1 if it is not a generalisation, 0 if it is a proper generalisation,
+     * and 1 if it has exactly the same specifications.
+     */
+
+    public int isGeneralisationOf(Concept other_concept)
+    {
+        int output = 0;
+        Vector other_specs = other_concept.specifications;
+        if (specifications.size() > other_specs.size())
             return -1;
-        } else {
-            for(int var4 = 0; var2 > -1 && var4 < this.specifications.size(); ++var4) {
-                if (!var3.contains(this.specifications.elementAt(var4))) {
-                    var2 = -1;
+        int i=0;
+        while (output>-1 && i<specifications.size())
+        {
+            if (!other_specs.contains(specifications.elementAt(i)))
+                output=-1;
+            i++;
+        }
+        if (specifications.size()==other_specs.size() && output==0)
+            output = 1;
+        return output;
+    }
+
+    /** This updates the datatable of a concept given a new entity for the theory.
+     */
+
+    public void updateDatatable(Vector all_concepts, Entity new_entity)
+    {
+        Tuples tuples = (Tuples)new_entity.concept_data.get(name);
+        if (tuples!=null)
+        {
+            Row new_row = new Row(new_entity.name, tuples);
+            datatable.addElement(new_row);
+        }
+        else
+            calculateRow(all_concepts, new_entity.name);
+        boolean found = false;
+        for (int i=0; i<additional_datatable.size() && !found; i++)
+        {
+            Row row = (Row)additional_datatable.elementAt(i);
+            if (row.entity.equals(new_entity.name))
+            {
+                found = true;
+                datatable.addElement(row);
+                additional_datatable.removeElementAt(i);
+            }
+        }
+    }
+
+    /** This finds the most specific concept for the columns given.
+     * For example, if this concept is integer multiplication and the columns
+     * are 0 and 1, then the most specific concept over those columns
+     * (as specified in this concept's specifications) will be the divisor
+     * concept.
+     */
+
+    public Concept mostSpecificGeneralisation(Vector all_concepts, Vector parameters)
+    {
+        Vector input_specifications = new Vector();
+        Vector input_specifications_before_permutation_change = new Vector();
+
+        // First work out which specifications are only valid of the input to the function.
+
+        Enumeration e = specifications.elements();
+        while (e.hasMoreElements())
+        {
+            Specification old_specification = (Specification)e.nextElement();
+            if (!old_specification.involvesColumns(parameters))
+                input_specifications_before_permutation_change.addElement(old_specification);
+        }
+
+        // Next change the permutations of the input specifications to reflect the removal
+        // of the columns.
+
+        e = input_specifications_before_permutation_change.elements();
+        while (e.hasMoreElements())
+        {
+            Specification old_specification = (Specification)e.nextElement();
+            Specification new_specification = old_specification.copy();
+            new_specification.permutation = new Vector();
+            for (int j=0;j<old_specification.permutation.size();j++)
+            {
+                int number_of_columns_to_remove = 0;
+                int add_column =
+                        (new Integer((String)old_specification.permutation.elementAt(j))).intValue();
+                for (int k=0;k<parameters.size();k++)
+                {
+                    int param =
+                            (new Integer((String)parameters.elementAt(k))).intValue();
+                    if (param<add_column) number_of_columns_to_remove++;
                 }
+                new_specification.permutation.
+                        addElement(Integer.toString(add_column-number_of_columns_to_remove));
             }
-
-            if (this.specifications.size() == var3.size() && var2 == 0) {
-                var2 = 1;
-            }
-
-            return var2;
-        }
-    }
-
-    /**
-     * This updates the datatable of a concept given a new entity for the theory.
-     */
-    public void updateDatatable(Vector all_concepts, Entity new_entity) {
-        Tuples var3 = (Tuples)new_entity.concept_data.get(this.name);
-        if (var3 != null) {
-            Row var4 = new Row(new_entity.name, var3);
-            this.datatable.addElement(var4);
-        } else {
-            this.calculateRow(all_concepts, new_entity.name);
+            input_specifications.addElement(new_specification);
         }
 
-        boolean var7 = false;
+        // Next find the concept with these specifications.
 
-        for(int var5 = 0; var5 < this.additional_datatable.size() && !var7; ++var5) {
-            Row var6 = (Row)this.additional_datatable.elementAt(var5);
-            if (var6.entity.equals(new_entity.name)) {
-                var7 = true;
-                this.datatable.addElement(var6);
-                this.additional_datatable.removeElementAt(var5);
-            }
-        }
-
-    }
-
-    /**
-     * This finds the most specific concept for the columns given. For example, if this concept is integer multiplication
-     * and the columns are 0 and 1, then the most specific concept over those columns (as specified in this concept's
-     * specifications) will be the divisor concept.
-     */
-    public Concept mostSpecificGeneralisation(Vector all_concepts, Vector parameters) {
-        Vector var3 = new Vector();
-        Vector var4 = new Vector();
-        Enumeration var5 = this.specifications.elements();
-
-        Specification var6;
-        while(var5.hasMoreElements()) {
-            var6 = (Specification)var5.nextElement();
-            if (!var6.involvesColumns(parameters)) {
-                var4.addElement(var6);
-            }
-        }
-
-        var5 = var4.elements();
-
-        int var8;
-        int var10;
-        while(var5.hasMoreElements()) {
-            var6 = (Specification)var5.nextElement();
-            Specification var7 = var6.copy();
-            var7.permutation = new Vector();
-
-            for(var8 = 0; var8 < var6.permutation.size(); ++var8) {
-                int var9 = 0;
-                var10 = new Integer((String)var6.permutation.elementAt(var8));
-
-                for(int var11 = 0; var11 < parameters.size(); ++var11) {
-                    int var12 = new Integer((String)parameters.elementAt(var11));
-                    if (var12 < var10) {
-                        ++var9;
+        e = all_concepts.elements();
+        boolean found = false;
+        Concept output_concept = new Concept();
+        while (e.hasMoreElements() && !found)
+        {
+            output_concept = (Concept)e.nextElement();
+            if (output_concept.specifications.size()==input_specifications.size())
+            {
+                int i=0;
+                while (i<input_specifications.size())
+                {
+                    Specification spec = (Specification)input_specifications.elementAt(i);
+                    int j=0;
+                    while (j<output_concept.specifications.size())
+                    {
+                        Specification check_spec =
+                                (Specification)output_concept.specifications.elementAt(j);
+                        if (check_spec.equals(spec)) break;
+                        j++;
                     }
+                    if (j==output_concept.specifications.size()) break;
+                    i++;
                 }
-
-                var7.permutation.addElement(Integer.toString(var10 - var9));
+                if (i==input_specifications.size()) found=true;
             }
-
-            var3.addElement(var7);
         }
+        if (!found)
+            output_concept = new Concept();
 
-        var5 = all_concepts.elements();
-        boolean var13 = false;
-        Concept var14 = new Concept();
+        // Discard the answer if it isn't of the correct arity. This is because sometimes
+        // the concept has the right specifications, but is not of the correct arity.
 
-        while(var5.hasMoreElements() && !var13) {
-            var14 = (Concept)var5.nextElement();
-            if (var14.specifications.size() == var3.size()) {
-                for(var8 = 0; var8 < var3.size(); ++var8) {
-                    Specification var15 = (Specification)var3.elementAt(var8);
+        if (!(output_concept.arity==arity-parameters.size()))
+            output_concept = new Concept();
 
-                    for(var10 = 0; var10 < var14.specifications.size(); ++var10) {
-                        Specification var16 = (Specification)var14.specifications.elementAt(var10);
-                        if (var16.equals(var15)) {
-                            break;
+        return output_concept;
+    }
+
+    /** This returns a first order representation of the tuples in the datatable
+     * as a string.
+     */
+
+    public String firstOrderRepresentation()
+    {
+        int num=0;
+        String output = "";
+        String main_head = Integer.toString(arity)+"tuple("+id+",";
+        for (int i=0; i<datatable.size(); i++)
+        {
+            Row row = (Row)datatable.elementAt(i);
+            for (int j=0; j<row.tuples.size(); j++)
+            {
+                String predicate = main_head+row.entity;
+                Vector tuple = (Vector)row.tuples.elementAt(j);
+                for (int k=0; k<tuple.size(); k++)
+                    predicate = predicate + "," + (String)tuple.elementAt(k);
+                predicate = predicate + ").";
+                output = output + predicate;
+                num++;
+                if (num==5)
+                {
+                    output = output + "\n";
+                    num=0;
+                }
+                else
+                    output = output + " ";
+            }
+        }
+        return output;
+    }
+
+    /** This adds a row to the datatable. The second argument is a string representation
+     * of a set of tuples.
+     */
+
+    public void addAdditionalRow(String entity, String tuples_string)
+    {
+        additional_datatable.addEmptyRow(entity);
+        if (tuples_string.equals("[]"))
+            return;
+        if (tuples_string.equals("[[]]"))
+        {
+            Row row = additional_datatable.rowWithEntity(entity);
+            row.tuples.addElement(new Vector());
+            return;
+        }
+        if (tuples_string.substring(0,2).equals("[["))
+            tuples_string = tuples_string.substring(1,tuples_string.length());
+
+        int ind = tuples_string.indexOf("]");
+        while (ind>=0)
+        {
+            String tuple_string = tuples_string.substring(0,ind+1);
+            Vector tuple = getTuple(tuple_string);
+            tuple.insertElementAt(entity, 0);
+            additional_datatable.addTuple(tuple);
+            if (tuples_string.indexOf("[",ind)<0)
+                break;
+            tuples_string =
+                    tuples_string.substring(tuples_string.indexOf("[",ind), tuples_string.length());
+            ind = tuples_string.indexOf("]");
+        }
+    }
+
+    private Vector getTuple(String tuple)
+    {
+        Vector output = new Vector();
+        tuple = tuple.substring(1,tuple.length()-1);
+        int ind = tuple.indexOf(",");
+        while (ind>0)
+        {
+            output.addElement(tuple.substring(0,ind).trim());
+            tuple = tuple.substring(ind+1,tuple.length());
+            if (tuple.substring(0,1).equals(" "))
+                tuple = tuple.substring(1,tuple.length());
+            ind = tuple.indexOf(",");
+        }
+        if (!tuple.equals("") ||
+                !tuple.equals(" "))
+            output.addElement(tuple);
+        return output;
+    }
+
+    /** This goes through the concepts and finds any which have datatables
+     * which are close to this one's datatable (in terms of the percentage of
+     * tuples which match).
+     */
+
+    public void getNearEquivalences(Theory theory, Vector concepts, double percent_min)
+    {
+        near_equivalences.removeAllElements();
+        for (int i=0; i<concepts.size(); i++)
+        {
+            Concept concept = (Concept)concepts.elementAt(i);
+            if (concept.types.toString().equals(types.toString()) && concept!=this)
+            {
+                Vector tuple_score_vector = new Vector();
+                Vector counterexamples = new Vector();
+                double score = datatable.quickPercentageMatchWith(theory, concept.datatable, counterexamples);
+                if (score >= percent_min/100)
+                {
+                    NearEquivalence near_equiv = new NearEquivalence(this, concept, counterexamples, score);
+                    NearEquivalence other_near_equiv = new NearEquivalence(concept, this, counterexamples, score);
+                    near_equivalences.addElement(near_equiv, "score");
+                    boolean already_there = false;
+                    for (int j=0; j<concept.near_equivalences.size() && !already_there; j++)
+                    {
+                        NearEquivalence other_neq = (NearEquivalence)concept.near_equivalences.elementAt(j);
+                        if (other_neq.lh_concept==concept && other_neq.rh_concept==this)
+                            already_there = true;
+                    }
+                    if (!already_there)
+                        concept.near_equivalences.addElement(near_equiv, "score");
+                }
+            }
+        }
+    }
+
+    /** This goes through the concepts and finds any which have
+     * datatables which (a) are almost subsumed by this one's datatable,
+     * or (b) almost subsume this one's datatable (in terms of the
+     * percentage of tuples which match). alisonp
+     */
+
+    public void getNearImplications(Theory theory, Vector concepts, double percent_min)
+    {
+        near_implications.removeAllElements();
+        for (int i=0; i<concepts.size(); i++)
+        {
+            Concept concept = (Concept)concepts.elementAt(i);
+            if (concept.types.toString().equals(types.toString()) && concept!=this)
+            {
+
+                Vector counterexamples = new Vector();
+                double score = datatable.quickPercentageMatchWith(theory, concept.datatable, counterexamples);
+                if (score >= percent_min/100)
+                {
+                    NearEquivalence near_equiv = new NearEquivalence(this, concept, counterexamples, score);
+                    NearEquivalence other_near_equiv = new NearEquivalence(concept, this, counterexamples, score);
+                    near_equivalences.addElement(near_equiv, "score");
+                    boolean already_there = false;
+                    for (int j=0; j<concept.near_equivalences.size() && !already_there; j++)
+                    {
+                        NearEquivalence other_neq = (NearEquivalence)concept.near_equivalences.elementAt(j);
+                        if (other_neq.lh_concept==concept && other_neq.rh_concept==this)
+                            already_there = true;
+                    }
+                    if (!already_there)
+                        concept.near_equivalences.addElement(near_equiv, "score");
+                }
+            }
+        }
+    }
+
+
+    /** This goes through all the concepts and finds any which have
+     * datatables which (a) are almost subsumed by this one's datatable,
+     * or (b) almost subsume this one's datatable (in terms of the
+     * percentage of tuples which match). alisonp
+     */
+
+    public void getSubsumptionNearImplications(Vector concepts, double percent_min)
+    {
+        //System.out.println("Starting getSubsumptionNearImplications on " + this.writeDefinition("ascii"));
+        near_implications.removeAllElements();
+        double score =0.0; //[need to change]
+        for (int i=0; i<concepts.size(); i++)
+        {
+            //System.out.println("in for loop");
+            //System.out.println("concepts.size() is " + concepts.size());
+            Concept other_concept = (Concept)concepts.elementAt(i);
+            if(other_concept.arity==arity)
+            {
+                //System.out.println("other_concept is " + other_concept.writeDefinition("ascii"));
+                //System.out.println("other_concept.arity: " + other_concept.id + other_concept.arity + ", and arity: " + id + arity);
+                if (!other_concept.is_entity_instantiations)
+                {
+                    //System.out.println("here");
+                    if (other_concept.isGeneralisationOf(this)==-1)
+                    {
+                        //System.out.println("1 ");
+                        Vector counterexamples = other_concept.empiricallySubsumes(this, percent_min);
+                        //System.out.println("2 - counterexamples is " + counterexamples);
+                        if (counterexamples != null && !(counterexamples.size()==0))
+                        {
+                            int total = 0;
+                            if(arity==0||arity==1)
+                                total = getPositives().size();
+                            else
+                                total = datatable.size();
+                            score = total - counterexamples.size();
+                            ////System.out.println(" score is " + score);
+                            score = score/total;
+                            ////System.out.println(" score is " + score);
+                            score = score*100;
+                            //System.out.println(" total is " + total);
+                            //System.out.println(" counterexamples.size() is " + counterexamples.size());
+                            //System.out.println(" score is " + score);
+                            if (score>= percent_min)
+                            {
+                                //System.out.println("score>= percent_min");
+                                NearImplication near_imp = new NearImplication(this, other_concept, counterexamples, score);
+                                //System.out.println("4 near_imp is " +near_imp.writeConjecture("ascii"));
+                                near_implications.addElement(near_imp, "score");
+                            }
                         }
                     }
-
-                    if (var10 == var14.specifications.size()) {
-                        break;
-                    }
-                }
-
-                if (var8 == var3.size()) {
-                    var13 = true;
-                }
-            }
-        }
-
-        if (!var13) {
-            var14 = new Concept();
-        }
-
-        if (var14.arity != this.arity - parameters.size()) {
-            var14 = new Concept();
-        }
-
-        return var14;
-    }
-
-    /**
-     * This returns a first order representation of the tuples in the datatable as a string.
-     */
-    public String firstOrderRepresentation() {
-        int var1 = 0;
-        String var2 = "";
-        String var3 = Integer.toString(this.arity) + "tuple(" + this.id + ",";
-
-        for(int var4 = 0; var4 < this.datatable.size(); ++var4) {
-            Row var5 = (Row)this.datatable.elementAt(var4);
-
-            for(int var6 = 0; var6 < var5.tuples.size(); ++var6) {
-                String var7 = var3 + var5.entity;
-                Vector var8 = (Vector)var5.tuples.elementAt(var6);
-
-                for(int var9 = 0; var9 < var8.size(); ++var9) {
-                    var7 = var7 + "," + (String)var8.elementAt(var9);
-                }
-
-                var7 = var7 + ").";
-                var2 = var2 + var7;
-                ++var1;
-                if (var1 == 5) {
-                    var2 = var2 + "\n";
-                    var1 = 0;
-                } else {
-                    var2 = var2 + " ";
-                }
-            }
-        }
-
-        return var2;
-    }
-
-    /**
-     * This adds a row to the datatable. The second argument is a string representation of a set of tuples.
-     */
-    public void addAdditionalRow(String entity, String tuples_string) {
-        this.additional_datatable.addEmptyRow(entity);
-        if (!tuples_string.equals("[]")) {
-            if (tuples_string.equals("[[]]")) {
-                Row var6 = this.additional_datatable.rowWithEntity(entity);
-                var6.tuples.addElement(new Vector());
-            } else {
-                if (tuples_string.substring(0, 2).equals("[[")) {
-                    tuples_string = tuples_string.substring(1, tuples_string.length());
-                }
-
-                for(int var3 = tuples_string.indexOf("]"); var3 >= 0; var3 = tuples_string.indexOf("]")) {
-                    String var4 = tuples_string.substring(0, var3 + 1);
-                    Vector var5 = this.getTuple(var4);
-                    var5.insertElementAt(entity, 0);
-                    this.additional_datatable.addTuple(var5);
-                    if (tuples_string.indexOf("[", var3) < 0) {
-                        break;
-                    }
-
-                    tuples_string = tuples_string.substring(tuples_string.indexOf("[", var3), tuples_string.length());
-                }
-
-            }
-        }
-    }
-
-    private Vector getTuple(String var1) {
-        Vector var2 = new Vector();
-        var1 = var1.substring(1, var1.length() - 1);
-
-        for(int var3 = var1.indexOf(","); var3 > 0; var3 = var1.indexOf(",")) {
-            var2.addElement(var1.substring(0, var3).trim());
-            var1 = var1.substring(var3 + 1, var1.length());
-            if (var1.substring(0, 1).equals(" ")) {
-                var1 = var1.substring(1, var1.length());
-            }
-        }
-
-        if (!var1.equals("") || !var1.equals(" ")) {
-            var2.addElement(var1);
-        }
-
-        return var2;
-    }
-
-    /**
-     * This goes through the concepts and finds any which have datatables which are close to this one's datatable
-     * (in terms of the percentage of tuples which match).
-     */
-    public void getNearEquivalences(Theory theory, Vector concepts, double percent_min) {
-        this.near_equivalences.removeAllElements();
-
-        for(int var5 = 0; var5 < concepts.size(); ++var5) {
-            Concept var6 = (Concept)concepts.elementAt(var5);
-            if (var6.types.toString().equals(this.types.toString()) && var6 != this) {
-                new Vector();
-                Vector var8 = new Vector();
-                double var9 = this.datatable.quickPercentageMatchWith(theory, var6.datatable, var8);
-                if (var9 >= percent_min / 100.0D) {
-                    NearEquivalence var11 = new NearEquivalence(this, var6, var8, var9);
-                    new NearEquivalence(var6, this, var8, var9);
-                    this.near_equivalences.addElement(var11, "score");
-                    boolean var13 = false;
-
-                    for(int var14 = 0; var14 < var6.near_equivalences.size() && !var13; ++var14) {
-                        NearEquivalence var15 = (NearEquivalence)var6.near_equivalences.elementAt(var14);
-                        if (var15.lh_concept == var6 && var15.rh_concept == this) {
-                            var13 = true;
+                    if (isGeneralisationOf(other_concept)==-1)
+                    {
+                        //System.out.println("5 ");
+                        Vector counterexamples = empiricallySubsumes(other_concept, percent_min);
+                        //System.out.println("6 - counterexamples is " + counterexamples);
+                        if (counterexamples != null && !(counterexamples.size()==0))
+                        {
+                            int total = 0;
+                            if(other_concept.arity==0||other_concept.arity==1)
+                                total = other_concept.getPositives().size();
+                            else
+                                total = other_concept.datatable.size();
+                            score = total - counterexamples.size();
+                            ////System.out.println(" score is " + score);
+                            score = score/total;
+                            ////System.out.println(" score is " + score);
+                            score = score*100;
+                            //System.out.println(" total is " + total);
+                            //System.out.println(" counterexamples.size() is " + counterexamples.size());
+                            //System.out.println(" score is " + score);
+                            if (score>= percent_min)
+                            {
+                                //System.out.println("score>= percent_min");
+                                NearImplication near_imp = new NearImplication(other_concept, this, counterexamples, score);//[should be imp?]
+                                near_implications.addElement(near_imp, "score");
+                                //System.out.println("8 near_imp is " +near_imp.writeConjecture("ascii"));
+                            }
                         }
                     }
-
-                    if (!var13) {
-                        var6.near_equivalences.addElement(var11, "score");
+                    //check this
+                    boolean already_there = false;
+                    for (int j=0; j<other_concept.near_implications.size() && !already_there; j++)
+                    {
+                        //System.out.println("9 ");
+                        NearImplication other_nimp = (NearImplication)other_concept.near_implications.elementAt(j);
+                        if (other_nimp.lh_concept==other_concept && other_nimp.rh_concept==this)
+                            already_there = true;
                     }
+                    //check this
+                    // if (!already_there)
+                    //concept.near_implications.addElement(near_imp, "score");
+                    //	concept.near_implications.addElement(near_imp, "score");
+                    //System.out.println(" ");
                 }
             }
+            //System.out.println("10 ");
         }
-
+        //System.out.println("11 ");
     }
 
-    /**
-     * This goes through the concepts and finds any which have datatables which are close to this one's datatable
-     * (in terms of the percentage of tuples which match).
+
+    /** This checks whether all the examples of the given concept are examples
+     * of this concept too (up to a given exception percentage number, i.e., there can be
+     * a certain number of counterexamples). This returns null if this concept
+     * doesn't empirically subsume the other concept, and a (possibly empty)
+     * vector of counterexamples otherwise.
      */
-    public void getNearImplications(Theory var1, Vector concepts, double percent_min) {
-        this.near_implications.removeAllElements();
 
-        for(int var5 = 0; var5 < concepts.size(); ++var5) {
-            Concept var6 = (Concept)concepts.elementAt(var5);
-            if (var6.types.toString().equals(this.types.toString()) && var6 != this) {
-                Vector var7 = new Vector();
-                double var8 = this.datatable.quickPercentageMatchWith(var1, var6.datatable, var7);
-                if (var8 >= percent_min / 100.0D) {
-                    NearEquivalence var10 = new NearEquivalence(this, var6, var7, var8);
-                    new NearEquivalence(var6, this, var7, var8);
-                    this.near_equivalences.addElement(var10, "score");
-                    boolean var12 = false;
-
-                    for(int var13 = 0; var13 < var6.near_equivalences.size() && !var12; ++var13) {
-                        NearEquivalence var14 = (NearEquivalence)var6.near_equivalences.elementAt(var13);
-                        if (var14.lh_concept == var6 && var14.rh_concept == this) {
-                            var12 = true;
-                        }
-                    }
-
-                    if (!var12) {
-                        var6.near_equivalences.addElement(var10, "score");
-                    }
-                }
-            }
-        }
-
-    }
-
-    /**
-     * This goes through all the concepts and finds any which are subsumed by this concept, similarly finding any which subsume this concept.
-     */
-    public void getSubsumptionNearImplications(Vector concepts, double percent_min) {
-        this.near_implications.removeAllElements();
-        double var4 = 0.0D;
-
-        for(int var6 = 0; var6 < concepts.size(); ++var6) {
-            Concept var7 = (Concept)concepts.elementAt(var6);
-            if (var7.arity == this.arity && !var7.is_entity_instantiations) {
-                Vector var8;
-                boolean var9;
-                NearImplication var10;
-                int var12;
-                if (var7.isGeneralisationOf(this) == -1) {
-                    var8 = var7.empiricallySubsumes(this, percent_min);
-                    if (var8 != null && var8.size() != 0) {
-                        var9 = false;
-                        if (this.arity != 0 && this.arity != 1) {
-                            var12 = this.datatable.size();
-                        } else {
-                            var12 = this.getPositives().size();
-                        }
-
-                        var4 = (double)(var12 - var8.size());
-                        var4 /= (double)var12;
-                        var4 *= 100.0D;
-                        if (var4 >= percent_min) {
-                            var10 = new NearImplication(this, var7, var8, var4);
-                            this.near_implications.addElement(var10, "score");
-                        }
-                    }
-                }
-
-                if (this.isGeneralisationOf(var7) == -1) {
-                    var8 = this.empiricallySubsumes(var7, percent_min);
-                    if (var8 != null && var8.size() != 0) {
-                        var9 = false;
-                        if (var7.arity != 0 && var7.arity != 1) {
-                            var12 = var7.datatable.size();
-                        } else {
-                            var12 = var7.getPositives().size();
-                        }
-
-                        var4 = (double)(var12 - var8.size());
-                        var4 /= (double)var12;
-                        var4 *= 100.0D;
-                        if (var4 >= percent_min) {
-                            var10 = new NearImplication(var7, this, var8, var4);
-                            this.near_implications.addElement(var10, "score");
-                        }
-                    }
-                }
-
-                boolean var11 = false;
-
-                for(var12 = 0; var12 < var7.near_implications.size() && !var11; ++var12) {
-                    var10 = (NearImplication)var7.near_implications.elementAt(var12);
-                    if (var10.lh_concept == var7 && var10.rh_concept == this) {
-                        var11 = true;
-                    }
-                }
-            }
-        }
-
-    }
-
-    /**
-     * This checks whether all the examples of the given concept are examples of this concept too
-     * (up to a given exception number, i.e., there can be a certain number of counterexamples).
-     * This returns null if this concept doesn't empirically subsume the other concept,
-     * and a (possibly empty) vector of counterexamples otherwise.
-     */
-    public Vector empiricallySubsumes(Concept other_concept, double max_number_of_counters) {
-        if (this.arity != other_concept.arity) {
+    public Vector empiricallySubsumes(Concept other_concept, double max_percentage_of_counters)
+    {
+        if (arity!=other_concept.arity)
             return null;
-        } else if (!this.types.toString().equals(other_concept.types.toString())) {
+
+        if (!(types.toString().equals(other_concept.types.toString())))
             return null;
-        } else {
-            Vector var4 = new Vector();
-            int var5 = 0;
-            int var6 = 0;
 
-            for(int var7 = 0; var7 < this.datatable.size(); ++var7) {
-                Row var8 = (Row)this.datatable.elementAt(var7);
-                Row var9 = (Row)other_concept.datatable.elementAt(var7);
-                if (!var8.tuples.subsumes(var9.tuples)) {
-                    var4.addElement(new Entity(var8.entity));
-                }
+        Vector bad_entities = new Vector();
+        int size_of_datatable = 0;
+        int size_of_other_datatable = 0;
 
-                if (!var8.tuples.isEmpty()) {
-                    ++var5;
-                }
+        for (int i=0; i<datatable.size(); i++)
+        {
+            Row row = (Row)datatable.elementAt(i);
+            Row other_row = (Row)other_concept.datatable.elementAt(i);
+            if (!row.tuples.subsumes(other_row.tuples))
+                bad_entities.addElement(new Entity(row.entity));
+            if(!row.tuples.isEmpty())
+                size_of_datatable ++;
+            if(!other_row.tuples.isEmpty())//alisonp
+                size_of_other_datatable ++;
+        }
 
-                if (!var9.tuples.isEmpty()) {
-                    ++var6;
-                }
-            }
+        //alisonp here
+        double percentage_counters = 0.0;
 
-            double var10 = 0.0D;
-            if (var5 != 0) {
-                var10 = (double)((var5 - var4.size()) / var5 * 100);
-            } else {
-                if (var6 == 0) {
-                    return var4;
-                }
-
-                if (var6 != 0) {
-                    return null;
-                }
-            }
-
-            if (var10 > max_number_of_counters) {
+        if(!(size_of_datatable==0))
+            percentage_counters = ((size_of_datatable - bad_entities.size())/size_of_datatable)*100;
+        else
+        {
+            if(size_of_other_datatable==0)
+                return bad_entities;
+            if(!(size_of_other_datatable==0))
                 return null;
-            } else {
-                return var4;
-            }
-        }
-    }
-
-    /**
-     * This re-evaluates a near-equivalence in the light of a new entity being introduced.
-     * It removes any where the match is now lower than the required percentage value.
-     */
-    public void reEvaluateNearEquivalences(Theory theory, double percent_min) {
-        SortableVector var4 = new SortableVector();
-
-        for(int var5 = 0; var5 < this.near_equivalences.size(); ++var5) {
-            NearEquivalence var6 = (NearEquivalence)this.near_equivalences.elementAt(var5);
-            Vector var7 = new Vector();
-            double var8 = this.datatable.quickPercentageMatchWith(theory, var6.rh_concept.datatable, var7);
-            if (var8 >= percent_min) {
-                NearEquivalence var10 = new NearEquivalence(this, var6.rh_concept, var7, var8);
-                var4.addElement(var10, "score");
-            }
         }
 
-        this.near_equivalences = var4;
-    }
 
-    /**
-     * This re-evaluates a near-implication in the light of a new entity being introduced.
-     * It removes any where the match is now lower than the required percentage value.
-     */
-    public void reEvaluateNearImplications(Theory theory, double percent_min) {
-        SortableVector var4 = new SortableVector();
-
-        for(int var5 = 0; var5 < this.near_implications.size(); ++var5) {
-            NearImplication var6 = (NearImplication)this.near_implications.elementAt(var5);
-            Vector var7 = new Vector();
-            double var8 = this.datatable.quickPercentageMatchWith(theory, var6.rh_concept.datatable, var7);
-            if (var8 >= percent_min) {
-                NearImplication var10 = new NearImplication(this, var6.rh_concept, var7, var8);
-                var4.addElement(var10, "score");
-            }
-        }
-
-        this.near_implications = var4;
-    }
-
-    /**
-     * This checks whether all the examples of the given concept are examples of this concept too
-     * (up to a given exception number, i.e., there can be a certain number of counterexamples).
-     * This returns null if this concept doesn't empirically subsume the other concept,
-     * and a (possibly empty) vector of counterexamples otherwise.
-     */
-    public Vector empiricallySubsumes(Concept other_concept, int max_number_of_counters) {
-        if (this.arity != other_concept.arity) {
+        if (percentage_counters > max_percentage_of_counters)
             return null;
-        } else if (!this.types.toString().equals(other_concept.types.toString())) {
-            return null;
-        } else {
-            Vector var3 = new Vector();
+        return bad_entities;
+    }
 
-            for(int var4 = 0; var4 < this.datatable.size() && var3.size() <= max_number_of_counters; ++var4) {
-                Row var5 = (Row)this.datatable.elementAt(var4);
-                Row var6 = (Row)other_concept.datatable.elementAt(var4);
-                if (!var5.tuples.subsumes(var6.tuples)) {
-                    var3.addElement(var5.entity);
-                }
+
+    /** This re-evaluates a near-equivalence in the light of a new
+     * entity being introduced. It removes any where the match is now
+     * lower than the required percentage value.
+     */
+
+    public void reEvaluateNearEquivalences(Theory theory, double percent_min)
+    {
+        SortableVector new_near_equivalences = new SortableVector();
+        for (int i=0; i<near_equivalences.size(); i++)
+        {
+            NearEquivalence near_equiv = (NearEquivalence)near_equivalences.elementAt(i);
+            Vector new_counterexamples = new Vector();
+            double new_score = datatable.quickPercentageMatchWith(theory, near_equiv.rh_concept.datatable, new_counterexamples);
+            if (new_score >= percent_min)
+            {
+                NearEquivalence new_near_equiv = new NearEquivalence(this, near_equiv.rh_concept, new_counterexamples, new_score);
+                new_near_equivalences.addElement(new_near_equiv, "score");
             }
-
-            return var3.size() > max_number_of_counters ? null : var3;
         }
+        near_equivalences = new_near_equivalences;
     }
 
-    /**
-     * Which production rule was used to produce this concept.
+    /** This re-evaluates a near-implication in the light of a new
+     * entity being introduced. It removes any where the match is now
+     * lower than the required percentage value. - alisonp [change]
      */
-    public String productionRuleUsedName() {
-        if (this.is_user_given) {
-            return "user given";
-        } else {
-            ProductionRule var1 = (ProductionRule)this.construction.elementAt(1);
-            return var1.getName();
+
+    public void reEvaluateNearImplications(Theory theory, double percent_min)
+    {
+        SortableVector new_near_implications = new SortableVector();
+        for (int i=0; i<near_implications.size(); i++)
+        {
+            NearImplication near_imp = (NearImplication)near_implications.elementAt(i);
+            Vector new_counterexamples = new Vector();
+            double new_score = datatable.quickPercentageMatchWith(theory, near_imp.rh_concept.datatable, new_counterexamples);
+            if (new_score >= percent_min)
+            {
+                NearImplication new_near_imp = new NearImplication(this, near_imp.rh_concept, new_counterexamples, new_score);
+                new_near_implications.addElement(new_near_imp, "score");
+            }
         }
+        near_implications = new_near_implications;
     }
 
-    /**
-     * This goes through all the concepts and finds any which are subsumed by this concept, similarly finding any which subsume this concept.
-     */
-    public Vector getSubsumptionImplications(Vector concepts) {
-        Vector var2 = new Vector();
 
-        for(int var3 = 0; var3 < concepts.size(); ++var3) {
-            Concept var4 = (Concept)concepts.elementAt(var3);
-            if (!var4.is_entity_instantiations) {
-                Vector var5;
-                Implication var6;
-                if (var4.isGeneralisationOf(this) == -1) {
-                    var5 = var4.empiricallySubsumes(this, 0);
-                    if (var5 != null && var5.size() == 0) {
-                        var6 = new Implication();
-                        var6.lh_concept = this;
-                        var6.rh_concept = var4;
-                        var2.addElement(var6);
+    /** This checks whether all the examples of the given concept are examples
+     * of this concept too (up to a given exception number, i.e., there can be
+     * a certain number of counterexamples). This returns null if this concept
+     * doesn't empirically subsume the other concept, and a (possibly empty)
+     * vector of counterexamples otherwise.
+     */
+
+    public Vector empiricallySubsumes(Concept other_concept, int max_number_of_counters)
+    {
+        if (arity!=other_concept.arity)
+            return null;
+
+        if (!(types.toString().equals(other_concept.types.toString())))
+            return null;
+
+        Vector bad_entities = new Vector();
+        for (int i=0; i<datatable.size() && bad_entities.size() <= max_number_of_counters; i++)
+        {
+            Row row = (Row)datatable.elementAt(i);
+            Row other_row = (Row)other_concept.datatable.elementAt(i);
+            if (!row.tuples.subsumes(other_row.tuples))
+                bad_entities.addElement(row.entity);
+        }
+        if (bad_entities.size() > max_number_of_counters)
+            return null;
+        return bad_entities;
+    }
+
+    /** Which production rule was used to produce this concept.
+     */
+
+    public String productionRuleUsedName()
+    {
+        if (is_user_given)
+            return ("user given");
+        ProductionRule pr = (ProductionRule)construction.elementAt(1);
+        return pr.getName();
+    }
+
+    /** This goes through all the concepts and finds any which are subsumed
+     * by this concept, similarly finding any which subsume this concept.
+     */
+
+    public Vector getSubsumptionImplications(Vector concepts)
+    {
+        Vector output = new Vector();
+        for (int i=0; i<concepts.size(); i++)
+        {
+            Concept other_concept = (Concept)concepts.elementAt(i);
+            if (!other_concept.is_entity_instantiations)
+            {
+                if (other_concept.isGeneralisationOf(this)==-1)
+                {
+                    Vector counterexamples = other_concept.empiricallySubsumes(this, 0);
+                    if (counterexamples != null && counterexamples.size()==0)
+                    {
+                        Implication implication = new Implication();
+                        implication.lh_concept = this;
+                        implication.rh_concept = other_concept;
+                        output.addElement(implication);
                     }
                 }
-
-                if (this.isGeneralisationOf(var4) == -1) {
-                    var5 = this.empiricallySubsumes(var4, 0);
-                    if (var5 != null && var5.size() == 0) {
-                        var6 = new Implication();
-                        var6.lh_concept = var4;
-                        var6.rh_concept = this;
-                        var2.addElement(var6);
+                if (isGeneralisationOf(other_concept)==-1)
+                {
+                    Vector counterexamples = empiricallySubsumes(other_concept, 0);
+                    if (counterexamples != null && counterexamples.size()==0)
+                    {
+                        Implication implication = new Implication();
+                        implication.lh_concept = other_concept;
+                        implication.rh_concept = this;
+                        output.addElement(implication);
                     }
                 }
             }
         }
-
-        return var2;
+        return output;
     }
 
-    /**
-     * If the parents of a concept have changed their specifications, then the change must also occur in the child (this concept).
-     * This recalculates the specifications.
+    /** If the parents of a concept have changed their specifications, then the
+     * change must also occur in the child (this concept). This recalculates the
+     * specifications.
      */
-    public void recalculateSpecifications(Theory theory, boolean recurse) {
-        ProductionRule var3 = this.construction.productionRule();
-        Vector var4 = this.construction.parameters();
-        this.specifications = var3.newSpecifications(this.parents, var4, theory, new Vector());
-        if (recurse) {
-            for(int var5 = 0; var5 < this.children.size(); ++var5) {
-                Concept var6 = (Concept)this.children.elementAt(var5);
-                var6.recalculateSpecifications(theory, true);
+
+    public void recalculateSpecifications(Theory theory, boolean recurse)
+    {
+        ProductionRule pr = construction.productionRule();
+        Vector params = construction.parameters();
+        specifications = pr.newSpecifications(parents, params, theory, new Vector());
+        if (recurse)
+        {
+            for (int i=0; i<children.size(); i++)
+            {
+                Concept child = (Concept)children.elementAt(i);
+                child.recalculateSpecifications(theory, true);
             }
         }
     }
 
-    /**
-     * This returns the same concept if no substitutable ones are available, otherwise, it returns the top of the substutatable list.
+    /** This returns the same concept if no substitutable ones are available,
+     * otherwise, it returns the top of the substutatable list.
      */
-    public Concept getSubstitutableConcept() {
-        return this.use_top_substitutable && !this.substitutable_concepts.isEmpty() ? (Concept)this.substitutable_concepts.elementAt(0) : this;
+
+    public Concept getSubstitutableConcept()
+    {
+        if (!use_top_substitutable || substitutable_concepts.isEmpty())
+            return this;
+        else
+            return ((Concept)substitutable_concepts.elementAt(0));
     }
 
-    /**
-     * This uses the getConcept method in the theory to get a vector of ancestor concepts (from their ids stored in the ancestors vector).
+    /** This uses the getConcept method in the theory to get a vector
+     * of ancestor concepts (from their ids stored in the ancestors vector).
      */
-    public Vector getAncestors(Theory theory) {
-        Vector var2 = new Vector();
 
-        for(int var3 = 0; var3 < this.ancestor_ids.size(); ++var3) {
-            var2.addElement(theory.getConcept((String)this.ancestor_ids.elementAt(var3)));
-        }
-
-        return var2;
+    public Vector getAncestors(Theory theory)
+    {
+        Vector output = new Vector();
+        for (int i=0; i<ancestor_ids.size(); i++)
+            output.addElement(theory.getConcept((String)ancestor_ids.elementAt(i)));
+        return output;
     }
 
-    /**
-     * This writes the definition of the ancestors, along with their equivalent definitions for this concept.
+    /** This writes the definition of the ancestors, along with their equivalent
+     * definitions for this concept.
      */
-    public String writeAncestorsAndEquivalents(String language) {
-        String var2 = "";
 
-        for(int var3 = 0; var3 < this.ancestors.size(); ++var3) {
-            Concept var4 = (Concept)this.ancestors.elementAt(var3);
-            var2 = var2 + "--\n";
-            var2 = var2 + var4.id + ". " + var4.writeDefinitionWithStartLetters(language) + "\n";
-            if (var4.conjectured_equivalent_concepts.size() > 0) {
-                var2 = var2 + "Alternative definitions:\n";
+    public String writeAncestorsAndEquivalents(String language)
+    {
+        String output = "";
+        for (int i=0; i<ancestors.size(); i++)
+        {
+            Concept ancestor = (Concept)ancestors.elementAt(i);
+            output = output + "--\n";
+            output = output + ancestor.id + ". " + ancestor.writeDefinitionWithStartLetters(language) + "\n";
+            if (ancestor.conjectured_equivalent_concepts.size()>0)
+                output = output + "Alternative definitions:\n";
+            for (int j=0; j<ancestor.conjectured_equivalent_concepts.size(); j++)
+            {
+                Concept equiv_concept = (Concept)ancestor.conjectured_equivalent_concepts.elementAt(j);
+                output = output + equiv_concept.id + ". " + equiv_concept.writeDefinitionWithStartLetters(language) + "\n";
             }
-
-            for(int var5 = 0; var5 < var4.conjectured_equivalent_concepts.size(); ++var5) {
-                Concept var6 = (Concept)var4.conjectured_equivalent_concepts.elementAt(var5);
-                var2 = var2 + var6.id + ". " + var6.writeDefinitionWithStartLetters(language) + "\n";
-            }
         }
-
-        return var2;
+        return output;
     }
 
-    /**
-     * This gets the equivalent conjectures of this concept and its ancestors and the ancestors of the equivalent concepts.
+    /** This gets the equivalent conjectures of this concept and
+     * its ancestors and the ancestors of the equivalent concepts.
      */
-    public void getRelevantEquivalences(Theory theory) {
-        this.relevant_equivalences = new SortableVector();
-        Vector var2 = new Vector();
-        Concept var3 = this;
 
-        int var4;
-        Concept var5;
-        for(var4 = 0; var4 < theory.concepts.size(); ++var4) {
-            var5 = (Concept)theory.concepts.elementAt(var4);
-            Vector var6 = (Vector)var5.conjectured_equivalent_concepts.clone();
-            var6.insertElementAt(var5, 0);
-            boolean var7 = false;
-            new Vector();
-
-            int var9;
-            Concept var10;
-            for(var9 = 0; var9 < var6.size(); ++var9) {
-                var10 = (Concept)var6.elementAt(var9);
-                if (theory.specification_handler.leftSkolemisedImpliesRight(var3, var10, true) || theory.specification_handler.leftSkolemisedImpliesRight(var10, var3, true)) {
-                    var7 = true;
+    public void getRelevantEquivalences(Theory theory)
+    {
+        relevant_equivalences = new SortableVector();
+        Vector equiv_strings = new Vector();
+        Concept conc = this;
+        for (int i=0; i<theory.concepts.size(); i++)
+        {
+            Concept first_conc_to_try = (Concept)theory.concepts.elementAt(i);
+            Vector concs_to_try = (Vector)first_conc_to_try.conjectured_equivalent_concepts.clone();
+            concs_to_try.insertElementAt(first_conc_to_try, 0);
+            boolean add_all_equivs = false;
+            Vector equivs_to_add = new Vector();
+            for (int j=0; j<concs_to_try.size(); j++)
+            {
+                Concept conc_to_try = (Concept)concs_to_try.elementAt(j);
+                if (theory.specification_handler.leftSkolemisedImpliesRight(conc, conc_to_try, true) ||
+                        theory.specification_handler.leftSkolemisedImpliesRight(conc_to_try, conc, true))
+                {
+                    add_all_equivs = true;
                     break;
                 }
             }
-
-            if (var7) {
-                Vector var8 = new Vector();
-
-                for(var9 = 1; var9 < var6.size(); ++var9) {
-                    var10 = (Concept)var6.elementAt(var9);
-                    Equivalence var11 = new Equivalence(var5, var10, "");
-                    var8.addElement(var11);
-                    String var12 = var11.writeConjecture("prolog");
-                    if (!var2.contains(var12)) {
-                        var2.addElement(var12);
-                        this.relevant_equivalences.addElement(var11);
+            if (add_all_equivs)
+            {
+                equivs_to_add = new Vector();
+                for (int j=1; j<concs_to_try.size(); j++)
+                {
+                    Concept conc_to_try = (Concept)concs_to_try.elementAt(j);
+                    Equivalence new_equiv = new Equivalence(first_conc_to_try, conc_to_try, "");
+                    equivs_to_add.addElement(new_equiv);
+                    String def_string = new_equiv.writeConjecture("prolog");
+                    if (!equiv_strings.contains(def_string))
+                    {
+                        equiv_strings.addElement(def_string);
+                        relevant_equivalences.addElement(new_equiv);
                     }
                 }
             }
         }
-
-        for(var4 = 0; var4 < this.conjectured_equivalent_concepts.size(); ++var4) {
-            var5 = (Concept)this.conjectured_equivalent_concepts.elementAt(var4);
-            var5.getRelevantEquivalences(theory);
-
-            for(int var13 = 0; var13 < var5.relevant_equivalences.size(); ++var13) {
-                Equivalence var14 = (Equivalence)var5.relevant_equivalences.elementAt(var13);
-                String var15 = var14.writeConjecture("prolog");
-                if (!var2.contains(var15)) {
-                    var2.addElement(var15);
-                    this.relevant_equivalences.addElement(var14);
+        for (int i=0; i<conjectured_equivalent_concepts.size(); i++)
+        {
+            Concept cec = (Concept)conjectured_equivalent_concepts.elementAt(i);
+            cec.getRelevantEquivalences(theory);
+            for (int j=0; j<cec.relevant_equivalences.size(); j++)
+            {
+                Equivalence new_equiv = (Equivalence)cec.relevant_equivalences.elementAt(j);
+                String def_string = new_equiv.writeConjecture("prolog");
+                if (!equiv_strings.contains(def_string))
+                {
+                    equiv_strings.addElement(def_string);
+                    relevant_equivalences.addElement(new_equiv);
                 }
             }
         }
-
     }
 
-    /**
-     * This gets the implicate conjectures for which the left hand concept is implied by this concept.
+    /** This gets the implicate conjectures for which the left hand
+     * concept is implied by this concept.
      */
-    public void getRelevantImplicates(Theory theory) {
-        this.relevant_implicates = new SortableVector();
-        Vector var2 = theory.implicates;
-        new Vector();
-        SortableVector var4 = new SortableVector();
-        Vector var5 = (Vector)this.conjectured_equivalent_concepts.clone();
-        var5.insertElementAt(this, 0);
-        int var6 = var5.size();
 
-        int var7;
-        Concept var8;
-        int var9;
-        for(var7 = 0; var7 < var6; ++var7) {
-            var8 = (Concept)var5.elementAt(var7);
-
-            for(var9 = 0; var9 < var8.ancestors.size(); ++var9) {
-                var5.addElement(var8.ancestors.elementAt(var9));
-            }
+    public void getRelevantImplicates(Theory theory)
+    {
+        relevant_implicates = new SortableVector();
+        Vector all_imps = theory.implicates;
+        Vector output = new Vector();
+        SortableVector relevant_imps = new SortableVector();
+        Vector all_concepts = (Vector)conjectured_equivalent_concepts.clone();
+        all_concepts.insertElementAt(this, 0);
+        int num_equivs = all_concepts.size();
+        for (int i=0; i<num_equivs; i++)
+        {
+            Concept equiv = (Concept)all_concepts.elementAt(i);
+            for (int j=0; j<equiv.ancestors.size(); j++)
+                all_concepts.addElement(equiv.ancestors.elementAt(j));
         }
-
-        for(var7 = 0; var7 < var5.size(); ++var7) {
-            var8 = (Concept)var5.elementAt(var7);
-
-            for(var9 = 0; var9 < var2.size(); ++var9) {
-                Implicate var10 = (Implicate)var2.elementAt(var9);
-                if (theory.specification_handler.leftSkolemisedImpliesRight(var8, var10.premise_concept, true)) {
-                    String var11 = var10.writeConjecture("prolog");
-                    boolean var12 = false;
-
-                    for(int var13 = 0; var13 < var4.size(); ++var13) {
-                        Implicate var14 = (Implicate)var4.elementAt(var13);
-                        if (var14.subsumes(var10)) {
-                            var12 = true;
-                        }
-
-                        if (var10.subsumes(var14)) {
-                            var4.removeElementAt(var13);
-                            --var13;
+        for (int i=0; i<all_concepts.size(); i++)
+        {
+            Concept conc = (Concept)all_concepts.elementAt(i);
+            for (int j=0; j<all_imps.size(); j++)
+            {
+                Implicate imp = (Implicate)all_imps.elementAt(j);
+                if (theory.specification_handler.leftSkolemisedImpliesRight(conc, imp.premise_concept, true))
+                {
+                    String conj_string = imp.writeConjecture("prolog");
+                    boolean dont_add = false;
+                    for (int k=0; k<relevant_imps.size(); k++)
+                    {
+                        Implicate old_rel_imp = (Implicate)relevant_imps.elementAt(k);
+                        if (old_rel_imp.subsumes(imp))
+                            dont_add = true;
+                        if (imp.subsumes(old_rel_imp))
+                        {
+                            relevant_imps.removeElementAt(k);
+                            k--;
                         }
                     }
-
-                    if (!var12) {
-                        var4.addElement(var10, "writeConjecture(prolog)");
-                    }
-
-                    var2.removeElementAt(var9);
-                    --var9;
+                    if (!dont_add)
+                        relevant_imps.addElement(imp, "writeConjecture(prolog)");
+                    all_imps.removeElementAt(j);
+                    j--;
                 }
             }
         }
-
-        for(var7 = 0; var7 < var4.size(); ++var7) {
-            Implicate var15 = (Implicate)var4.elementAt(var7);
-            this.relevant_implicates.addElement(var15);
+        for (int i=0; i<relevant_imps.size(); i++)
+        {
+            Implicate rel_imp = (Implicate)relevant_imps.elementAt(i);
+            relevant_implicates.addElement(rel_imp);
         }
-
     }
 
-    /**
-     * Returns the vector of specifications that this concept shares with the given concept.
+    /** Returns the vector of specifications that this concept shares with the
+     * given concept.
      */
-    public Vector sharedSpecifications(Concept other_concept) {
-        Vector var2 = new Vector();
 
-        for(int var3 = 0; var3 < this.specifications.size(); ++var3) {
-            Specification var4 = (Specification)this.specifications.elementAt(var3);
-            boolean var5 = false;
-
-            for(int var6 = 0; var6 < other_concept.specifications.size() && !var5; ++var6) {
-                Specification var7 = (Specification)other_concept.specifications.elementAt(var6);
-                if (var7 == var4) {
-                    var2.addElement(var4);
-                    var5 = true;
+    public Vector sharedSpecifications(Concept other_concept)
+    {
+        Vector output = new Vector();
+        for (int i=0; i<specifications.size(); i++)
+        {
+            Specification spec = (Specification)specifications.elementAt(i);
+            boolean found = false;
+            for (int j=0; j<other_concept.specifications.size() && !found; j++)
+            {
+                Specification other_spec = (Specification)other_concept.specifications.elementAt(j);
+                if (other_spec==spec)
+                {
+                    output.addElement(spec);
+                    found =  true;
                 }
             }
         }
-
-        return var2;
+        return output;
     }
 
-    /**
-     * This returns the positives for this concept (those entities which have non-empty output for this concept).
-     */
-    public Vector positives() {
-        Vector var1 = new Vector();
+    /** This returns the positives for this concept (those entities
+     * which have non-empty output for this concept).  */
 
-        for(int var2 = 0; var2 < this.datatable.size(); ++var2) {
-            Row var3 = (Row)this.datatable.elementAt(var2);
-            if (!var3.tuples.isEmpty()) {
-                var1.addElement(var3.entity);
+    public Vector positives()
+    {
+        Vector output = new Vector();
+        for (int i=0; i<datatable.size(); i++)
+        {
+            Row row = (Row)datatable.elementAt(i);
+            if (!row.tuples.isEmpty())
+                output.addElement(row.entity);
+        }
+        return output;
+    }
+
+    /** Same as positives() except return a vector of entities as opposed
+     to a vector of strings. This returns the positives for this
+     concept (those entities which have non-empty output for this
+     concept).  */
+    public Vector positiveEntities()
+    {
+        Vector output = new Vector();
+        for (int i=0; i<datatable.size(); i++)
+        {
+            Row row = (Row)datatable.elementAt(i);
+            if (!row.tuples.isEmpty())
+            {
+                Entity entity_to_add = new Entity(row.entity);
+                output.addElement(entity_to_add);
             }
         }
-
-        return var1;
+        return output;
     }
 
-    public Vector positiveEntities() {
-        Vector var1 = new Vector();
 
-        for(int var2 = 0; var2 < this.datatable.size(); ++var2) {
-            Row var3 = (Row)this.datatable.elementAt(var2);
-            if (!var3.tuples.isEmpty()) {
-                Entity var4 = new Entity(var3.entity);
-                var1.addElement(var4);
-            }
+    /** This returns the negatives for this concept (those entities
+     * which have empty output for this concept).  */
+
+    public Vector negatives()
+    {
+        Vector output = new Vector();
+        for (int i=0; i<datatable.size(); i++)
+        {
+            Row row = (Row)datatable.elementAt(i);
+            if (row.tuples.isEmpty())
+                output.addElement(row.entity);
         }
-
-        return var1;
+        return output;
     }
 
-    /**
-     * This returns the negatives for this concept (those entities which have empty output for this concept).
-     */
-    public Vector negatives() {
-        Vector var1 = new Vector();
-
-        for(int var2 = 0; var2 < this.datatable.size(); ++var2) {
-            Row var3 = (Row)this.datatable.elementAt(var2);
-            if (var3.tuples.isEmpty()) {
-                var1.addElement(var3.entity);
-            }
+    public Vector getPositives()
+    {
+        Vector output = new Vector();
+        for (int i=0; i<datatable.size(); i++)
+        {
+            Row row = (Row)datatable.elementAt(i);
+            if (!row.tuples.isEmpty())
+                output.addElement(row.entity);
         }
-
-        return var1;
+        return output;
     }
 
-    public Vector getPositives() {
-        Vector var1 = new Vector();
+    /** Given a vector of entity strings, returns a vector which contains the
+     subset of those from original vector which are also in the
+     concept */
+    public Vector getSubset(Vector vector)
+    {
+        Vector output = new Vector();
+        Vector concept_entities = getPositives();
 
-        for(int var2 = 0; var2 < this.datatable.size(); ++var2) {
-            Row var3 = (Row)this.datatable.elementAt(var2);
-            if (!var3.tuples.isEmpty()) {
-                var1.addElement(var3.entity);
-            }
+        for(int i=0; i<vector.size(); i++)
+        {
+            String entity = (String)vector.elementAt(i);
+            if(concept_entities.contains(entity))
+                output.addElement(entity);
+
         }
-
-        return var1;
+        return output;
     }
 
-    public Vector getSubset(Vector var1) {
-        Vector var2 = new Vector();
-        Vector var3 = this.getPositives();
+    /** Returns true if the concept has the same value for the given
+     entity, false otherwise */
 
-        for(int var4 = 0; var4 < var1.size(); ++var4) {
-            String var5 = (String)var1.elementAt(var4);
-            if (var3.contains(var5)) {
-                var2.addElement(var5);
-            }
-        }
+    public boolean sameValueOfEntity(Row given_row)
+    {
+        boolean output = false;
+        int i = 0;
+        Row row = new Row();
 
-        return var2;
-    }
-
-    public boolean sameValueOfEntity(Row var1) {
-        boolean var2 = false;
-        int var3 = 0;
-        new Row();
-
-        while(var3 < this.datatable.size()) {
-            Row var4 = (Row)this.datatable.elementAt(var3);
-            if (var4.equals(var1)) {
-                var2 = true;
+        while (i<datatable.size())
+        {
+            row = (Row)datatable.elementAt(i);
+            if (row.equals(given_row))
+            {
+                output = true;
                 break;
             }
-
-            ++var3;
+            i++;
         }
-
-        return var2;
+        return output;
     }
 
-    /**
-     * This checks whether the positives (those entities which have non-empty output for this concept) contain all the given entities (given as strings).
-     */
-    public boolean positivesContains(Vector positives) {
-        for(int var2 = 0; var2 < positives.size(); ++var2) {
-            String var3 = (String)positives.elementAt(var2);
-            Row var4 = this.datatable.rowWithEntity(var3);
-            if (var4.tuples.isEmpty()) {
-                return false;
-            }
-        }
 
+    /** This checks whether the positives (those entities which have
+     * non-empty output for this concept) contain all the given entities
+     * (given as strings).  */
+
+    public boolean positivesContains(Vector positives)
+    {
+        for(int i=0; i<positives.size(); i++)
+        {
+            String positive = (String)positives.elementAt(i);
+            Row row = datatable.rowWithEntity(positive);
+            if(row.tuples.isEmpty())
+                return false;
+        }
         return true;
     }
 
-    /**
-     * This checks whether the positives (those entities which have non-empty output for this concept) contain the given entity string.
-     */
-    public boolean positivesContains(String entity_string) {
-        Row var2 = this.datatable.rowWithEntity(entity_string);
-        return !var2.tuples.isEmpty();
+    /** This checks whether the positives (those entities which have
+     * non-empty output for this concept) contain the given entity
+     * string.  */
+
+    public boolean positivesContains(String entity_string)
+    {
+        Row row = datatable.rowWithEntity(entity_string);
+        if(row.tuples.isEmpty())
+            return false;
+        return true;
     }
 
-    /**
-     * This checks whether the positives (those entities which have non-empty output for this concept) contain one of the given entities (given as strings).
+    /** This checks whether the positives (those entities which have non-empty
+     * output for this concept) contain one of the given entities (given as strings).
      */
-    public boolean positivesContainOneOf(Vector counterexamples) {
-        for(int var2 = 0; var2 < counterexamples.size(); ++var2) {
-            String var3 = (String)counterexamples.elementAt(var2);
-            Row var4 = this.datatable.rowWithEntity(var3);
-            if (!var4.tuples.isEmpty()) {
+
+    public boolean positivesContainOneOf(Vector counterexamples)
+    {
+        for(int i=0; i<counterexamples.size(); i++)
+        {
+            String counterexample = (String)counterexamples.elementAt(i);
+            //System.out.println("in positivesContainOneOf - counterexample is " + counterexample);
+            Row row = datatable.rowWithEntity(counterexample);
+            //System.out.println("row.entity is " + row.entity);
+            if(!row.tuples.isEmpty())
+            {
+                //System.out.println("in positivesContainOneOf -- in here");
                 return true;
             }
         }
-
         return false;
     }
 
-    public Vector sharedEntities(Concept var1) {
-        Vector var2 = this.positives();
-        Vector var3 = var1.positives();
-        Vector var4 = new Vector();
+    /** Given two concepts, returns the vector of entities they have in
+     * common [needs testing]*/
 
-        for(int var5 = 0; var5 < var2.size(); ++var5) {
-            String var6 = (String)var2.elementAt(var5);
-            if (var3.contains(var6)) {
-                var4.addElement(var6);
-            }
+    public Vector sharedEntities(Concept other_concept)
+    {
+        Vector concept1_entities = this.positives();
+        Vector concept2_entities = other_concept.positives();
+
+        Vector shared_entities = new Vector();
+
+        for(int i=0; i<concept1_entities.size(); i++)
+        {
+            String entity = (String)concept1_entities.elementAt(i);
+            if(concept2_entities.contains(entity))
+                shared_entities.addElement(entity);
         }
 
-        return var4;
+        return shared_entities;
     }
 
-    /**
-     * This writes out the skolemised representation of this concept.
+    /** This writes out the skolemised representation of this concept.
      */
-    public String writeSkolemisedRepresentation() {
-        String var1 = this.skolemised_representation.relation_columns.toString();
-        return var1;
+
+    public String writeSkolemisedRepresentation()
+    {
+        String output = skolemised_representation.relation_columns.toString();
+        return output;
     }
 
-    /**
-     * This collects all the skolemised representations of the specifications in this concept's definition and puts them into the output vector.
+    /** This collects all the skolemised representations of the specifications
+     * in this concept's definition and puts them into the output vector.
      */
-    public void setSkolemisedRepresentation() {
-        for(int var1 = 0; var1 < this.specifications.size(); ++var1) {
-            Specification var2 = (Specification)this.specifications.elementAt(var1);
-            Vector var3 = var2.skolemisedRepresentation();
 
-            for(int var4 = 0; var4 < var3.size(); ++var4) {
-                Vector var5 = (Vector)var3.elementAt(var4);
-                this.skolemised_representation.relation_columns.addElement(var5);
-                String var6 = (String)var5.elementAt(0);
-                Vector var7 = (Vector)var5.elementAt(1);
-
-                for(int var8 = 0; var8 < var7.size(); ++var8) {
-                    String var9 = (String)var7.elementAt(var8);
-                    if (var9.substring(0, 1).equals(":")) {
-                        if (!this.skolemised_representation.ground_variables.contains(var9)) {
-                            this.skolemised_representation.ground_variables.addElement(var9, "toString()");
-                        }
-                    } else if (!this.skolemised_representation.variables.contains(var9)) {
-                        this.skolemised_representation.variables.addElement(var9);
+    public void setSkolemisedRepresentation()
+    {
+        for (int i=0; i<specifications.size(); i++)
+        {
+            Specification spec = (Specification)specifications.elementAt(i);
+            Vector skol_reps = spec.skolemisedRepresentation();
+            for (int j=0; j<skol_reps.size(); j++)
+            {
+                Vector skol_rep = (Vector)skol_reps.elementAt(j);
+                skolemised_representation.relation_columns.addElement(skol_rep);
+                String rel_name = (String)skol_rep.elementAt(0);
+                Vector cols = (Vector)skol_rep.elementAt(1);
+                for (int k=0; k<cols.size(); k++)
+                {
+                    String variable = (String)cols.elementAt(k);
+                    if (variable.substring(0,1).equals(":"))
+                    {
+                        if (!skolemised_representation.ground_variables.contains(variable))
+                            skolemised_representation.ground_variables.addElement(variable, "toString()");
                     }
-
-                    String var10 = var6 + "(" + Integer.toString(var8) + ")";
-                    Vector var11 = (Vector)this.skolemised_representation.relation_position_hashtable.get(var10);
-                    if (var11 == null) {
-                        var11 = new Vector();
-                        this.skolemised_representation.relation_position_hashtable.put(var10, var11);
+                    else
+                    if (!skolemised_representation.variables.contains(variable))
+                        skolemised_representation.variables.addElement(variable);
+                    String rel_pos_string = rel_name + "(" + Integer.toString(k) + ")";
+                    Vector rel_positions =
+                            (Vector)skolemised_representation.relation_position_hashtable.get(rel_pos_string);
+                    if (rel_positions==null)
+                    {
+                        rel_positions = new Vector();
+                        skolemised_representation.relation_position_hashtable.put(rel_pos_string, rel_positions);
                     }
+                    if (!rel_positions.contains(variable))
+                        rel_positions.addElement(variable);
 
-                    if (!var11.contains(var9)) {
-                        var11.addElement(var9);
+                    Vector var_rel_positions =
+                            (Vector)skolemised_representation.variable_relation_position_hashtable.get(variable);
+                    if (var_rel_positions==null)
+                    {
+                        var_rel_positions = new Vector();
+                        skolemised_representation.variable_relation_position_hashtable.put(variable, var_rel_positions);
                     }
-
-                    Vector var12 = (Vector)this.skolemised_representation.variable_relation_position_hashtable.get(var9);
-                    if (var12 == null) {
-                        var12 = new Vector();
-                        this.skolemised_representation.variable_relation_position_hashtable.put(var9, var12);
-                    }
-
-                    if (!var12.contains(var10)) {
-                        var12.addElement(var10);
-                    }
+                    if (!var_rel_positions.contains(rel_pos_string))
+                        var_rel_positions.addElement(rel_pos_string);
                 }
-
-                Vector var13 = (Vector)this.skolemised_representation.relation_hashtable.get(var6);
-                if (var13 == null) {
-                    var13 = new Vector();
-                    this.skolemised_representation.relation_hashtable.put(var6, var13);
+                Vector col_vector = (Vector)skolemised_representation.relation_hashtable.get(rel_name);
+                if (col_vector == null)
+                {
+                    col_vector = new Vector();
+                    skolemised_representation.relation_hashtable.put(rel_name, col_vector);
                 }
-
-                if (!var13.contains(var7)) {
-                    var13.addElement(var7);
-                }
+                if (!col_vector.contains(cols))
+                    col_vector.addElement(cols);
             }
-        }
-
-    }
-
-    public Vector getConjectures(Theory var1, Concept var2) {
-        Vector var3 = new Vector();
-        double var6;
-        if (var2.types.toString().equals(this.types.toString()) && var2 != this) {
-            new Vector();
-            Vector var5 = new Vector();
-            var6 = this.datatable.quickPercentageMatchWith(var1, var2.datatable, var5);
-            NearEquivalence var8 = new NearEquivalence(this, var2, var5, var6);
-            new NearEquivalence(var2, this, var5, var6);
-            var3.addElement(var8);
-        }
-
-        if (var2.arity == this.arity) {
-            double var4 = 0.0D;
-            var6 = 0.0D;
-            if (!var2.is_entity_instantiations) {
-                boolean var9;
-                NearImplication var10;
-                Vector var11;
-                int var13;
-                if (var2.isGeneralisationOf(this) == -1) {
-                    var11 = var2.empiricallySubsumes(this, var6);
-                    if (var11 != null && var11.size() != 0) {
-                        var9 = false;
-                        if (this.arity != 0 && this.arity != 1) {
-                            var13 = this.datatable.size();
-                        } else {
-                            var13 = this.getPositives().size();
-                        }
-
-                        var4 = (double)(var13 - var11.size());
-                        var4 /= (double)var13;
-                        var4 *= 100.0D;
-                        if (var4 >= var6) {
-                            var10 = new NearImplication(this, var2, var11, var4);
-                            var3.addElement(var10);
-                        }
-                    }
-                }
-
-                if (this.isGeneralisationOf(var2) == -1) {
-                    var11 = this.empiricallySubsumes(var2, var6);
-                    if (var11 != null && var11.size() != 0) {
-                        var9 = false;
-                        if (var2.arity != 0 && var2.arity != 1) {
-                            var13 = var2.datatable.size();
-                        } else {
-                            var13 = var2.getPositives().size();
-                        }
-
-                        var4 = (double)(var13 - var11.size());
-                        var4 /= (double)var13;
-                        var4 *= 100.0D;
-                        if (var4 >= var6) {
-                            var10 = new NearImplication(var2, this, var11, var4);
-                            var3.addElement(var10);
-                        }
-                    }
-                }
-
-                Implication var12;
-                if (var2.isGeneralisationOf(this) == 0) {
-                    var12 = new Implication(this, var2, "dummy_id");
-                    var3.addElement(var12);
-                }
-
-                if (this.isGeneralisationOf(var2) == 0) {
-                    var12 = new Implication(var2, this, "dummy_id");
-                    var3.addElement(var12);
-                }
-
-                if (var2.isGeneralisationOf(this) == 1) {
-                    Equivalence var14 = new Equivalence(var2, this, "dummy_id");
-                    var3.addElement(var14);
-                }
-            }
-        }
-
-        return var3;
-    }
-
-    public TheoryConstituent reconstructConcept_old(Theory var1, AgentWindow var2) {
-        var2.writeToFrontEnd("started reconstructConcept(" + this.writeDefinition() + ")");
-        Vector var3 = this.construction_history;
-        var2.writeToFrontEnd("steps_to_force are " + var3);
-        Vector var4 = new Vector();
-        String var5 = "";
-        if (this.construction_history.isEmpty()) {
-            return this;
-        } else {
-            for(int var6 = 0; var6 < var3.size(); ++var6) {
-                Vector var7 = (Vector)var3.elementAt(var6);
-                String var8 = (String)var7.elementAt(0);
-                String var9 = (String)var7.elementAt(1);
-                Vector var10 = (Vector)var7.elementAt(2);
-                Vector var11 = (Vector)var7.elementAt(3);
-                String var12 = "";
-
-                for(int var13 = 0; var13 < var10.size(); ++var13) {
-                    var12 = var12 + (String)var10.elementAt(var13) + " ";
-                }
-
-                String var20 = var11.toString();
-                String var14 = new String();
-                int var15 = var20.length();
-                int var16 = 0;
-
-                try {
-                    while(0 <= var16 && var16 < var15) {
-                        var16 = var20.indexOf("], [");
-                        var14 = var14 + var20.substring(0, var16) + "],[";
-                        var20 = var20.substring(var16 + 4, var15);
-                        var15 = var20.length();
-                    }
-
-                    var14 = var14 + var20;
-                } catch (Exception var18) {
-                    var14 = var14 + var20;
-                }
-
-                var5 = var8 + " = " + var12 + var9 + " " + var14.trim();
-                var4.addElement(var5.trim());
-            }
-
-            var2.writeToFrontEnd("step_strings are " + var4);
-            TheoryConstituent var19 = var1.guider.forceSteps(var4, var1);
-            var2.writeToFrontEnd("finished reconstructConcept(" + this.writeDefinition() + ")");
-            if (!(var19 instanceof Concept)) {
-                var2.writeToFrontEnd("returning " + var19);
-            }
-
-            if (var19 instanceof Concept) {
-                var2.writeToFrontEnd("returning " + ((Concept)var19).writeDefinition());
-            }
-
-            return var19;
         }
     }
 
-    public TheoryConstituent reconstructConcept(Theory var1, AgentWindow var2) {
-        var2.writeToFrontEnd("started reconstructConcept(" + this.writeDefinition() + ")");
-        Vector var3 = this.construction_history;
-        Vector var4 = new Vector();
-        String var5 = "";
-        if (this.construction_history.isEmpty()) {
-            return this;
-        } else {
-            for(int var6 = 0; var6 < var3.size(); ++var6) {
-                Vector var7 = (Vector)var3.elementAt(var6);
-                String var8 = (String)var7.elementAt(0);
-                String var9 = (String)var7.elementAt(1);
-                Vector var10 = (Vector)var7.elementAt(2);
-                Vector var11 = (Vector)var7.elementAt(3);
-                String var12 = "";
+    /** Returns a vector of all the conjectures in the theory involving
+     * this concept */
+    public Vector getConjectures(Theory theory, Concept other_concept)
+    {
+        Vector output = new Vector();
+        //Vector concept_vector = new Vector();
+        //concept_vector.addElement(concept);
+        //double min = 0.0;
+        //get NearEquivalences (don't use method above as that clears the
+        //near_equivalences vector for the concept)
+        //getSubsumptionNearImplications();
 
-                for(int var13 = 0; var13 < var10.size(); ++var13) {
-                    var12 = var12 + (String)var10.elementAt(var13) + " ";
-                }
+        //make NearEquivalences
+        //System.out.println("starting getConjectures");
+        if (other_concept.types.toString().equals(types.toString()) && other_concept!=this)
+        {
+            //System.out.println("got same types");
+            Vector tuple_score_vector = new Vector();
+            Vector counterexamples = new Vector();
+            double score = datatable.quickPercentageMatchWith(theory, other_concept.datatable, counterexamples);
 
-                String var25 = var11.toString();
-                String var14 = new String();
-                int var15 = var25.length();
-                int var16 = 0;
 
-                try {
-                    while(0 <= var16 && var16 < var15) {
-                        var16 = var25.indexOf("], [");
-                        var14 = var14 + var25.substring(0, var16) + "],[";
-                        var25 = var25.substring(var16 + 4, var15);
-                        var15 = var25.length();
-                    }
-
-                    var14 = var14 + var25;
-                } catch (Exception var18) {
-                    var14 = var14 + var25;
-                }
-
-                var5 = var8 + " = " + var12 + var9 + " " + var14.trim();
-                var4.addElement(var5.trim());
-            }
-
-            var2.writeToFrontEnd("step_strings are " + var4);
-            TheoryConstituent var19 = var1.guider.forceSteps(var4, var1);
-            var2.writeToFrontEnd("here -- so far reconstructConcept gives " + var19.writeTheoryConstituent());
-            if (var19 instanceof Concept) {
-                if (((Concept)var19).writeDefinition().equals(this.writeDefinition())) {
-                    return (Concept)var19;
-                }
-            } else {
-                for(int var20 = 0; var20 < var1.conjectures.size(); ++var20) {
-                    Conjecture var21 = (Conjecture)var1.conjectures.elementAt(var20);
-                    if (var21 instanceof Equivalence) {
-                        Equivalence var22 = (Equivalence)var21;
-                        if (var22.lh_concept.writeDefinition().equals(this.writeDefinition())) {
-                            return var22.lh_concept;
-                        }
-
-                        if (var22.rh_concept.writeDefinition().equals(this.writeDefinition())) {
-                            return var22.rh_concept;
-                        }
-                    }
-
-                    if (var21 instanceof Implication) {
-                        Implication var23 = (Implication)var21;
-                        if (var23.lh_concept.writeDefinition().equals(this.writeDefinition())) {
-                            return var23.lh_concept;
-                        }
-
-                        if (var23.rh_concept.writeDefinition().equals(this.writeDefinition())) {
-                            return var23.rh_concept;
-                        }
-                    }
-
-                    if (var21 instanceof NonExists) {
-                        NonExists var24 = (NonExists)var21;
-                        if (var24.concept.writeDefinition().equals(this.writeDefinition())) {
-                            return var24.concept;
-                        }
-                    }
-                }
-            }
-
-            return var19;
+            NearEquivalence near_equiv = new NearEquivalence(this, other_concept, counterexamples, score);
+            NearEquivalence other_near_equiv = new NearEquivalence(other_concept, this, counterexamples, score);
+            //System.out.println("near_equiv is " + near_equiv.writeConjecture("ascii"));
+            output.addElement(near_equiv);//, "score");
         }
+
+        //make Near Implications
+        if(other_concept.arity==arity)
+        {
+            //System.out.println("got same arity");
+            double score =0.0;
+            double percent_min = 0.0;
+            //System.out.println("other_concept is " + other_concept.writeDefinition("ascii"));
+            //System.out.println("other_concept.arity: " + other_concept.id + " " + other_concept.arity
+            //			   + ", and arity: " + id  + " " + arity);
+            if (!other_concept.is_entity_instantiations)
+            {
+                //System.out.println("here");
+                if (other_concept.isGeneralisationOf(this)==-1)
+                {
+                    //System.out.println("1 ");
+                    Vector counterexamples = other_concept.empiricallySubsumes(this, percent_min);
+                    //System.out.println("2 - counterexamples is " + counterexamples);
+                    if (counterexamples != null && !(counterexamples.size()==0))
+                    {
+                        int total = 0;
+                        if(arity==0||arity==1)
+                            total = getPositives().size();
+                        else
+                            total = datatable.size();
+                        score = total - counterexamples.size();
+                        ////System.out.println(" score is " + score);
+                        score = score/total;
+                        ////System.out.println(" score is " + score);
+                        score = score*100;
+                        //System.out.println(" total is " + total);
+                        //System.out.println(" counterexamples.size() is " + counterexamples.size());
+                        //System.out.println(" score is " + score);
+                        if (score>= percent_min)
+                        {
+                            //System.out.println("got lh_concept: " + this.writeDefinition("ascii"));
+                            //System.out.println("got rh_concept: " + other_concept.writeDefinition("ascii"));
+                            //System.out.println("got counterexamples " + counterexamples);
+                            //System.out.println("score>= percent_min");
+                            NearImplication near_imp = new NearImplication(this, other_concept, counterexamples, score);
+                            //System.out.println("near_imp is " +near_imp.writeConjecture("ascii"));
+                            output.addElement(near_imp);//, "score");
+                        }
+                    }
+                }
+                if (isGeneralisationOf(other_concept)==-1)
+                {
+                    //System.out.println("5 ");
+                    Vector counterexamples = empiricallySubsumes(other_concept, percent_min);
+                    //System.out.println("6 - counterexamples is " + counterexamples);
+                    if (counterexamples != null && !(counterexamples.size()==0))
+                    {
+                        int total = 0;
+                        if(other_concept.arity==0||other_concept.arity==1)
+                            total = other_concept.getPositives().size();
+                        else
+                            total = other_concept.datatable.size();
+                        score = total - counterexamples.size();
+                        ////System.out.println(" score is " + score);
+                        score = score/total;
+                        ////System.out.println(" score is " + score);
+                        score = score*100;
+                        //System.out.println(" total is " + total);
+                        //System.out.println(" counterexamples.size() is " + counterexamples.size());
+                        //System.out.println(" score is " + score);
+                        if (score>= percent_min)
+                        {
+                            //System.out.println("got lh_concept: " + other_concept.writeDefinition("ascii"));
+                            //System.out.println("got rh_concept: " + this.writeDefinition("ascii"));
+                            //System.out.println("got counterexamples " + counterexamples);
+                            //System.out.println("score>= percent_min");
+                            NearImplication near_imp = new NearImplication(other_concept, this, counterexamples, score);//[should be imp?]
+                            output.addElement(near_imp);//, "score");
+                            //System.out.println("near_imp is " +near_imp.writeConjecture("ascii"));
+                        }
+                    }
+                }
+
+                //make implications
+                if (other_concept.isGeneralisationOf(this)==0)
+                {
+                    //this -> other
+                    Implication imp = new Implication(this, other_concept, "dummy_id");
+                    //System.out.println("imp is " +imp.writeConjecture("ascii"));
+                    output.addElement(imp);
+                }
+
+                if (isGeneralisationOf(other_concept)==0)
+                {
+                    //other -> this
+                    Implication imp = new Implication(other_concept, this,"dummy_id");
+                    //System.out.println("imp is " +imp.writeConjecture("ascii"));
+                    output.addElement(imp);
+                }
+
+                if (other_concept.isGeneralisationOf(this)==1)
+                {
+                    //other -> this
+                    Equivalence equiv = new Equivalence(other_concept, this,"dummy_id");
+                    //System.out.println("equiv is " +equiv.writeConjecture("ascii"));
+                    output.addElement(equiv);
+                }
+            }
+        }
+        return output;
     }
 
-    public boolean equals(Object var1) {
-        String var2 = this.writeDefinition("ascii");
-        if (var1 instanceof String) {
-            if (((String)var1).equals("") && var2.equals("")) {
-                return true;
+
+
+    /** Reconstructs a concept and returns it
+     */
+
+    public TheoryConstituent reconstructConcept_old(Theory theory, AgentWindow window)
+    {
+        window.writeToFrontEnd("started reconstructConcept(" + this.writeDefinition() + ")");
+        Vector steps_to_force = this.construction_history;
+        window.writeToFrontEnd("steps_to_force are " + steps_to_force);
+        Vector step_strings = new Vector();
+        String flat_step_string = "";
+
+        if ((this.construction_history).isEmpty())
+            return (Concept)this;
+
+
+        for(int i=0; i<steps_to_force.size(); i++)
+        {
+            Vector flat_step = (Vector)steps_to_force.elementAt(i);
+            String new_id = (String)flat_step.elementAt(0);
+            String prod_rule = (String)flat_step.elementAt(1);
+            Vector flat_old_concepts = (Vector)flat_step.elementAt(2);
+            Vector parameters = (Vector)flat_step.elementAt(3);
+
+            String concept_list_string = "";
+            for(int j=0; j<flat_old_concepts.size(); j++)
+                concept_list_string =  concept_list_string + (String)flat_old_concepts.elementAt(j) +  " ";
+
+            String parameters_string = parameters.toString();
+            String trimmed_parameters_string = new String();
+            int l = parameters_string.length();
+            int n = 0;
+            try
+            {
+                while(0<=n && n<l)
+                {
+                    n = parameters_string.indexOf("], [");
+                    trimmed_parameters_string = trimmed_parameters_string + parameters_string.substring(0,n) + "],[";
+                    parameters_string = parameters_string.substring(n+4,l);
+                    l = parameters_string.length();
+                }
+                trimmed_parameters_string = trimmed_parameters_string + parameters_string;
             }
 
-            if (((String)var1).equals(var2)) {
-                return true;
+            catch(Exception e)
+            {
+                trimmed_parameters_string = trimmed_parameters_string + parameters_string;
+            }
+
+            flat_step_string = new_id+" = "+concept_list_string+prod_rule+" "+trimmed_parameters_string.trim();
+
+
+            //String flat_step_string = (String)flat_step.toString();
+            step_strings.addElement(flat_step_string.trim());
+        }
+        //go through the string.whenever find ], [, replace it with ],[
+        // agenda.addForcedStep(agenda_line, false);
+        //Step forcedstep = guider.forceStep(agenda_line, theory);
+        //output = forcedstep.result_of_step;
+
+        window.writeToFrontEnd("step_strings are " + step_strings);
+        TheoryConstituent tc = theory.guider.forceSteps(step_strings, theory);
+        window.writeToFrontEnd("finished reconstructConcept(" + this.writeDefinition() + ")");
+
+        if(!(tc instanceof Concept))
+        {
+            window.writeToFrontEnd("returning " + tc);
+        }
+
+        if(tc instanceof Concept)
+        {
+            window.writeToFrontEnd("returning " + ((Concept)tc).writeDefinition());
+        }
+        //Concept output = (Concept)tc;
+        //System.out.println("finished reconstructConcept()");
+        //return output;
+        return  tc;
+    }
+
+
+    /** Reconstructs a concept and returns it
+     */
+
+    public TheoryConstituent reconstructConcept(Theory theory, AgentWindow window)
+    {
+        window.writeToFrontEnd("started reconstructConcept(" + this.writeDefinition() + ")");
+        Vector steps_to_force = this.construction_history;
+        Vector step_strings = new Vector();
+        String flat_step_string = "";
+
+        if ((this.construction_history).isEmpty())
+            return (Concept)this;
+
+        for(int i=0; i<steps_to_force.size(); i++)
+        {
+            Vector flat_step = (Vector)steps_to_force.elementAt(i);
+            String new_id = (String)flat_step.elementAt(0);
+            String prod_rule = (String)flat_step.elementAt(1);
+            Vector flat_old_concepts = (Vector)flat_step.elementAt(2);
+            Vector parameters = (Vector)flat_step.elementAt(3);
+
+            String concept_list_string = "";
+            for(int j=0; j<flat_old_concepts.size(); j++)
+                concept_list_string =  concept_list_string + (String)flat_old_concepts.elementAt(j) +  " ";
+
+            String parameters_string = parameters.toString();
+            String trimmed_parameters_string = new String();
+            int l = parameters_string.length();
+            int n = 0;
+            try
+            {
+                while(0<=n && n<l)
+                {
+                    n = parameters_string.indexOf("], [");
+                    trimmed_parameters_string = trimmed_parameters_string + parameters_string.substring(0,n) + "],[";
+                    parameters_string = parameters_string.substring(n+4,l);
+                    l = parameters_string.length();
+                }
+                trimmed_parameters_string = trimmed_parameters_string + parameters_string;
+            }
+
+            catch(Exception e)
+            {
+                trimmed_parameters_string = trimmed_parameters_string + parameters_string;
+            }
+
+            flat_step_string = new_id+" = "+concept_list_string+prod_rule+" "+trimmed_parameters_string.trim();
+            step_strings.addElement(flat_step_string.trim());
+        }
+
+        // agenda.addForcedStep(agenda_line, false);
+        //Step forcedstep = guider.forceStep(agenda_line, theory);
+        //output = forcedstep.result_of_step;
+
+        window.writeToFrontEnd("step_strings are " + step_strings);
+        TheoryConstituent tc = theory.guider.forceSteps(step_strings, theory);
+        window.writeToFrontEnd("here -- so far reconstructConcept gives " + tc.writeTheoryConstituent());
+
+
+
+
+        if(tc instanceof Concept)
+        {
+            if(((Concept)tc).writeDefinition().equals((this).writeDefinition()))
+                return (Concept)tc;
+        }
+        else
+        {
+            for(int i=0;i<theory.conjectures.size();i++)
+            {
+                Conjecture conj = (Conjecture)theory.conjectures.elementAt(i);
+                if(conj instanceof Equivalence)
+                {
+                    Equivalence equiv = (Equivalence)conj;
+                    if (equiv.lh_concept.writeDefinition().equals((this).writeDefinition()))
+                        return equiv.lh_concept;
+                    if (equiv.rh_concept.writeDefinition().equals((this).writeDefinition()))
+                        return equiv.rh_concept;
+                }
+                if(conj instanceof Implication)
+                {
+                    Implication imp = (Implication)conj;
+                    if (imp.lh_concept.writeDefinition().equals((this).writeDefinition()))
+                        return imp.lh_concept;
+                    if (imp.rh_concept.writeDefinition().equals((this).writeDefinition()))
+                        return imp.rh_concept;
+                }
+                if(conj instanceof NonExists)
+                {
+                    NonExists nexists = (NonExists)conj;
+                    if (nexists.concept.writeDefinition().equals((this).writeDefinition()))
+                        return nexists.concept;
+                }
             }
         }
 
-        if (var1 instanceof Concept) {
-            Concept var3 = (Concept)var1;
-            String var4 = var3.writeDefinition("ascii");
-            if (var4.equals("") && var2.equals("")) {
-                return true;
-            }
+        return  tc;
+    }
 
-            if (var4.equals(var2)) {
+
+
+
+
+
+
+/**
+ public Concept reconstructConcept(Theory theory)
+ {
+ //System.out.println("OI YOU - started reconstructConcept(theory)");
+
+ //System.out.println("trying to reconstruct this: " + this.toString());
+ Vector steps_to_force = this.construction_history;
+ Vector step_strings = new Vector();
+ //System.out.println("steps_to_force.size() is " + steps_to_force.size());
+
+ for(int i=0; i<steps_to_force.size(); i++)
+ {
+ Vector flat_step = (Vector)steps_to_force.elementAt(i);
+ String new_id = (String)flat_step.elementAt(0);
+ String prod_rule = (String)flat_step.elementAt(1);
+ Vector flat_old_concepts = (Vector)flat_step.elementAt(2);
+ Vector parameters = (Vector)flat_step.elementAt(3);
+ //Vector concept_list = flat_step.conceptList();
+ String concept_list_string = "";
+ String parameters_string = "";
+ //System.out.println("1) \n");
+
+ for(int j=0; j<flat_old_concepts.size(); j++)
+ concept_list_string =  concept_list_string + (String)flat_old_concepts.elementAt(j) +  " ";
+
+ //System.out.println("2) \n");
+ //System.out.println("parameters.size() is " + parameters.size());
+ //System.out.println("parameters is " + parameters);
+
+ //for(int j=0; j<parameters.size(); j++)
+ // {
+ //   if(parameters.elementAt(j) instanceof String)
+ //    {
+ //	String parameter = (String)parameters.elementAt(j);
+ //	parameters_string = parameters_string + parameter +  " ";
+ //     }
+ //   if(parameters.elementAt(j) instanceof Vector)
+ //     {
+ //	Vector parameter = (Vector)parameters.elementAt(j);
+ //	parameters_string = parameters_string + parameter.toString() +  " ";
+ //     }
+ // }
+ //HERE - comment out
+ for(int j=0; j<parameters.size()-1; j++)
+ {
+ //System.out.println("3) j is " + j + "\n");
+ if(parameters.elementAt(j) instanceof String)
+ {
+ //System.out.println(" got a string\n");
+ String parameter = (String)parameters.elementAt(j);
+ parameters_string = parameters_string + parameter +  ", ";
+ //System.out.println("parameters_string so far is " + parameters_string);
+ }
+ if(parameters.elementAt(j) instanceof Vector)
+ {
+ //System.out.println(" got a vector\n");
+ Vector parameter = (Vector)parameters.elementAt(j);
+ parameters_string = parameters_string + parameter.toString() +  ",";
+ //System.out.println("parameters_string so far is " + parameters_string);
+ }
+ }
+ //System.out.println("4) up to parameters.size(), i.e " + parameters.size() + "\n");
+
+ if(parameters.elementAt(parameters.size()) instanceof String)
+ {
+ //System.out.println(" got a string\n");
+ String parameter = (String)parameters.elementAt(parameters.size());
+ parameters_string = parameters_string + parameter;
+ //System.out.println("parameters_string so far is " + parameters_string);
+ }
+
+ if(parameters.elementAt(parameters.size()) instanceof Vector)
+ {
+ //System.out.println(" got a vector\n");
+ Vector parameter = (Vector)parameters.elementAt(parameters.size());
+ parameters_string = parameters_string + parameter.toString();
+ //System.out.println("parameters_string so far is " + parameters_string);
+ }
+ //HERE - end comment out
+ parameters_string = parameters.toString();
+
+
+ //System.out.println("5) parameters_string NOW is " + parameters_string);
+ //System.out.println("6) parameters_string.trim() is " + parameters_string.trim());
+ String step_string = new_id+" = "+prod_rule+" "+ concept_list_string+parameters_string;
+ String step_string = new_id+" = "+prod_rule+" "+ concept_list_string+"["+parameters_string+"]";
+ //System.out.println("the " + i + "th step_string is ");
+ //System.out.println(step_string);
+ step_strings.addElement(step_string);
+ }
+
+
+ //System.out.println("starting to forcesteps");
+ String ss = (String)step_strings.elementAt(0);//need to put in another for loop
+ Step step = theory.guider.forceStep(ss, theory);
+ //TheoryConstituent tc = theory.guider.forceSteps(step_strings, theory);
+ //System.out.println("done forceSteps");
+ //Concept output = (Concept)tc;
+ Concept output = new Concept();
+ //System.out.println("returning output");
+ return output;
+
+
+
+ //return (Concept)theory.guider.forceSteps(step_strings, theory);
+ }
+ */
+
+    /** return true if the ascii string expression of the two concepts
+     are the same, false otherwise. This isn't really good enough
+     */
+    // public boolean equals(String string)
+//   {
+
+//       String concept_string = this.writeDefinition("ascii");
+//       if(string.equals("")&& concept_string.equals(""))
+// 	return true;
+
+//       if(string.equals(concept_string))
+// 	return true;
+
+//       else
+// 	return false;
+//   }
+
+
+
+    public boolean equals(Object object)
+    {
+        String concept_string = this.writeDefinition("ascii");
+
+        if(object instanceof String)
+        {
+            if(((String)object).equals("")&& concept_string.equals(""))
                 return true;
-            }
-        } else {
+            if(((String)object).equals(concept_string))
+                return true;
+        }
+        if(object instanceof Concept)
+        {
+            Concept concept1 = (Concept)object;
+            String concept1_string = concept1.writeDefinition("ascii");
+
+            if(concept1_string.equals("")&& concept_string.equals(""))
+                return true;
+            if(concept1_string.equals(concept_string))
+                return true;
+        }
+
+        else
             System.out.println("Warning: Concept equals method - not a string or concept");
-        }
 
         return false;
+
     }
 
-    public Vector nonLemConcept() {
-        Vector var1 = new Vector();
-        Vector var2 = new Vector();
-        Vector var3 = new Vector();
-        Vector var4 = new Vector();
 
-        for(int var5 = 0; var5 < this.datatable.size(); ++var5) {
-            Row var6 = (Row)this.datatable.elementAt(var5);
-            String var7 = var6.tuples.toString();
-            if (var6.tuples.isEmpty()) {
-                var2.addElement(var6.entity);
-            }
 
-            if (!var6.tuples.isEmpty()) {
-                if (var7.equals("[[]]")) {
-                    var3.addElement(var6.entity);
-                }
 
-                if (!var7.equals("[[]]")) {
-                    var4.addElement(var6.entity);
-                }
+
+    //  /** This updates the datatable of a concept given an entity to
+//     * delete from the theory.
+//     */
+
+//   public void updateDatatableToDeleteEntity(Vector all_concepts, Entity entity)
+//   {
+//     datatable.removeEntity(entity.name);
+//   }
+
+
+    /** returns a vector of the entities which have empty rows [], in the
+     * datatable for this concept, where other rows have entries, eg there
+     * are rows with numbers such as [[1,2],[2,2]], rather than
+     * just [[]]*/
+    public Vector nonLemConcept()
+    {
+        Vector output = new Vector();
+
+        Vector negatives = new Vector();
+        Vector positives = new Vector();
+        Vector entities_with_entries = new Vector();
+
+        for (int i=0; i<datatable.size(); i++)
+        {
+            Row row = (Row)datatable.elementAt(i);
+            String string_row = row.tuples.toString();
+            //System.out.println("string_row is " + string_row);
+
+            if (row.tuples.isEmpty())
+                negatives.addElement(row.entity);
+
+            if (!(row.tuples.isEmpty()))
+            {
+                if(string_row.equals("[[]]"))
+                    positives.addElement(row.entity);
+
+                if(!(string_row.equals("[[]]")))
+                    entities_with_entries.addElement(row.entity);
             }
         }
 
-        var1.addElement(var2);
-        var1.addElement(var3);
-        var1.addElement(var4);
-        return var1;
+        //System.out.println("negatives is " + negatives);
+        //System.out.println("positives is " + positives);
+        //System.out.println("entities_with_entries is " + entities_with_entries);
+
+        output.addElement(negatives);
+        output.addElement(positives);
+        output.addElement(entities_with_entries);
+
+        return output;
     }
 
-    public Concept findObjectOfInterestConcept(Vector var1) {
-        byte var2 = 0;
-        if (var2 < var1.size()) {
-            Concept var3 = (Concept)var1.elementAt(var2);
-            if (var3.is_object_of_interest_concept && var3.domain.equals(this.domain)) {
-                return var3;
-            }
+
+
+    /** Given a concept, returns the first concept in the list of
+     * concepts which is an object of interest concept and has the same
+     * domain as the given concept.
+     */
+
+    public Concept findObjectOfInterestConcept(Vector concepts)
+    {
+        for(int i=0; i<concepts.size();i++)
+        {
+            Concept poss_concept = (Concept)concepts.elementAt(i);
+            if(poss_concept.is_object_of_interest_concept && poss_concept.domain.equals(this.domain))
+                return poss_concept;
+            break;
         }
-
-        Concept var4 = new Concept();
-        return var4;
+        Concept output = new Concept();
+        return output;
     }
 
-    public boolean theoryContainsConcept(Vector var1) {
-        for(int var2 = 0; var2 < var1.size(); ++var2) {
-            Concept var3 = (Concept)var1.elementAt(var2);
-            if (this.writeDefinition().equals(var3.writeDefinition())) {
+
+    /** returns true if the concept is already in the theory, false
+     * otherwise */
+
+    public boolean theoryContainsConcept(Vector concepts)
+    {
+        for(int i=0;i<concepts.size();i++)
+        {
+            Concept concept = (Concept)concepts.elementAt(i);
+            if(this.writeDefinition().equals(concept.writeDefinition()))
                 return true;
-            }
         }
-
         return false;
     }
+
+
 }

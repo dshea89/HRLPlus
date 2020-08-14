@@ -1,194 +1,285 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.Serializable;
 import java.util.Vector;
+import java.util.Hashtable;
+import java.lang.String;
+import java.io.Serializable;
 
-public class Guide implements Serializable {
-    public Guide() {
-    }
 
-    public TheoryConstituent forceSteps(Vector var1, Theory var2) {
-        System.out.println("doing forceSteps(" + var1 + ")");
-        Object var3 = new TheoryConstituent();
+/** A class for enabling the user to guide the theory formation process.
+ *
+ * @author Simon Colton, started 7th December 2001
+ * @version 1.0 */
 
-        for(int var4 = 0; var4 < var1.size(); ++var4) {
-            String var5 = (String)var1.elementAt(var4);
-            Step var6 = var2.agenda.getStepFromString(var5, var2);
-            System.out.println("current step_string is " + var5);
+public class Guide implements Serializable
+{
+    /** Given a vector of theory formation step strings, this will carry them out.
+     * It returns the result of the last step.
+     */
 
-            try {
-                Concept var7 = (Concept)var2.agenda.repeated_forced_steps.get(var6.asString());
-                if (var7 == null) {
+    public TheoryConstituent forceSteps(Vector step_strings, Theory theory)
+    {
+        System.out.println("doing forceSteps(" + step_strings + ")");
+        TheoryConstituent obj = new TheoryConstituent();
+        for (int i=0; i<step_strings.size(); i++)
+        {
+            String step_string = (String)step_strings.elementAt(i);
+            Step step_to_try = theory.agenda.getStepFromString(step_string, theory);
+            System.out.println("current step_string is " + step_string);
+
+
+            //dec 2006
+
+            // System.out.println("DEC 2006: step_to_try.result_of_step_explanation is " + step_to_try.result_of_step_explanation);
+// 	System.out.println("step_to_try.writeTheoryConstituent() is "
+// 			   + ((TheoryConstituent)step_to_try.result_of_step).writeTheoryConstituent());
+
+// 	if(step_to_try.result_of_step instanceof Conjecture)
+
+// 	  System.out.println("DEC 2006 step_to_try.result_of_step was this conjecture: "
+// 			     + ((Conjecture)step_to_try.result_of_step).writeConjecture());
+
+
+            //needs testing
+            try
+            {
+                Concept concept_produced =
+                        (Concept)theory.agenda.repeated_forced_steps.get(step_to_try.asString());
+                if (concept_produced==null)
+                {
                     System.out.println("concept_produced was null so doing more things...");
-                    var2.agenda.steps_to_force.addElement(var5);
-                    var2.agenda.addForcedStep(var5, true);
-                    Step var8 = var2.theoryFormationStep();
-                    var3 = var8.result_of_step;
-                    System.out.println("a - obj is " + ((TheoryConstituent)var3).writeTheoryConstituent());
-                } else {
+                    theory.agenda.steps_to_force.addElement(step_string);
+                    theory.agenda.addForcedStep(step_string, true);
+                    Step step = theory.theoryFormationStep();
+                    obj = step.result_of_step;
+                    System.out.println("a - obj is " +obj.writeTheoryConstituent());
+                }
+                else
+                {
                     System.out.println("concept_produced was NOT null");
-                    var3 = var7;
-                    System.out.println("we produced: obj " + ((Concept)var7).writeDefinition());
+                    obj = concept_produced;
+                    System.out.println("we produced: obj " + ((Concept)obj).writeDefinition());
                 }
-
                 System.out.println("down here: in guide........\n\n");
-            } catch (Exception var9) {
-                ;
             }
+            catch(Exception e)
+            {}
         }
-
-        return (TheoryConstituent)var3;
+        return obj;
     }
 
-    public void addStep(String var1, String var2, String var3, String var4, String var5, Theory var6) {
-        String var7 = var1 + " = " + var2;
-        if (!var3.equals("")) {
-            var7 = var7 + " " + var3;
-        }
+    /** This adds a single step to the agenda.
+     */
 
-        var7 = var7 + " " + var4 + " " + var5;
-        var6.agenda.addForcedStep(var7, false);
+    public void addStep(String resulting_concept_name, String primary_concept,
+                        String secondary_concept, String production_rule, String params,
+                        Theory theory)
+    {
+        String step_string = resulting_concept_name + " = " + primary_concept;
+        if (!secondary_concept.equals(""))
+            step_string = step_string + " " + secondary_concept;
+        step_string = step_string + " " + production_rule + " " + params;
+        theory.agenda.addForcedStep(step_string, false);
     }
 
-    public Step forceStep(String var1, String var2, String var3, String var4, String var5, Theory var6) {
-        String var7 = var1 + " = " + var2;
-        if (!var3.equals("")) {
-            var7 = var7 + " " + var3;
-        }
+    /** This forces a single step.
+     */
 
-        var7 = var7 + " " + var4 + " " + var5;
-        Step var8 = this.forceStep(var7, var6);
-        return var8;
+    public Step forceStep(String resulting_concept_name, String primary_concept,
+                          String secondary_concept, String production_rule, String params,
+                          Theory theory)
+    {
+        //System.out.println("forcing:" + primary_concept + " " + secondary_concept + " " +
+        //		 production_rule + " " + params);
+        String step_string = resulting_concept_name + " = " + primary_concept;
+        if (!secondary_concept.equals(""))
+            step_string = step_string + " " + secondary_concept;
+        step_string = step_string + " " + production_rule + " " + params;
+        Step output = forceStep(step_string, theory);
+        return output;
     }
 
-    public Step forceStep(String var1, Theory var2) {
-        Step var3 = var2.agenda.getStepFromString(var1, var2);
-        Step var4 = new Step();
+    /** This forces a single step (written as a string).
+     */
 
-        try {
-            Concept var5 = (Concept)var2.agenda.repeated_forced_steps.get(var3.asString());
-            if (var5 == null) {
-                var2.agenda.steps_to_force.addElement(var1);
-                var2.agenda.addForcedStep(var1, true);
-                var4 = var2.theoryFormationStep();
-                if (var4.result_of_step instanceof Concept) {
-                    Concept var6 = (Concept)var4.result_of_step;
-                }
-            } else {
-                var4.result_of_step_explanation = "Step already carried out";
-            }
-        } catch (Exception var7) {
-            System.out.println("HERE -- Exception is " + var7);
-            var7.printStackTrace(System.out);
-        }
+    public Step forceStep(String step_string, Theory theory)
+    {
+        //System.out.println("\ndoing forceStep: step_string is " + step_string);
+        Step step_to_try = theory.agenda.getStepFromString(step_string, theory);
+        // if(!(step_to_try==null))
+//       System.out.println("step_to_try is " + step_to_try.asString());
+//     else
+//       System.out.println("step_to_try is null");
+        Step step = new Step();
+        //System.out.println("forceStep -- a");
+        try
+        {
+            //System.out.println("forceStep -- b");
+            Concept concept_produced =
+                    (Concept)(theory.agenda.repeated_forced_steps.get(step_to_try.asString()));
+            //System.out.println("forceStep -- c");
+            //System.out.println("concept_produced is " + concept_produced);
+            if (concept_produced==null)
+            {
+                //System.out.println("forceStep - 1");
+                theory.agenda.steps_to_force.addElement(step_string);
+                //System.out.println("forceStep - 2");
+                theory.agenda.addForcedStep(step_string, true);
+                //System.out.println("forceStep - 3");
+                step = theory.theoryFormationStep(); //the main method
+                //System.out.println("forceStep - 4\n");
+                //System.out.println("step.result_of_step is " + step.result_of_step);
 
-        return var4;
-    }
-
-    public void loadParameterisations(Theory var1) {
-        var1.front_end.force_parameter_list.removeAll();
-        if (var1.front_end.force_primary_concept_list.getSelectedIndex() >= 0) {
-            Concept var2 = var1.getConcept(var1.front_end.force_primary_concept_list.getSelectedItem());
-            Concept var3 = new Concept();
-            if (var1.front_end.force_secondary_concept_list.getSelectedIndex() >= 0) {
-                var3 = var1.getConcept(var1.front_end.force_secondary_concept_list.getSelectedItem());
-            }
-
-            Vector var4 = new Vector();
-            var4.addElement(var2);
-            var4.addElement(var3);
-            ProductionRule var5 = null;
-
-            for(int var6 = 0; var6 < var1.all_production_rules.size() && var5 == null; ++var6) {
-                ProductionRule var7 = (ProductionRule)var1.all_production_rules.elementAt(var6);
-                if (var7.getName().equals(var1.front_end.force_prodrule_list.getSelectedItem())) {
-                    var5 = var7;
-                }
-            }
-
-            if (var5 != null) {
-                Vector var11 = var5.allParameters(var4, var1);
-
-                for(int var12 = 0; var12 < var11.size(); ++var12) {
-                    Vector var8 = (Vector)var11.elementAt(var12);
-                    String var9 = (new Step()).writeParameters(var8);
-                    Concept var10 = new Concept();
-                    var10.types = var5.transformTypes(var4, var8);
-                    var10.specifications = var5.newSpecifications(var4, var8, var1, new Vector());
-                    var9 = var9 + ": " + var10.writeDefinitionWithStartLetters("ascii");
-                    var1.front_end.force_parameter_list.addItem(var9);
+                if(step.result_of_step instanceof Concept)
+                {
+                    Concept result_concept = (Concept)step.result_of_step;
+                    //System.out.println("result_concept is " + result_concept.writeDefinition());
                 }
 
-                if (var11.isEmpty()) {
-                    var1.front_end.force_parameter_list.addItem(var5.parameter_failure_reason);
-                }
             }
+            else
+                step.result_of_step_explanation = "Step already carried out";
+        }
 
+        catch(Exception e)
+        {
+            System.out.println("HERE -- Exception is " + e);
+            e.printStackTrace(System.out);
+        }
+
+        return step;
+    }
+
+
+    /** This finds all parameterisations for a choice of concept and
+     * production rule.
+     */
+
+    public void loadParameterisations(Theory theory)
+    {
+        theory.front_end.force_parameter_list.removeAll();
+        if (theory.front_end.force_primary_concept_list.getSelectedIndex()<0)
+            return;
+        Concept primary_concept =
+                theory.getConcept(theory.front_end.force_primary_concept_list.getSelectedItem());
+        Concept secondary_concept = new Concept();
+        if (theory.front_end.force_secondary_concept_list.getSelectedIndex()>=0)
+            secondary_concept =
+                    theory.getConcept(theory.front_end.force_secondary_concept_list.getSelectedItem());
+        Vector concept_vector = new Vector();
+        concept_vector.addElement(primary_concept);
+        concept_vector.addElement(secondary_concept);
+        ProductionRule pr_chosen = null;
+        for (int i=0; i<theory.all_production_rules.size() && pr_chosen == null; i++)
+        {
+            ProductionRule pr = (ProductionRule)theory.all_production_rules.elementAt(i);
+            if (pr.getName().equals(theory.front_end.force_prodrule_list.getSelectedItem()))
+                pr_chosen = pr;
+        }
+        if (pr_chosen!=null)
+        {
+            Vector parameterisations = pr_chosen.allParameters(concept_vector, theory);
+
+            for (int j=0; j<parameterisations.size(); j++)
+            {
+                Vector parameters = (Vector)parameterisations.elementAt(j);
+                String add_line = (new Step()).writeParameters(parameters);
+                Concept dummy_concept = new Concept();
+                dummy_concept.types = pr_chosen.transformTypes(concept_vector, parameters);
+                dummy_concept.specifications = pr_chosen.newSpecifications(concept_vector, parameters, theory, new Vector());
+                add_line = add_line + ": " + dummy_concept.writeDefinitionWithStartLetters("ascii");
+                theory.front_end.force_parameter_list.addItem(add_line);
+            }
+            if (parameterisations.isEmpty())
+                theory.front_end.force_parameter_list.addItem(pr_chosen.parameter_failure_reason);
         }
     }
 
-    public void writeForceString(Theory var1) {
-        String var2 = var1.front_end.force_primary_concept_list.getSelectedItem();
-        String var3 = var1.front_end.force_secondary_concept_list.getSelectedItem();
-        String var4 = var1.front_end.force_prodrule_list.getSelectedItem();
-        String var5 = var1.front_end.force_parameter_list.getSelectedItem();
-        if (var2 == null) {
-            var1.front_end.force_string_text.setText("step = ");
-        } else if (var3 == null) {
-            if (var4 != null) {
-                if (var5 == null) {
-                    var1.front_end.force_string_text.setText("step = " + var2 + " " + var4);
-                } else {
-                    var5 = var5.substring(0, var5.indexOf(":"));
-                    var1.front_end.force_string_text.setText("step = " + var2 + " " + var4 + " " + var5);
-                }
-            } else {
-                var1.front_end.force_string_text.setText("step = " + var2);
-            }
+    public void writeForceString(Theory theory)
+    {
+        String primary = theory.front_end.force_primary_concept_list.getSelectedItem();
+        String secondary = theory.front_end.force_secondary_concept_list.getSelectedItem();
+        String prodrule = theory.front_end.force_prodrule_list.getSelectedItem();
+        String params = theory.front_end.force_parameter_list.getSelectedItem();
 
-        } else if (var4 == null) {
-            var1.front_end.force_string_text.setText("step = " + var2 + " " + var3);
-        } else if (var5 == null) {
-            if (var3 == null) {
-                var1.front_end.force_string_text.setText("step = " + var2 + " " + var3 + " " + var4);
-            }
-
-        } else {
-            var5 = var5.substring(0, var5.indexOf(":"));
-            var1.front_end.force_string_text.setText("step = " + var2 + " " + var3 + " " + var4 + " " + var5);
+        if (primary==null)
+        {
+            theory.front_end.force_string_text.setText("step = ");
+            return;
         }
+        if (secondary==null)
+        {
+            if (prodrule!=null)
+            {
+                if (params==null)
+                    theory.front_end.force_string_text.setText("step = " + primary + " " + prodrule);
+                else
+                {
+                    params = params.substring(0, params.indexOf(":"));
+                    theory.front_end.force_string_text.setText("step = " + primary + " " + prodrule + " " + params);
+                }
+            }
+            else
+                theory.front_end.force_string_text.setText("step = " + primary);
+            return;
+        }
+        if (prodrule==null)
+        {
+            theory.front_end.force_string_text.setText("step = " + primary + " " + secondary);
+            return;
+        }
+        if (params==null)
+        {
+            if (secondary==null)
+                theory.front_end.force_string_text.setText("step = " + primary + " " + secondary + " " + prodrule);
+            return;
+        }
+        params = params.substring(0, params.indexOf(":"));
+        theory.front_end.force_string_text.setText("step = " + primary + " " + secondary + " " + prodrule + " " + params);
+        return;
     }
 
-    public void addCounterexampleBarringSteps(Theory var1, Concept var2, Vector var3, String var4) {
-        String var5 = "";
-        Vector var6 = new Vector();
+    public void addCounterexampleBarringSteps(Theory theory, Concept lh_concept,
+                                              Vector counterexs, String identifier)
+    {
+        String final_concept_string = "";
+        Vector splits = new Vector();
+        for (int j=0; j<counterexs.size(); j++)
+        {
+            theory.agenda.addForcedStep("split" + identifier + "_" + Integer.toString(j) + " = " +
+                    lh_concept.entity_concept.id + " split [[0], [" +
+                    (String)counterexs.elementAt(j)+"]] : dont_develop", false);
 
-        for(int var7 = 0; var7 < var3.size(); ++var7) {
-            var1.agenda.addForcedStep("split" + var4 + "_" + Integer.toString(var7) + " = " + var2.entity_concept.id + " split [[0], [" + (String)var3.elementAt(var7) + "]] : dont_develop", false);
-            var6.addElement("split" + var4 + "_" + Integer.toString(var7));
+            splits.addElement("split" + identifier + "_" + Integer.toString(j));
         }
-
-        boolean var10 = false;
-        if (var6.size() >= 2) {
-            var1.agenda.addForcedStep("disj" + var4 + "_1 = " + "split" + var4 + "_0 split" + var4 + "_1 disjunct [] : dont_develop", false);
-            var5 = "disj" + var4 + "_1";
-
-            for(int var8 = 2; var8 < var6.size(); ++var8) {
-                var1.agenda.addForcedStep("disj" + var4 + "_" + Integer.toString(var8) + " = disj" + var4 + "_" + Integer.toString(var8 - 1) + " " + (String)var6.elementAt(var8) + " disjunct [] : dont_develop", false);
-                var5 = "disj" + var4 + "_" + Integer.toString(var8);
+        int counter = 0;
+        if (splits.size() >= 2)
+        {
+            theory.agenda.addForcedStep("disj" + identifier + "_1 = " + "split" + identifier +
+                    "_0 split" + identifier + "_1 disjunct [] : dont_develop", false);
+            final_concept_string = "disj" + identifier + "_1";
+            for (int j=2; j<splits.size(); j++)
+            {
+                theory.agenda.addForcedStep("disj" + identifier + "_" + Integer.toString(j) +
+                        " = disj" + identifier + "_"+Integer.toString(j-1)
+                        + " " + (String)splits.elementAt(j) +
+                        " disjunct [] : dont_develop", false);
+                final_concept_string = "disj" + identifier + "_" + Integer.toString(j);
             }
-        } else {
-            var5 = "split" + var4 + "_0";
         }
+        else
+            final_concept_string="split" + identifier + "_0";
+        theory.agenda.addForcedStep("negate_" + identifier + " = " +
+                final_concept_string +
+                " " + lh_concept.entity_concept.id +
+                " negate [] : dont_develop", false);
 
-        var1.agenda.addForcedStep("negate_" + var4 + " = " + var5 + " " + var2.entity_concept.id + " negate [] : dont_develop", false);
-        String var11 = "[";
-
-        for(int var9 = 0; var9 < var2.arity - 1; ++var9) {
-            var11 = var11 + Integer.toString(var9 + 1) + ", ";
-        }
-
-        var11 = var11 + Integer.toString(var2.arity) + "]";
-        var1.agenda.addForcedStep("compose_" + var4 + " = " + "negate_" + var4 + " " + var2.id + " compose " + var11 + " : dont_develop", false);
+        String permutation = "[";
+        for (int j=0; j<lh_concept.arity-1; j++)
+            permutation = permutation + Integer.toString(j+1) + ", ";
+        permutation = permutation + Integer.toString(lh_concept.arity) + "]";
+        theory.agenda.addForcedStep("compose_" + identifier + " = " + "negate_"
+                + identifier + " " + lh_concept.id + " compose " +
+                permutation + " : dont_develop", false);
     }
 }

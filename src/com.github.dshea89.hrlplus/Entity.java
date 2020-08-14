@@ -1,282 +1,328 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.Serializable;
-import java.util.Hashtable;
 import java.util.Vector;
+import java.util.Hashtable;
+import java.lang.String;
+import java.awt.List;
+import java.io.Serializable;
 
-public class Entity extends TheoryConstituent implements Serializable {
+/** A class for storing information about the objects of interest (entities) in the
+ * theory.
+ *
+ * @author Simon Colton, started 7th December 2000
+ * @version 1.0 */
+
+public class Entity extends TheoryConstituent implements Serializable
+{
+    /** Whether or not this should be displayed in table format.
+     */
+
     public boolean required_in_table_format = false;
+
+    /** The domain of this entity.
+     */
+
     public String domain = "";
+
+    /** The conjecture (if any) which introduced this entity as a counterexample.
+     */
+
     public Conjecture conjecture = new Conjecture();
+
+    /** The name of this entity (e.g. c2xc4 in group theory ).
+     */
+
     public String name = "";
+
+    /** A hashtable for the concept values (as tuples) for each
+     * user-given concept.
+     */
+
     public Hashtable concept_data = new Hashtable();
+
+    /** Whether the entity has been picked out using Lakatos methods, and
+     * if so which one.
+     */
+
     public String lakatos_method = "no";
 
-    public Entity() {
+
+
+    /** Default constructor for entity class.
+     */
+
+    public Entity()
+    {
     }
 
-    public Entity(String var1) {
-        this.name = var1;
+    /** Default constructor for entity class.
+     */
+
+    public Entity(String entity_name)
+    {
+        name = entity_name;
     }
 
-    public String fullDetails(Vector var1, String[] var2) {
-        Vector var3 = new Vector();
+    /** Writes full details of this entity.
+     */
 
-        for(int var4 = 0; var4 < var2.length; ++var4) {
-            var3.addElement(var2[var4]);
+    public String fullDetails(Vector concepts, String[] attributes_in)
+    {
+        Vector attributes = new Vector();
+        for (int i=0; i<attributes_in.length; i++)
+            attributes.addElement(attributes_in[i]);
+
+        String output = "";
+        output = name + "\n";
+        output = output + domain + "\n\n";
+
+        if (attributes.contains("representation"))
+            output = output + userConcepts(concepts) + "\n\n";
+        if (attributes.contains("conjecture") &&
+                !conjecture.writeConjecture("ascii").equals(""))
+        {
+            output = output + "Conjecture:\n";
+            output = output + conjecture.writeConjecture("ascii") + "\n";
+            output = output + conjecture.writeConjecture("otter");
         }
+        if (attributes.contains("related"))
+            output = output + "\n" + mostRelated(concepts);
 
-        String var5 = "";
-        var5 = this.name + "\n";
-        var5 = var5 + this.domain + "\n\n";
-        if (var3.contains("representation")) {
-            var5 = var5 + this.userConcepts(var1) + "\n\n";
-        }
+        if (attributes.contains("distinctive"))
+            output = output + "\n" + distinctiveFor(concepts, "ascii");
 
-        if (var3.contains("conjecture") && !this.conjecture.writeConjecture("ascii").equals("")) {
-            var5 = var5 + "Conjecture:\n";
-            var5 = var5 + this.conjecture.writeConjecture("ascii") + "\n";
-            var5 = var5 + this.conjecture.writeConjecture("otter");
-        }
-
-        if (var3.contains("related")) {
-            var5 = var5 + "\n" + this.mostRelated(var1);
-        }
-
-        if (var3.contains("distinctive")) {
-            var5 = var5 + "\n" + this.distinctiveFor(var1, "ascii");
-        }
-
-        return var5;
+        return output;
     }
 
-    public String fullHTMLDetails(Vector var1, String[] var2) {
-        Vector var3 = new Vector();
+    /** Writes full details of this entity.
+     */
 
-        for(int var4 = 0; var4 < var2.length; ++var4) {
-            var3.addElement(var2[var4]);
+    public String fullHTMLDetails(Vector concepts, String[] attributes_in)
+    {
+        Vector attributes = new Vector();
+        for (int i=0; i<attributes_in.length; i++)
+            attributes.addElement(attributes_in[i]);
+
+        String output = "<table border=1 bgcolor=yellow><tr><td>" + name + "</td></tr></table><br>\n";
+        output = output + domain + "<hr>\n";
+
+        if (attributes.contains("representation"))
+        {
+            output = output + "<u><b>Values for user-given concepts</b></u><p>\n";
+            output = output + userConcepts(concepts) + "<p><hr>";
         }
 
-        String var7 = "<table border=1 bgcolor=yellow><tr><td>" + this.name + "</td></tr></table><br>\n";
-        var7 = var7 + this.domain + "<hr>\n";
-        if (var3.contains("representation")) {
-            var7 = var7 + "<u><b>Values for user-given concepts</b></u><p>\n";
-            var7 = var7 + this.userConcepts(var1) + "<p><hr>";
-        }
+        String main_language = "ascii";
+        if (!conjecture.writeConjecture("otter").equals(""))
+        {
+            int num_defs = 0;
 
-        String var5 = "ascii";
-        if (!this.conjecture.writeConjecture("otter").equals("")) {
-            int var6 = 0;
-            if (var3.contains("ascii conjecture")) {
-                ++var6;
-                var5 = "ascii";
+            if (attributes.contains("ascii conjecture"))
+            {
+                num_defs++;
+                main_language = "ascii";
+            }
+            if (attributes.contains("otter conjecture"))
+            {
+                num_defs++;
+                main_language = "otter";
+            }
+            if (attributes.contains("prolog conjecture"))
+            {
+                num_defs++;
+                main_language = "prolog";
+            }
+            if (attributes.contains("tptp conjecture"))
+            {
+                num_defs++;
+                main_language = "tptp";
             }
 
-            if (var3.contains("otter conjecture")) {
-                ++var6;
-                var5 = "otter";
+            if (num_defs == 1)
+            {
+                output = output + "<u><b>Conjecture for which this entity was a counterexample</b></u><p>";
+                output = output + conjecture.writeConjectureHTML(main_language) + "<p>\n";
             }
 
-            if (var3.contains("prolog conjecture")) {
-                ++var6;
-                var5 = "prolog";
-            }
-
-            if (var3.contains("tptp conjecture")) {
-                ++var6;
-                var5 = "tptp";
-            }
-
-            if (var6 == 1) {
-                var7 = var7 + "<u><b>Conjecture for which this entity was a counterexample</b></u><p>";
-                var7 = var7 + this.conjecture.writeConjectureHTML(var5) + "<p>\n";
-            }
-
-            if (var6 > 1) {
-                var5 = "ascii";
-                var7 = var7 + "<u><b>Conjecture for which this entity was a counterexample</b></u><p><ul>\n";
-                if (var3.contains("ascii conjecture")) {
-                    var7 = var7 + "<li>" + this.conjecture.writeConjectureHTML("ascii") + "</li>\n";
-                }
-
-                if (var3.contains("otter conjecture")) {
-                    var7 = var7 + "<li>" + this.conjecture.writeConjectureHTML("otter") + "</li>\n";
-                }
-
-                if (var3.contains("prolog conjecture")) {
-                    var7 = var7 + "<li>" + this.conjecture.writeConjectureHTML("prolog") + "</li>\n";
-                }
-
-                if (var3.contains("tptp conjecture")) {
-                    var7 = var7 + "<li>" + this.conjecture.writeConjectureHTML("tptp") + "</li>\n";
-                }
-
-                var7 = var7 + "</ul>\n";
+            if (num_defs > 1)
+            {
+                main_language = "ascii";
+                output = output + "<u><b>Conjecture for which this entity was a counterexample</b></u><p><ul>\n";
+                if (attributes.contains("ascii conjecture"))
+                    output = output + "<li>" + conjecture.writeConjectureHTML("ascii") + "</li>\n";
+                if (attributes.contains("otter conjecture"))
+                    output = output + "<li>" + conjecture.writeConjectureHTML("otter") + "</li>\n";
+                if (attributes.contains("prolog conjecture"))
+                    output = output + "<li>" + conjecture.writeConjectureHTML("prolog") + "</li>\n";
+                if (attributes.contains("tptp conjecture"))
+                    output = output + "<li>" + conjecture.writeConjectureHTML("tptp") + "</li>\n";
+                output = output + "</ul>\n";
             }
         }
 
-        if (var3.contains("related")) {
-            var7 = var7 + "<hr><b><u>Most related entities</u></b><br>" + this.mostRelated(var1);
-        }
+        if (attributes.contains("related"))
+            output = output + "<hr><b><u>Most related entities</u></b><br>" + mostRelated(concepts);
 
-        if (var3.contains("distinctive")) {
-            var7 = var7 + "<hr><b><u>Concepts for which this entity is distinct</u></b><p>" + this.distinctiveFor(var1, var5);
-        }
+        if (attributes.contains("distinctive"))
+            output = output + "<hr><b><u>Concepts for which this entity is distinct</u></b><p>"
+                    + distinctiveFor(concepts, main_language);
 
-        return var7;
+        return output;
     }
 
-    public String userConcepts(Vector var1) {
-        String var2 = "<table border=1>\n";
+    /** Pretty prints the user-given concepts for this entity.
+     */
 
-        for(int var3 = 0; var3 < var1.size(); ++var3) {
-            Concept var4 = (Concept)var1.elementAt(var3);
-            if (var4.is_user_given) {
-                var2 = var2 + "<tr><td>" + var4.name + "</td><td>" + this.conceptAsTable(var4) + "</td></tr>\n";
-            }
+    public String userConcepts(Vector concepts)
+    {
+        String output = "<table border=1>\n";
+        for (int i=0; i<concepts.size(); i++)
+        {
+            Concept concept = (Concept)concepts.elementAt(i);
+            if (concept.is_user_given)
+                output = output + "<tr><td>" + concept.name + "</td><td>" + conceptAsTable(concept) + "</td></tr>\n";
         }
-
-        var2 = var2 + "</table>\n";
-        return var2;
+        output = output + "</table>\n";
+        return output;
     }
 
-    private String conceptAsTable(Concept var1) {
-        Row var2 = var1.datatable.rowWithEntity(this.name);
-        if (var1.arity == 1) {
-            return (new Boolean(!var2.tuples.isEmpty())).toString();
-        } else if (var1.arity == 2 && var2.tuples.size() == 1) {
-            return (String)((Vector)var2.tuples.elementAt(0)).elementAt(0);
-        } else {
-            boolean var3;
-            int var4;
-            Function var5;
-            String var6;
-            String var15;
-            String var16;
-            String var20;
-            if (var1.arity == 3) {
-                var3 = false;
-
-                for(var4 = 0; var4 < var1.functions.size(); ++var4) {
-                    var5 = (Function)var1.functions.elementAt(var4);
-                    if (var5.output_columns.toString().equals("[2]") && var5.input_columns.toString().equals("[0, 1]")) {
-                        var3 = true;
-                    }
-                }
-
-                if (var3) {
-                    var15 = "<pre>";
-                    var16 = "";
-                    var6 = "";
-
-                    for(int var17 = 0; var17 < var2.tuples.size(); ++var17) {
-                        Vector var18 = (Vector)var2.tuples.elementAt(var17);
-                        String var19 = (String)var18.elementAt(0);
-                        var20 = (String)var18.elementAt(1);
-                        var15 = var15 + "|" + var19;
-                        var16 = var16 + "+";
-                        var16 = var16 + this.repeat("-", var19.length());
-                        var6 = var6 + "|" + var20;
-                        var16 = var16 + this.repeat("-", var20.length() - var19.length());
-                    }
-
-                    var15 = var15 + "|\n";
-                    var6 = var6 + "|";
-                    var16 = var16 + "+\n";
-                    return var15 + var16 + var6 + "</pre>";
-                }
+    private String conceptAsTable(Concept concept)
+    {
+        Row row = concept.datatable.rowWithEntity(name);
+        if (concept.arity==1)
+        {
+            return (new Boolean(!row.tuples.isEmpty())).toString();
+        }
+        if (concept.arity==2)
+        {
+            if (row.tuples.size()==1)
+                return (String)((Vector)(row.tuples.elementAt(0))).elementAt(0);
+        }
+        if (concept.arity==3)
+        {
+            boolean is_function = false;
+            for (int i=0; i<concept.functions.size(); i++)
+            {
+                Function function = (Function)concept.functions.elementAt(i);
+                if (function.output_columns.toString().equals("[2]") &&
+                        function.input_columns.toString().equals("[0, 1]"))
+                    is_function = true;
             }
-
-            if (var1.arity == 4) {
-                var3 = false;
-
-                for(var4 = 0; var4 < var1.functions.size(); ++var4) {
-                    var5 = (Function)var1.functions.elementAt(var4);
-                    if (var5.output_columns.toString().equals("[3]") && var5.input_columns.toString().equals("[0, 1, 2]")) {
-                        var3 = true;
-                    }
+            if (is_function)
+            {
+                String top_row = "<pre>";
+                String divider = "";
+                String bottom_row = "";
+                for (int i=0; i<row.tuples.size(); i++)
+                {
+                    Vector tuple = (Vector)row.tuples.elementAt(i);
+                    String top_element = (String)tuple.elementAt(0);
+                    String bottom_element = (String)tuple.elementAt(1);
+                    top_row = top_row + "|" + top_element;
+                    divider = divider + "+";
+                    divider = divider + repeat("-",top_element.length());
+                    bottom_row = bottom_row + "|" + bottom_element;
+                    divider = divider + repeat("-", bottom_element.length() - top_element.length());
                 }
-
-                if (var3) {
-                    var15 = "<pre> |";
-                    var16 = "";
-                    var6 = "";
-                    String var7 = "";
-                    boolean var8 = true;
-                    int var9 = 0;
-
-                    for(int var10 = 0; var10 < var2.tuples.size(); ++var10) {
-                        Vector var11 = (Vector)var2.tuples.elementAt(var10);
-                        String var12 = (String)var11.elementAt(0);
-                        String var13 = (String)var11.elementAt(1);
-                        String var14 = (String)var11.elementAt(2);
-                        if (!var12.equals(var7)) {
-                            if (!var16.equals("")) {
-                                var6 = var6 + var16 + "\n";
-                                var8 = false;
-                            }
-
-                            if (var7.length() > var9) {
-                                var9 = var7.length();
-                            }
-
-                            var7 = var12;
-                            var16 = var12 + "|";
+                top_row = top_row + "|\n";
+                bottom_row = bottom_row + "|";
+                divider = divider + "+\n";
+                return top_row + divider + bottom_row + "</pre>";
+            }
+        }
+        if (concept.arity==4)
+        {
+            boolean is_function = false;
+            for (int i=0; i<concept.functions.size(); i++)
+            {
+                Function function = (Function)concept.functions.elementAt(i);
+                if (function.output_columns.toString().equals("[3]") &&
+                        function.input_columns.toString().equals("[0, 1, 2]"))
+                    is_function = true;
+            }
+            if (is_function)
+            {
+                String top_row = "<pre> |";
+                String body_row = "";
+                String body = "";
+                String lh_element = "";
+                boolean getting_top_row = true;
+                int lh_max_len = 0;
+                for (int i=0; i<row.tuples.size(); i++)
+                {
+                    Vector tuple = (Vector)row.tuples.elementAt(i);
+                    String new_lh_element = (String)tuple.elementAt(0);
+                    String new_top_element = (String)tuple.elementAt(1);
+                    String body_element = (String)tuple.elementAt(2);
+                    if (!new_lh_element.equals(lh_element))
+                    {
+                        if (!body_row.equals(""))
+                        {
+                            body = body + body_row + "\n";
+                            getting_top_row = false;
                         }
-
-                        var16 = var16 + var14;
-                        if (var8) {
-                            var15 = var15 + var13;
-                        }
+                        if (lh_element.length()>lh_max_len)
+                            lh_max_len = lh_element.length();
+                        lh_element = new_lh_element;
+                        body_row = lh_element + "|";
                     }
-
-                    var6 = var6 + var16;
-                    var20 = this.repeat("-", var15.trim().length() - 5);
-                    var15 = var15 + "\n" + var20;
-                    return var15 + "\n" + var6 + "</pre>";
+                    body_row = body_row + body_element;
+                    if (getting_top_row)
+                        top_row = top_row + new_top_element;
                 }
+                body = body + body_row;
+                String divider = repeat("-",top_row.trim().length()-5);
+                top_row = top_row + "\n" + divider;
+                return top_row + "\n" + body + "</pre>";
             }
-
-            return var2.tuples.toString();
         }
+        return row.tuples.toString();
     }
 
-    private String repeat(String var1, int var2) {
-        if (var2 <= 0) {
+    private String repeat(String str, int num)
+    {
+        if (num <= 0)
             return "";
-        } else {
-            String var3 = "";
-
-            for(int var4 = 0; var4 < var2; ++var4) {
-                var3 = var3 + var1;
-            }
-
-            return var3;
-        }
+        String output = "";
+        for (int i=0; i<num; i++)
+            output = output + str;
+        return output;
     }
 
-    public String mostRelated(Vector var1) {
-        String var2 = this.name;
-        Vector var3 = new Vector();
-        Vector var4 = new Vector();
+    /** This returns a string representation of the entities in descending order
+     * of how related (in terms of the number of times they appear together in
+     * a categorisation).
+     */
 
-        for(int var5 = 0; var5 < var1.size(); ++var5) {
-            Concept var6 = (Concept)var1.elementAt(var5);
-            Categorisation var7 = var6.categorisation;
-
-            for(int var8 = 0; var8 < var7.size(); ++var8) {
-                Vector var9 = (Vector)var7.elementAt(var8);
-                if (var9.contains(var2)) {
-                    for(int var10 = 0; var10 < var9.size(); ++var10) {
-                        String var11 = (String)var9.elementAt(var10);
-                        if (!var11.equals(var2)) {
-                            int var12 = var3.indexOf(var11);
-                            if (var12 >= 0) {
-                                int var13 = (Integer)var4.elementAt(var12);
-                                var4.setElementAt(new Integer(var13 + 1), var12);
-                            } else {
-                                var3.addElement(var11);
-                                var4.addElement(new Integer(1));
+    public String mostRelated(Vector concepts)
+    {
+        String entity = name;
+        Vector other_entities = new Vector();
+        Vector scores = new Vector();
+        for (int i=0; i<concepts.size(); i++)
+        {
+            Concept concept = (Concept)concepts.elementAt(i);
+            Vector categorisation = concept.categorisation;
+            for (int j=0; j<categorisation.size(); j++)
+            {
+                Vector category = (Vector)categorisation.elementAt(j);
+                if (category.contains(entity))
+                {
+                    for (int k=0; k<category.size(); k++)
+                    {
+                        String other_entity = (String)category.elementAt(k);
+                        if (!other_entity.equals(entity))
+                        {
+                            int index = other_entities.indexOf(other_entity);
+                            if (index>=0)
+                            {
+                                int score = ((Integer)scores.elementAt(index)).intValue();
+                                scores.setElementAt(new Integer(score+1), index);
+                            }
+                            else
+                            {
+                                other_entities.addElement(other_entity);
+                                scores.addElement(new Integer(1));
                             }
                         }
                     }
@@ -284,99 +330,130 @@ public class Entity extends TheoryConstituent implements Serializable {
             }
         }
 
-        SortableVector var14 = new SortableVector();
+        SortableVector sv = new SortableVector();
+        for (int i=0; i<other_entities.size(); i++)
+        {
+            String other_entity = (String)other_entities.elementAt(i);
+            Integer score = (Integer)scores.elementAt(i);
+            int sc = score.intValue();
+            sv.addElement(other_entity, sc);
 
-        for(int var15 = 0; var15 < var3.size(); ++var15) {
-            String var17 = (String)var3.elementAt(var15);
-            Integer var19 = (Integer)var4.elementAt(var15);
-            int var21 = var19;
-            var14.addElement(var17, var21);
         }
 
-        String var16 = "<table border=0><tr><td><u>Entity</u></td><td><u>Number of relating concepts</u></td></tr>\n";
-
-        for(int var18 = 0; var18 < var14.size(); ++var18) {
-            String var20 = (String)var14.elementAt(var18);
-            Double var22 = (Double)var14.values.elementAt(var18);
-            var16 = var16 + "<tr><td>" + var20 + "</td><td align=center>" + var22.toString() + "</td></tr>\n";
+        String output = "<table border=0><tr><td><u>Entity</u></td><td><u>Number of relating concepts</u></td></tr>\n";
+        for (int i=0; i<sv.size(); i++)
+        {
+            String other_entity = (String)sv.elementAt(i);
+            Double val = (Double)sv.values.elementAt(i);
+            output = output + "<tr><td>" + other_entity + "</td><td align=center>" + val.toString() + "</td></tr>\n";
         }
-
-        var16 = var16 + "</table>\n";
-        return var16;
+        output = output + "</table>\n";
+        return output;
     }
 
-    public String distinctiveFor(Vector var1, String var2) {
-        String var3 = "";
+    /** This returns a string representation of the list of concepts for which this
+     * entity is in a category of its own.
+     */
 
-        for(int var4 = 0; var4 < var1.size(); ++var4) {
-            Concept var5 = (Concept)var1.elementAt(var4);
-            Categorisation var6 = var5.categorisation;
-            boolean var7 = false;
-
-            for(int var8 = 0; var8 < var6.size() && !var7; ++var8) {
-                Vector var9 = (Vector)var6.elementAt(var8);
-                if (var9.contains(this.name)) {
-                    var7 = true;
-                    if (var9.size() == 1) {
-                        var3 = var3 + var5.id + ". " + this.replaceLTForHTML(var5.writeDefinitionWithStartLetters(var2)) + "<br>\n";
-                    }
+    public String distinctiveFor(Vector concepts, String main_language)
+    {
+        String output = "";
+        for (int i=0; i<concepts.size(); i++)
+        {
+            Concept concept = (Concept)concepts.elementAt(i);
+            Vector cat = concept.categorisation;
+            boolean found = false;
+            int j=0;
+            while (j<cat.size() && !found)
+            {
+                Vector category = (Vector)cat.elementAt(j);
+                if (category.contains(name))
+                {
+                    found = true;
+                    if (category.size()==1)
+                        output = output + concept.id + ". " +
+                                replaceLTForHTML(concept.writeDefinitionWithStartLetters(main_language))+"<br>\n";
                 }
+                j++;
             }
         }
-
-        return var3;
+        return output;
     }
 
-    public String toString() {
-        return this.name;
+    public String toString()
+    {
+        return name;
     }
 
-    public boolean entitiesContains(Vector var1) {
-        for(int var2 = 0; var2 < var1.size(); ++var2) {
-            Entity var3 = (Entity)var1.elementAt(var2);
-            if (this.name.equals(var3.name)) {
+    //returns true if the name of the given entity is the same as the
+    //name of one of the entities in the vector entities, false
+    //otherwise
+    public boolean entitiesContains(Vector entities)
+    {
+
+        for(int i = 0; i<entities.size(); i++)
+        {
+            Entity current_entity = (Entity)entities.elementAt(i);
+            if (this.name.equals(current_entity.name))
                 return true;
-            }
         }
-
         return false;
     }
 
-    public Vector removeEntityStringFromVector(Vector var1, AgentWindow var2) {
-        for(int var3 = 0; var3 < var1.size(); ++var3) {
-            Object var4 = var1.elementAt(var3);
-            if (var4 instanceof String) {
-                String var5 = (String)var1.elementAt(var3);
-                if (this.toString().equals(var5)) {
-                    var1.removeElementAt(var3);
-                }
+    /** Removes the entity_string from the vector of entity_strings
+     (if it is in it), and returns the depleted vector */
+    public Vector removeEntityStringFromVector(Vector entities, AgentWindow window)
+    {
+        for(int i=0; i<entities.size(); i++)
+        {
+            Object current_entity_object = entities.elementAt(i);
+            if(current_entity_object instanceof String)
+            {
+                String current_entity_string = (String)entities.elementAt(i);
+                if((this.toString()).equals(current_entity_string))
+                    entities.removeElementAt(i);
             }
-
-            if (var4 instanceof Entity) {
-                Entity var6 = (Entity)var1.elementAt(var3);
-                if (this.toString().equals(var6.toString())) {
-                    var1.removeElementAt(var3);
-                }
+            if(current_entity_object instanceof Entity)
+            {
+                Entity current_entity = (Entity)entities.elementAt(i);
+                if((this.toString()).equals(current_entity.toString()))
+                    entities.removeElementAt(i);
             }
         }
-
-        return var1;
+        return entities;
     }
 
-    public boolean equals(Object var1) {
-        if (!(var1 instanceof Entity)) {
+
+    /** tested and working. but still having probs
+     */
+
+    //  public boolean equals(Entity entity)
+//   {
+//     if((this.toString()).equals(entity.toString()))
+//       return true;
+
+//     else
+//       return false;
+//   }
+
+    /** dec 2006 -- need to test
+     */
+
+    public boolean equals(Object entity)
+    {
+        if(!(entity instanceof Entity))
+        {
             System.out.println("Warning: Entity equals method - not an entity");
-            if (var1 instanceof Conjecture) {
-                System.out.println("it's a conj: " + ((Conjecture)var1).writeConjecture());
-            }
-
-            if (var1 instanceof Concept) {
-                System.out.println("it's a concept: " + ((Concept)var1).writeDefinition());
-            }
-        } else if (this.toString().equals(((Entity)var1).toString())) {
-            return true;
+            if(entity instanceof Conjecture)
+                System.out.println("it's a conj: " + ((Conjecture)entity).writeConjecture());
+            if(entity instanceof Concept)
+                System.out.println("it's a concept: " + ((Concept)entity).writeDefinition());
         }
-
+        else
+        {
+            if((this.toString()).equals(((Entity)entity).toString()))
+                return true;
+        }
         return false;
     }
 }

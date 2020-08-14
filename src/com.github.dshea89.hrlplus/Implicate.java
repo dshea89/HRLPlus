@@ -1,347 +1,389 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.Serializable;
-import java.util.Hashtable;
 import java.util.Vector;
+import java.util.Hashtable;
+import java.lang.String;
+import java.io.Serializable;
 
-public class Implicate extends Conjecture implements Serializable {
+/** A class representing a conjecture, where a set of specifications implies another
+ * specification. ie. conjectures of the form: P(a,b) & Q(a,b,c) -> R(a,c).
+ *
+ * @author Simon Colton, started 11th December 1999
+ * @version 1.0
+ */
+
+public class Implicate extends Conjecture implements Serializable
+{
+    /** If the implicate is made from a non-existence conjecture, then the left hand
+     * side concept may not have the correct arity to be able to state the goal specification.
+     * Hence we record the types of the non-existent concept this implicate comes from.
+     */
+
     public Vector overriding_types = new Vector();
+
+    /** The premise concept.
+     */
+
     public Concept premise_concept = new Concept();
+
+    /** The right hand side specification
+     * @see Specification
+     */
+
     public Specification goal = new Specification();
 
-    public Implicate() {
+    /** The simple constructor
+     */
+
+    public Implicate()
+    {
     }
 
-    public Implicate(Concept var1, Specification var2, Step var3) {
-        this.premise_concept = var1;
-        this.goal = var2;
-        this.type = "implicate";
-        this.step = var3;
-        this.applicability = var1.applicability;
-        this.arity = (double)var1.arity;
-        if (this.goal.is_entity_instantiations) {
-            this.involves_instantiation = true;
-        }
+    /** Constructs an Implicate object with the two given specifications. The set of
+     * premises is taken to be the single specification input.
+     */
 
-        if (this.premise_concept.is_entity_instantiations) {
-            this.involves_instantiation = true;
-        }
-
-        this.object_type = var1.object_type;
+    public Implicate(Concept concept, Specification rhs, Step construction_step)
+    {
+        premise_concept = concept;
+        goal = rhs;
+        type = "implicate";
+        step = construction_step;
+        applicability = concept.applicability;
+        arity = concept.arity;
+        if (goal.is_entity_instantiations)
+            involves_instantiation = true;
+        if (premise_concept.is_entity_instantiations)
+            involves_instantiation = true;
+        object_type = concept.object_type;
     }
 
-    public Implicate(Vector var1, Vector var2, Specification var3, String var4) {
-        this.premise_concept = new Concept();
-        this.premise_concept.specifications = var2;
-        this.premise_concept.setSkolemisedRepresentation();
-        this.premise_concept.types = var1;
-        this.premise_concept.domain = var4;
-        this.goal = var3;
-        this.arity = (double)var1.size();
-        if (this.goal.is_entity_instantiations) {
-            this.involves_instantiation = true;
-        }
+    /** This constructs an implicate conjecture with the first set of specifications
+     * as the premises and the second one as the goal.
+     */
 
-        if (this.premise_concept.is_entity_instantiations) {
-            this.involves_instantiation = true;
-        }
-
-        this.object_type = var4;
+    public Implicate(Vector types, Vector premise_specifications, Specification goal_spec, String domain)
+    {
+        premise_concept = new Concept();
+        premise_concept.specifications = premise_specifications;
+        premise_concept.setSkolemisedRepresentation();
+        premise_concept.types = types;
+        premise_concept.domain = domain;
+        goal = goal_spec;
+        arity = types.size();
+        if (goal.is_entity_instantiations)
+            involves_instantiation = true;
+        if (premise_concept.is_entity_instantiations)
+            involves_instantiation = true;
+        object_type = domain;
     }
 
-    public String getDomain() {
-        return this.premise_concept.domain;
+    /** Returns the domain of the left hand concept.
+     */
+
+    public String getDomain()
+    {
+        return premise_concept.domain;
     }
 
-    public boolean equals(Implicate var1) {
-        if (this.premise_concept != var1.premise_concept) {
+    /** This checks whether this implicate is the same as the given one.
+     * It must have the same premises and goal.
+     */
+
+    public boolean equals(Implicate other_implicate)
+    {
+        if (!(premise_concept==other_implicate.premise_concept))
             return false;
-        } else {
-            return this.goal == var1.goal;
-        }
+        if (!(goal==other_implicate.goal))
+            return false;
+        return true;
     }
 
-    public boolean subsumes(Implicate var1, SpecificationHandler var2) {
-        if (this.writeConjecture("otter").equals(var1.writeConjecture("otter"))) {
+    /** This checks whether this implicate subsumes the given one.
+     * i.e. the this one says something stronger (from which this one follows).
+     */
+
+    public boolean subsumes(Implicate other_implicate, SpecificationHandler spec_handler)
+    {
+        if (this.writeConjecture("otter").equals(other_implicate.writeConjecture("otter")))
             return true;
-        } else if (this.goal == var1.goal && this.premise_concept.isGeneralisationOf(var1.premise_concept) >= 0) {
+        if (goal==other_implicate.goal &&
+                premise_concept.isGeneralisationOf(other_implicate.premise_concept)>=0)
             return true;
-        } else if (var2.leftSkolemisedSubsumesRight(this, var1, false)) {
+
+        if (spec_handler.leftSkolemisedSubsumesRight(this, other_implicate, false))
+        {
             System.out.println(this.writeConjecture("otter"));
             System.out.println("subsumes");
-            System.out.println(var1.writeConjecture("otter"));
+            System.out.println(other_implicate.writeConjecture("otter"));
             System.out.println("-----------------");
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
-    public String writeGoal(String var1) {
-        Concept var2 = new Concept();
-        var2.specifications.addElement(this.goal);
-        var2.types = this.premise_concept.types;
-        if (!this.overriding_types.isEmpty()) {
-            var2.types = this.overriding_types;
-        }
+    /** This writes the goal specification.
+     */
 
-        this.premise_concept.definition_writer.lettersForTypes(this.premise_concept.types, var1, new Vector());
-        return var2.writeDefinition(var1);
+    public String writeGoal(String language)
+    {
+        Concept dummy_concept = new Concept();
+        dummy_concept.specifications.addElement(goal);
+        dummy_concept.types = premise_concept.types;
+        if (!overriding_types.isEmpty())
+            dummy_concept.types = overriding_types;
+        Vector letters =
+                premise_concept.definition_writer.lettersForTypes(premise_concept.types,language,new Vector());
+        return dummy_concept.writeDefinition(language);
     }
 
-    public String writeConjectureWithoutUniversalQuantification(String var1) {
-        boolean var2 = this.simplify_definitions;
-        this.simplify_definitions = true;
-        String var3 = this.writeConjectureMain(var1, false, true);
-        this.simplify_definitions = var2;
-        Hashtable var4 = new Hashtable();
+    /** This writes the implicate but without the initial universal quantification.
+     */
 
-        int var6;
-        String var8;
-        for(Vector var5 = new Vector(); var3.indexOf("@") >= 0; var3 = var3.substring(0, var6) + var8 + var3.substring(var6 + 3, var3.length())) {
-            var6 = var3.indexOf("@");
-            String var7 = var3.substring(var6, var6 + 3);
-            var8 = (String)var4.get(var7);
-            if (var8 == null) {
-                String[] var9 = new String[]{"", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"};
-                String[] var10 = new String[]{"", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"};
-                boolean var11 = false;
-                boolean var12 = false;
+    public String writeConjectureWithoutUniversalQuantification(String language)
+    {
+        boolean old_simplify = simplify_definitions;
+        simplify_definitions = true;
+        String output = writeConjectureMain(language, false, true);
+        simplify_definitions = old_simplify;
+        Hashtable letters_hashtable = new Hashtable();
+        Vector letters_already = new Vector();
+        while (output.indexOf("@")>=0)
+        {
+            int next_pos = output.indexOf("@");
+            String letter_string = output.substring(next_pos, next_pos+3);
+            String letter_to_use = (String)letters_hashtable.get(letter_string);
+            if (letter_to_use==null)
+            {
+                String[] all_letters = {"","a","b","c","d","e","f","g","h",
+                        "i","j","k","l","m","n","o","p","q",
+                        "r","s","t","u","v","w","x","y","z"};
 
-                for(int var13 = 0; var13 < var9.length && !var12; ++var13) {
-                    for(int var14 = 1; var14 < var9.length && !var12; ++var14) {
-                        var8 = var9[var13] + var9[var14];
-                        if (var1.equals("tptp")) {
-                            var8 = var10[var13] + var10[var14];
-                        }
+                String[] all_upper_letters = {"","A","B","C","D","E","F","G","H",
+                        "I","J","K","L","M","N","O","P","Q",
+                        "R","S","T","U","V","W","X","Y","Z"};
 
-                        if (!var5.contains(var8)) {
-                            var12 = true;
-                        }
+                int pos = 0;
+                boolean found = false;
+                for (int j=0; j<all_letters.length && !found; j++)
+                {
+                    for (int k=1; k<all_letters.length && !found; k++)
+                    {
+                        letter_to_use = all_letters[j]+all_letters[k];
+                        if (language.equals("tptp"))
+                            letter_to_use = all_upper_letters[j]+all_upper_letters[k];
+                        if (!letters_already.contains(letter_to_use))
+                            found=true;
                     }
                 }
-
-                var4.put(var7, var8);
-                var5.addElement(var8);
+                letters_hashtable.put(letter_string, letter_to_use);
+                letters_already.addElement(letter_to_use);
             }
+            output = output.substring(0,next_pos)+letter_to_use+output.substring(next_pos+3, output.length());
         }
-
-        return var3;
+        return output;
     }
 
-    public String writeConjecture(String var1) {
-        return this.writeConjectureMain(var1, true, false);
+    /** This writes the implicate.
+     */
+
+    public String writeConjecture(String language)
+    {
+        return writeConjectureMain(language, true, false);
     }
 
-    private String writeConjectureMain(String var1, boolean var2, boolean var3) {
-        Concept var4 = new Concept();
-        var4.specifications.addElement(this.goal);
-        var4.types = this.premise_concept.types;
-        if (!this.overriding_types.isEmpty()) {
-            var4.types = this.overriding_types;
+    private String writeConjectureMain(String language, boolean include_universal, boolean with_at_signs)
+    {
+        Concept dummy_concept = new Concept();
+        dummy_concept.specifications.addElement(goal);
+        dummy_concept.types = premise_concept.types;
+        if (!overriding_types.isEmpty())
+            dummy_concept.types = overriding_types;
+        Vector letters =
+                premise_concept.definition_writer.lettersForTypes(premise_concept.types,language,new Vector());
+
+        boolean old_b1 = dummy_concept.definition_writer.remove_existence_variables;
+        boolean old_b2 = premise_concept.definition_writer.remove_existence_variables;
+
+        if (simplify_definitions)
+        {
+            dummy_concept.definition_writer.remove_existence_variables = true;
+            premise_concept.definition_writer.remove_existence_variables = true;
+        }
+        String goal_string = "";
+        String premises_string = "";
+        if (with_at_signs)
+        {
+            goal_string = dummy_concept.writeDefinitionWithAtSigns(language);
+            premises_string = premise_concept.writeDefinitionWithAtSigns(language);
+        }
+        else
+        {
+            goal_string = dummy_concept.writeDefinition(language);
+            premises_string = premise_concept.writeDefinition(language);
         }
 
-        Vector var5 = this.premise_concept.definition_writer.lettersForTypes(this.premise_concept.types, var1, new Vector());
-        boolean var6 = var4.definition_writer.remove_existence_variables;
-        boolean var7 = this.premise_concept.definition_writer.remove_existence_variables;
-        if (this.simplify_definitions) {
-            var4.definition_writer.remove_existence_variables = true;
-            this.premise_concept.definition_writer.remove_existence_variables = true;
+        if (simplify_definitions)
+        {
+            dummy_concept.definition_writer.remove_existence_variables = old_b1;
+            premise_concept.definition_writer.remove_existence_variables = old_b2;
         }
 
-        String var8 = "";
-        String var9 = "";
-        if (var3) {
-            var8 = var4.writeDefinitionWithAtSigns(var1);
-            var9 = this.premise_concept.writeDefinitionWithAtSigns(var1);
-        } else {
-            var8 = var4.writeDefinition(var1);
-            var9 = this.premise_concept.writeDefinition(var1);
+        if (language.equals("prolog") && premises_string.equals(""))
+        {
+            String type = (String)premise_concept.types.elementAt(0);
+            premises_string = type + "(A)";
         }
+        String output = "";
+        if (language.equals("ascii"))
+            output = writeAsciiConjecture(letters, premises_string, goal_string, include_universal);
+        if (language.equals("otter"))
+            output = writeOtterConjecture(letters, premises_string, goal_string, include_universal);
+        if (language.equals("tptp"))
+            output = writeTPTPConjecture(letters, premises_string, goal_string, include_universal);
+        if (language.equals("prolog"))
+            output = writePrologConjecture(letters, premises_string, goal_string, include_universal);
 
-        if (this.simplify_definitions) {
-            var4.definition_writer.remove_existence_variables = var6;
-            this.premise_concept.definition_writer.remove_existence_variables = var7;
-        }
+        dummy_concept.definition_writer.remove_existence_variables = old_b1;
+        premise_concept.definition_writer.remove_existence_variables = old_b2;
 
-        String var10;
-        if (var1.equals("prolog") && var9.equals("")) {
-            var10 = (String)this.premise_concept.types.elementAt(0);
-            var9 = var10 + "(A)";
-        }
-
-        var10 = "";
-        if (var1.equals("ascii")) {
-            var10 = this.writeAsciiConjecture(var5, var9, var8, var2);
-        }
-
-        if (var1.equals("otter")) {
-            var10 = this.writeOtterConjecture(var5, var9, var8, var2);
-        }
-
-        if (var1.equals("tptp")) {
-            var10 = this.writeTPTPConjecture(var5, var9, var8, var2);
-        }
-
-        if (var1.equals("prolog")) {
-            var10 = this.writePrologConjecture(var5, var9, var8, var2);
-        }
-
-        var4.definition_writer.remove_existence_variables = var6;
-        this.premise_concept.definition_writer.remove_existence_variables = var7;
-        return var10;
+        return output;
     }
 
-    private String writeAsciiConjecture(Vector var1, String var2, String var3, boolean var4) {
-        String var5 = " for all ";
+    private String writeAsciiConjecture(Vector letters, String premises_string,
+                                        String goal_string, boolean include_universal)
+    {
+        String  output = " for all ";
 
-        for(int var6 = 0; var6 < var1.size(); ++var6) {
-            var5 = var5 + (String)var1.elementAt(var6) + " ";
-        }
-
-        return var5 + ": " + var2 + " -> " + var3;
+        for (int i=0; i<letters.size(); i++)
+            output = output + (String)letters.elementAt(i) + " ";
+        return output + ": " + premises_string + " -> " + goal_string;
     }
 
-    private String writeOtterConjecture(Vector var1, String var2, String var3, boolean var4) {
-        String var5 = "";
-        if (var2.equals("") && var3.equals("")) {
+    private String writeOtterConjecture(Vector letters, String lh_string,
+                                        String rh_string, boolean include_universal)
+    {
+        String output = "";
+        if (lh_string.equals("") && rh_string.equals(""))
             return "";
-        } else if (var3.equals("")) {
-            return this.writeOtterConjecture(var1, var3, var2, var4);
-        } else {
-            if ((var1.size() > 1 || this.use_entity_letter) && var4) {
-                var5 = var5 + "all ";
-            }
-
-            byte var6 = 1;
-            if (this.use_entity_letter) {
-                var6 = 0;
-            }
-
-            for(int var7 = var6; var7 < var1.size() && var4; ++var7) {
-                var5 = var5 + (String)var1.elementAt(var7) + " ";
-            }
-
-            if ((var1.size() > 1 || this.use_entity_letter) && var4) {
-                var5 = var5 + "(";
-            }
-
-            if (!var2.equals("") && !var3.equals("")) {
-                var5 = var5 + "((" + var2 + ") -> (" + var3 + "))";
-            }
-
-            if (var2.equals("")) {
-                var5 = var5 + "(" + var3 + ")";
-            }
-
-            if ((var1.size() > 1 || this.use_entity_letter) && var4) {
-                var5 = var5 + ")";
-            }
-
-            return var5;
-        }
+        if (rh_string.equals(""))
+            return writeOtterConjecture(letters, rh_string, lh_string, include_universal);
+        if ((letters.size()>1 || use_entity_letter) && include_universal)
+            output = output + "all ";
+        int start_pos = 1;
+        if (use_entity_letter)
+            start_pos = 0;
+        for (int i=start_pos; i<letters.size() && include_universal; i++)
+            output = output + (String)letters.elementAt(i) + " ";
+        if ((letters.size()>1 || use_entity_letter) && include_universal)
+            output = output + "(";
+        if (!lh_string.equals("") && !rh_string.equals(""))
+            output = output + "((" + lh_string + ") -> (" + rh_string + "))";
+        if (lh_string.equals(""))
+            output = output + "(" + rh_string + ")";
+        if ((letters.size()>1 || use_entity_letter) && include_universal)
+            output = output + ")";
+        return output;
     }
 
-    private String writePrologConjecture(Vector var1, String var2, String var3, boolean var4) {
-        String var5 = "";
-        if (var2.equals("") && var3.equals("")) {
+    private String writePrologConjecture(Vector letters, String lh_string,
+                                         String rh_string, boolean include_universal)
+    {
+        String output = "";
+        if (lh_string.equals("") && rh_string.equals(""))
             return "";
-        } else if (var3.equals("")) {
-            return this.writeOtterConjecture(var1, var3, var2, var4);
-        } else {
-            var5 = var3 + " :- " + var2 + ".";
-            if (var2.equals("") && !var3.equals("")) {
-                var5 = var3 + ".";
-            }
-
-            return var5;
-        }
+        if (rh_string.equals(""))
+            return writeOtterConjecture(letters, rh_string, lh_string, include_universal);
+        output = rh_string + " :- " + lh_string + ".";
+        if (lh_string.equals("") && !rh_string.equals(""))
+            output = rh_string + ".";
+        return output;
     }
 
-    private String writeTPTPConjecture(Vector var1, String var2, String var3, boolean var4) {
-        if (var2.equals("") && var3.equals("")) {
+    private String writeTPTPConjecture(Vector letters, String lh_string,
+                                       String rh_string, boolean include_universal)
+    {
+        if (lh_string.equals("") && rh_string.equals(""))
             return "";
-        } else {
-            String var5 = "[";
-
-            for(int var6 = 1; var6 < var1.size() - 1; ++var6) {
-                var5 = var5 + (String)var1.elementAt(var6) + ",";
-            }
-
-            if (var1.size() > 1) {
-                var5 = var5 + (String)var1.elementAt(var1.size() - 1);
-            }
-
-            var5 = var5 + "]";
-            String var8 = "";
-            boolean var7 = false;
-            if (var2.trim().equals("") || var2.trim().equals("()") || var2.trim().equals("(())")) {
-                if (var5.equals("[]")) {
-                    var8 = "input_formula(conjecture" + this.id + ",conjecture,((" + var3 + "))).";
-                } else {
-                    var8 = "input_formula(conjecture" + this.id + ",conjecture,(! " + var5 + " : (" + var3 + "))).";
-                }
-
-                var7 = true;
-            }
-
-            if (var3.trim().equals("") || var3.trim().equals("()") || var3.trim().equals("(())")) {
-                if (var5.equals("[]")) {
-                    var8 = "input_formula(conjecture" + this.id + ",conjecture,((" + var2 + "))).";
-                } else {
-                    var8 = "input_formula(conjecture" + this.id + ",conjecture,(! " + var5 + " : (" + var2 + "))).";
-                }
-
-                var7 = true;
-            }
-
-            if (!var7) {
-                if (var5.equals("[]")) {
-                    var8 = "input_formula(conjecture" + this.id + ",conjecture,(((" + var2 + ")) => (" + var3 + "))).";
-                } else {
-                    var8 = "input_formula(conjecture" + this.id + ",conjecture,(! " + var5 + " : ((" + var2 + " ) => (" + var3 + ")))).";
-                }
-            }
-
-            return var8;
+        String letters_string = "[";
+        for (int i=1; i<letters.size()-1; i++)
+            letters_string=letters_string + (String)letters.elementAt(i)+",";
+        if (letters.size()>1)
+            letters_string=letters_string+(String)letters.elementAt(letters.size()-1);
+        letters_string=letters_string + "]";
+        String output = "";
+        boolean printed_with_an_empty_side = false;
+        if (lh_string.trim().equals("") || lh_string.trim().equals("()") || lh_string.trim().equals("(())"))
+        {
+            if (letters_string.equals("[]"))
+                output = "input_formula(conjecture"+id+",conjecture,(("+rh_string+"))).";
+            else
+                output = "input_formula(conjecture"+id+",conjecture,(! "+letters_string+
+                        " : ("+rh_string+"))).";
+            printed_with_an_empty_side = true;
         }
+
+        if (rh_string.trim().equals("") || rh_string.trim().equals("()") || rh_string.trim().equals("(())"))
+        {
+            if (letters_string.equals("[]"))
+                output = "input_formula(conjecture"+id+",conjecture,(("+lh_string+"))).";
+            else
+                output = "input_formula(conjecture"+id+",conjecture,(! "+letters_string+
+                        " : ("+lh_string+"))).";
+            printed_with_an_empty_side = true;
+        }
+
+        if (!printed_with_an_empty_side)
+        {
+            if (letters_string.equals("[]"))
+                output = "input_formula(conjecture"+id+",conjecture,((("+lh_string+")) => ("+rh_string+"))).";
+            else
+                output = "input_formula(conjecture"+id+",conjecture,(! "+letters_string+
+                        " : (("+lh_string+" ) => ("+rh_string+")))).";
+        }
+        return output;
     }
 
-    public Vector possiblePrimeImplicates() {
-        Vector var1 = new Vector();
-        Vector var2 = new Vector();
-        var2.addElement(new Vector());
-        Vector var3 = new Vector();
-        var3.addElement(this.writeConjectureWithoutUniversalQuantification("otter"));
+    /** This returns possible prime implicates of this implicate conjecture.
+     */
 
-        for(int var4 = 0; var4 < this.premise_concept.specifications.size() - 1; ++var4) {
-            int var5 = var2.size();
-
-            for(int var6 = 0; var6 < var5; ++var6) {
-                Vector var7 = (Vector)var2.elementAt(0);
-                var2.removeElementAt(0);
-                int var8 = 0;
-                if (!var7.isEmpty()) {
-                    Specification var9 = (Specification)var7.lastElement();
-                    var8 = this.premise_concept.specifications.indexOf(var9);
+    public Vector possiblePrimeImplicates()
+    {
+        Vector output = new Vector();
+        Vector present = new Vector();
+        present.addElement(new Vector());
+        Vector strings = new Vector();
+        strings.addElement(writeConjectureWithoutUniversalQuantification("otter"));
+        for (int pos = 0; pos<premise_concept.specifications.size()-1; pos++)
+        {
+            int size=present.size();
+            for (int i=0; i<size; i++)
+            {
+                Vector specs = (Vector)present.elementAt(0);
+                present.removeElementAt(0);
+                int last_pos = 0;
+                if (!specs.isEmpty())
+                {
+                    Specification last_spec = (Specification)specs.lastElement();
+                    last_pos = premise_concept.specifications.indexOf(last_spec);
                 }
-
-                for(int var14 = var8 + 1; var14 < this.premise_concept.specifications.size(); ++var14) {
-                    Specification var10 = (Specification)this.premise_concept.specifications.elementAt(var14);
-                    Vector var11 = (Vector)var7.clone();
-                    var11.addElement(var10);
-                    Implicate var12 = new Implicate(this.premise_concept.types, var11, this.goal, this.premise_concept.domain);
-                    String var13 = var12.writeConjectureWithoutUniversalQuantification("otter");
-                    if (!var13.equals("") && !var3.contains(var13)) {
-                        var1.addElement(var12);
-                        var3.addElement(var13);
+                for (int j=last_pos+1; j<premise_concept.specifications.size(); j++)
+                {
+                    Specification spec = (Specification)premise_concept.specifications.elementAt(j);
+                    Vector new_specs = (Vector)specs.clone();
+                    new_specs.addElement(spec);
+                    Implicate prime_implicate =
+                            new Implicate(premise_concept.types, new_specs, goal, premise_concept.domain);
+                    String pi_string = prime_implicate.writeConjectureWithoutUniversalQuantification("otter");
+                    if (!pi_string.equals("") && !strings.contains(pi_string))
+                    {
+                        output.addElement(prime_implicate);
+                        strings.addElement(pi_string);
                     }
-
-                    var2.addElement(var11);
+                    present.addElement(new_specs);
                 }
             }
         }
-
-        return var1;
+        return output;
     }
 }

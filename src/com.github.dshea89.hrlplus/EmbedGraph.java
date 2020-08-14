@@ -1,121 +1,158 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.Serializable;
 import java.util.Vector;
+import java.lang.String;
+import java.io.Serializable;
 
-public class EmbedGraph extends ProductionRule implements Serializable {
-    public boolean is_cumulative = false;
+/** A class representing the embed graph production rule.
+ *
+ * @author Simon Colton, started 14th December 2000
+ * @version 1.0 */
 
-    public EmbedGraph() {
-    }
+public class EmbedGraph extends ProductionRule implements Serializable
+{
 
-    public boolean isBinary() {
+    /** Returns true as this is a binary production rule.
+     */
+
+    public boolean isBinary()
+    {
         return true;
     }
 
-    public String getName() {
+    /** Whether or not this produces cumulative concepts.
+     * @see Concept
+     */
+
+    public boolean is_cumulative = false;
+
+    /** Returns "graph" as that is the name of this production rule.
+     */
+
+    public String getName()
+    {
         return "embed_graph";
     }
 
-    public Vector allParameters(Vector concept_list, Theory theory) {
-        Vector var3 = new Vector();
+    /** Given a vector of one concept, this will return all the parameterisations for this
+     * concept. The parameterisations are single words llike "graph" to indicate that a
+     * graph is embedded in this concept.
+     */
+
+    public Vector allParameters(Vector old_concepts, Theory theory)
+    {
+        Vector output = new Vector();
         try {
-            Concept var4 = (Concept) concept_list.elementAt(0);
-            Concept var5 = (Concept) concept_list.elementAt(1);
-            if (var4.arity == 3 && var5.id.equals("G01")) {
-                String var6 = (String) var4.types.elementAt(1);
-                String var7 = (String) var4.types.elementAt(2);
-                if (var6.equals(var7)) {
-                    var3.addElement(new Vector());
-                }
+            Concept old_concept = (Concept)old_concepts.elementAt(0);
+            Concept embed_concept = (Concept)old_concepts.elementAt(1);
+            if (old_concept.arity==3 && embed_concept.id.equals("G01"))
+            {
+                String first_type = (String)old_concept.types.elementAt(1);
+                String second_type = (String)old_concept.types.elementAt(2);
+                if (first_type.equals(second_type))
+                    output.addElement(new Vector());
             }
         } catch (ArrayIndexOutOfBoundsException ignored) {
         }
-
-        return var3;
+        return output;
     }
 
-    public Vector newSpecifications(Vector concept_list, Vector parameters, Theory theory, Vector new_functions) {
-        Specification var5 = new Specification();
-        var5.permutation.addElement("0");
-        var5.permutation.addElement("1");
-        Concept var6 = (Concept) concept_list.elementAt(0);
-        var5.type = "embed graph " + var6.id;
-        Vector var7 = new Vector();
-        var7.addElement(var5);
-        return var7;
+    /** This produces the new specifications for concepts output using the embed production
+     * rule.
+     */
+
+    public Vector newSpecifications(Vector input_concepts, Vector input_parameters,
+                                    Theory theory, Vector new_functions)
+    {
+        Specification output_spec = new Specification();
+        output_spec.permutation.addElement("0");
+        output_spec.permutation.addElement("1");
+        Concept old_concept = (Concept)input_concepts.elementAt(0);
+        output_spec.type = "embed graph "+old_concept.id;
+        Vector output = new Vector();
+        output.addElement(output_spec);
+        return output;
     }
 
-    public Datatable transformTable(Vector old_datatables, Vector old_concepts, Vector parameters, Vector all_concepts) {
-        Datatable var5 = new Datatable();
-        Datatable var6 = (Datatable) old_datatables.elementAt(0);
+    /** This produces the new datatable from the given datatable, using the parameters
+     * specified.
+     */
 
-        for(int var7 = 0; var7 < var6.size(); ++var7) {
-            Row var8 = (Row)var6.elementAt(var7);
-            Row var9 = new Row();
-            var9.entity = var8.entity;
-            Vector var10 = new Vector();
-            Vector var11 = new Vector();
-            String var12 = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXZ1234567890";
-            String var13 = "";
-            String var14 = "[";
-
-            for(int var15 = 0; var15 < var8.tuples.size(); ++var15) {
-                Vector var16 = (Vector)var8.tuples.elementAt(var15);
-                String var17 = (String)var16.elementAt(0);
-                String var18 = (String)var16.elementAt(1);
-                String var19 = "";
-                String var20 = "";
-                int var21 = var10.indexOf(var17);
-                if (var21 >= 0) {
-                    var19 = (String)var11.elementAt(var21);
+    public Datatable transformTable(Vector input_datatables, Vector input_concepts,
+                                    Vector parameters, Vector all_concepts)
+    {
+        Datatable output = new Datatable();
+        Datatable old_datatable = (Datatable)input_datatables.elementAt(0);
+        for (int i=0;i<old_datatable.size();i++)
+        {
+            Row row = (Row)old_datatable.elementAt(i);
+            Row new_row = new Row();
+            new_row.entity = row.entity;
+            Vector elements_seen = new Vector();
+            Vector letters_used = new Vector();
+            String letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXZ1234567890";
+            String nodes = "";
+            String edges = "[";
+            for (int j=0; j<row.tuples.size(); j++)
+            {
+                Vector tuple = (Vector)row.tuples.elementAt(j);
+                String left_element = (String)tuple.elementAt(0);
+                String right_element = (String)tuple.elementAt(1);
+                String left_node = "";
+                String right_node = "";
+                int left_pos = elements_seen.indexOf(left_element);
+                if (left_pos>=0)
+                    left_node = (String)letters_used.elementAt(left_pos);
+                if (!elements_seen.contains(left_element))
+                {
+                    elements_seen.addElement(left_element);
+                    left_node = letters.substring(0,1);
+                    letters_used.addElement(left_node);
+                    letters = letters.substring(1,letters.length());
+                    nodes = nodes + left_node;
                 }
-
-                if (!var10.contains(var17)) {
-                    var10.addElement(var17);
-                    var19 = var12.substring(0, 1);
-                    var11.addElement(var19);
-                    var12 = var12.substring(1, var12.length());
-                    var13 = var13 + var19;
+                int right_pos = elements_seen.indexOf(right_element);
+                if (right_pos>=0)
+                    right_node = (String)letters_used.elementAt(right_pos);
+                if (!elements_seen.contains(right_element))
+                {
+                    elements_seen.addElement(right_element);
+                    right_node = letters.substring(0,1);
+                    letters_used.addElement(right_node);
+                    letters = letters.substring(1,letters.length());
+                    nodes = nodes + right_node;
                 }
-
-                int var22 = var10.indexOf(var18);
-                if (var22 >= 0) {
-                    var20 = (String)var11.elementAt(var22);
-                }
-
-                if (!var10.contains(var18)) {
-                    var10.addElement(var18);
-                    var20 = var12.substring(0, 1);
-                    var11.addElement(var20);
-                    var12 = var12.substring(1, var12.length());
-                    var13 = var13 + var20;
-                }
-
-                var14 = var14 + var19 + var20;
-                if (var15 < var8.tuples.size() - 1) {
-                    var14 = var14 + ",";
-                }
+                edges = edges + left_node + right_node;
+                if (j<row.tuples.size()-1)
+                    edges = edges + ",";
             }
-
-            Vector var23 = new Vector();
-            var23.addElement(var13 + var14 + "]");
-            var9.tuples.addElement(var23);
-            var5.addElement(var9);
+            Vector new_tuple = new Vector();
+            new_tuple.addElement(nodes+edges+"]");
+            new_row.tuples.addElement(new_tuple);
+            output.addElement(new_row);
         }
-
-        return var5;
+        return output;
     }
 
-    public Vector transformTypes(Vector old_concepts, Vector parameters) {
-        Vector var3 = new Vector();
-        Concept var4 = (Concept) old_concepts.elementAt(0);
-        var3.addElement(var4.domain);
-        var3.addElement("graph");
-        return var3;
+    /** Returns the types of the objects in the columns of the new datatable.
+     */
+
+    public Vector transformTypes(Vector old_concepts, Vector parameters)
+    {
+        Vector output = new Vector();
+        Concept old_concept = (Concept)old_concepts.elementAt(0);
+        output.addElement(old_concept.domain);
+        output.addElement("graph");
+        return output;
     }
 
-    public int patternScore(Vector concept_list, Vector all_concepts, Vector entity_list, Vector non_entity_list) {
+    /** This assigns a score to  a concept depending on whether the
+     * production rule can see any likelihood of a pattern.
+     */
+
+    public int patternScore(Vector concept_list, Vector all_concepts,
+                            Vector entity_list, Vector non_entity_list)
+    {
         return 0;
     }
 }

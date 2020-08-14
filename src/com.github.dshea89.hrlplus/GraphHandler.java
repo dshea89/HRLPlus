@@ -1,289 +1,281 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.io.Serializable;
 import java.util.Vector;
-import javax.swing.JTable;
+import java.util.Hashtable;
+import java.lang.String;
+import java.util.Enumeration;
+import java.io.*;
+import java.lang.Runtime.*;
+import java.awt.*;
+import javax.swing.*;
 
-public class GraphHandler implements Serializable {
+/** A class for drawing various graphs.
+ *
+ * @author Simon Colton, started 10th January 2002.
+ * @version 1.0 */
+
+public class GraphHandler implements Serializable
+{
     public HR main_frame = null;
     JTable statistics_output_table = new JTable();
 
-    public GraphHandler() {
-    }
-
-    public void plotGraphs(boolean var1) {
-        String var2 = "";
-
-        for(int var3 = 0; var3 < this.statistics_output_table.getColumnCount() && var2.equals(""); ++var3) {
-            String var4 = this.statistics_output_table.getColumnName(var3);
-            if (var4.equals("concept")) {
-                var2 = var4;
-            }
-
-            if (var4.equals("step")) {
-                var2 = var4;
-            }
-
-            if (var4.equals("equivalence")) {
-                var2 = var4;
-            }
-
-            if (var4.equals("nonexists")) {
-                var2 = var4;
-            }
-
-            if (var4.equals("implicate")) {
-                var2 = var4;
-            }
-
-            if (var4.equals("near_equiv")) {
-                var2 = var4;
-            }
+    public void plotGraphs(boolean seperate_graphs)
+    {
+        String x_axis = "";
+        for (int i=0; i<statistics_output_table.getColumnCount() && x_axis.equals(""); i++)
+        {
+            String column_name = statistics_output_table.getColumnName(i);
+            if (column_name.equals("concept")) x_axis = column_name;
+            if (column_name.equals("step")) x_axis = column_name;
+            if (column_name.equals("equivalence")) x_axis = column_name;
+            if (column_name.equals("nonexists")) x_axis = column_name;
+            if (column_name.equals("implicate")) x_axis = column_name;
+            if (column_name.equals("near_equiv")) x_axis = column_name;
         }
-
-        String var12 = "";
-        int var13 = 0;
-
-        for(int var5 = 0; var5 < this.statistics_output_table.getColumnCount(); ++var5) {
-            String var6 = this.statistics_output_table.getColumnName(var5);
-
-            try {
-                PrintWriter var7 = new PrintWriter(new BufferedWriter(new FileWriter(var6)));
-
-                for(int var8 = 0; var8 < this.statistics_output_table.getRowCount(); ++var8) {
-                    String var9 = (String)this.statistics_output_table.getValueAt(var8, var5);
-                    if (var1) {
-                        var9 = (new Double(new Double(var9) + (double)(2 * var13))).toString();
-                    }
-
-                    var7.write(Integer.toString(var8) + " " + var9 + "\n");
+        String file_names = "";
+        int counter=0;
+        for (int i=0; i<statistics_output_table.getColumnCount(); i++)
+        {
+            String y_axis = statistics_output_table.getColumnName(i);
+            try
+            {
+                PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(y_axis)));
+                for (int j=0; j<statistics_output_table.getRowCount(); j++)
+                {
+                    String value = (String)statistics_output_table.getValueAt(j, i);
+                    if (seperate_graphs)
+                        value = (new Double((new Double(value)).doubleValue() + (2*counter))).toString();
+                    out.write(Integer.toString(j) + " " + value + "\n");
                 }
-
-                var12 = var12 + "\"" + var6 + "\"" + ",";
-                var7.close();
-            } catch (Exception var11) {
-                System.out.println(var11);
+                file_names = file_names + "\"" + y_axis + "\"" + ",";
+                out.close();
             }
-
-            ++var13;
+            catch(Exception ex){System.out.println(ex);}
+            counter++;
         }
-
-        var12 = var12.substring(0, var12.length() - 1);
-
-        try {
-            PrintWriter var14 = new PrintWriter(new BufferedWriter(new FileWriter("delplot.gnu")));
-            this.writeGnuFile(var14, var2, "value", var12);
-            this.runGnuPlot();
-        } catch (Exception var10) {
-            ;
+        file_names = file_names.substring(0, file_names.length()-1);
+        try
+        {
+            PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("delplot.gnu")));
+            writeGnuFile(out, x_axis, "value", file_names);
+            runGnuPlot();
         }
-
+        catch(Exception e){}
     }
 
-    private void runGnuPlot() {
-        try {
-            Process var1 = Runtime.getRuntime().exec("gnuplot1.bat");
-            int var2 = var1.waitFor();
-            var1.destroy();
-        } catch (Exception var3) {
-            ;
+    private void runGnuPlot()
+    {
+        try
+        {
+            Process plot_process = Runtime.getRuntime().exec("gnuplot1.bat");
+            int exit_value = plot_process.waitFor();
+            plot_process.destroy();
         }
-
+        catch(Exception e){}
     }
 
-    private void writeGnuFile(PrintWriter var1, String var2, String var3, String var4) {
-        var1.println("set terminal postscript landscape noenhanced monochrome dashed defaultplex \"Helvetica\" 14");
-        var1.println("set output 'delplot.ps'");
-        var1.println("set noclip points");
-        var1.println("set clip one");
-        var1.println("set noclip two");
-        var1.println("set bar 1.000000");
-        var1.println("set border 31 lt -1 lw 1.000");
-        var1.println("set xdata");
-        var1.println("set ydata");
-        var1.println("set zdata");
-        var1.println("set x2data");
-        var1.println("set y2data");
-        var1.println("set boxwidth");
-        var1.println("set dummy x,y");
-        var1.println("set format x \"%g\"");
-        var1.println("set format y \"%g\"");
-        var1.println("set format x2 \"%g\"");
-        var1.println("set format y2 \"%g\"");
-        var1.println("set format z \"%g\"");
-        var1.println("set angles radians");
-        var1.println("set nogrid");
-        var1.println("set key title \"\"");
-        var1.println("set key right top Right noreverse box linetype -2 linewidth 1.000 samplen 4 spacing 1 width 0");
-        var1.println("set nolabel");
-        var1.println("set noarrow");
-        var1.println("set nolinestyle");
-        var1.println("set nologscale");
-        var1.println("set offsets 0, 0, 0, 0");
-        var1.println("set pointsize 1");
-        var1.println("set encoding default");
-        var1.println("set nopolar");
-        var1.println("set noparametric");
-        var1.println("set view 60, 30, 1, 1");
-        var1.println("set samples 100, 100");
-        var1.println("set isosamples 10, 10");
-        var1.println("set surface");
-        var1.println("set nocontour");
-        var1.println("set clabel '%8.3g'");
-        var1.println("set mapping cartesian");
-        var1.println("set nohidden3d");
-        var1.println("set cntrparam order 4");
-        var1.println("set cntrparam linear");
-        var1.println("set cntrparam levels auto 5");
-        var1.println("set cntrparam points 5");
-        var1.println("set size ratio 0 1,1");
-        var1.println("set origin 0,0");
-        var1.println("set data style lines");
-        var1.println("set function style lines");
-        var1.println("set xzeroaxis lt -2 lw 1.000");
-        var1.println("set x2zeroaxis lt -2 lw 1.000");
-        var1.println("set yzeroaxis lt -2 lw 1.000");
-        var1.println("set y2zeroaxis lt -2 lw 1.000");
-        var1.println("set tics in");
-        var1.println("set ticslevel 0.5");
-        var1.println("set ticscale 1 0.5");
-        var1.println("set mxtics default");
-        var1.println("set mytics default");
-        var1.println("set mx2tics default");
-        var1.println("set my2tics default");
-        var1.println("set xtics border mirror norotate autofreq ");
-        var1.println("set ytics border mirror norotate autofreq ");
-        var1.println("set ztics border nomirror norotate autofreq ");
-        var1.println("set nox2tics");
-        var1.println("set noy2tics");
-        var1.println("set title \"" + var2 + " versus " + var3 + "\" 0.000000,0.000000  \"\"");
-        var1.println("set timestamp \"\" bottom norotate 0.000000,0.000000  \"\"");
-        var1.println("set rrange [ * : * ] noreverse nowriteback  # (currently [0:10] )");
-        var1.println("set trange [ * : * ] noreverse nowriteback  # (currently [-5:5] )");
-        var1.println("set urange [ * : * ] noreverse nowriteback  # (currently [-5:5] )");
-        var1.println("set vrange [ * : * ] noreverse nowriteback  # (currently [-5:5] )");
-        var1.println("set xlabel \"" + var2 + "\" 0.000000,0.000000  \"\"");
-        var1.println("set x2label \"\" 0.000000,0.000000  \"\"");
-        var1.println("set xrange [ * : * ] noreverse nowriteback  # (currently [-10:10] )");
-        var1.println("set x2range [ * : * ] noreverse nowriteback  # (currently [-10:10] )");
-        var1.println("set ylabel \"" + var3 + "\" 0.000000,0.000000  \"\"");
-        var1.println("set y2label \"\" 0.000000,0.000000  \"\"");
-        var1.println("set yrange [ 0 : * ] # currently [-10:10] ) ");
-        var1.println("set y2range [ * : * ] noreverse nowriteback  # (currently [-10:10] )");
-        var1.println("set zlabel \"\" 0.000000,0.000000  \"\"");
-        var1.println("set zrange [ * : * ] noreverse nowriteback  # (currently [-10:10] )");
-        var1.println("set zero 1e-008");
-        var1.println("set lmargin -1");
-        var1.println("set bmargin -1");
-        var1.println("set rmargin -1");
-        var1.println("set tmargin -1");
-        var1.println("set locale \"C\"");
-        var1.println("plot " + var4);
-        var1.close();
+    private void writeGnuFile(PrintWriter out, String x_axis, String y_axis, String files_string)
+    {
+        out.println("set terminal postscript landscape noenhanced monochrome dashed defaultplex \"Helvetica\" 14");
+        out.println("set output 'delplot.ps'");
+        out.println("set noclip points");
+        out.println("set clip one");
+        out.println("set noclip two");
+        out.println("set bar 1.000000");
+        out.println("set border 31 lt -1 lw 1.000");
+        out.println("set xdata");
+        out.println("set ydata");
+        out.println("set zdata");
+        out.println("set x2data");
+        out.println("set y2data");
+        out.println("set boxwidth");
+        out.println("set dummy x,y");
+        out.println("set format x \"%g\"");
+        out.println("set format y \"%g\"");
+        out.println("set format x2 \"%g\"");
+        out.println("set format y2 \"%g\"");
+        out.println("set format z \"%g\"");
+        out.println("set angles radians");
+        out.println("set nogrid");
+        out.println("set key title \"\"");
+        out.println("set key right top Right noreverse box linetype -2 linewidth 1.000 samplen 4 spacing 1 width 0");
+        out.println("set nolabel");
+        out.println("set noarrow");
+        out.println("set nolinestyle");
+        out.println("set nologscale");
+        out.println("set offsets 0, 0, 0, 0");
+        out.println("set pointsize 1");
+        out.println("set encoding default");
+        out.println("set nopolar");
+        out.println("set noparametric");
+        out.println("set view 60, 30, 1, 1");
+        out.println("set samples 100, 100");
+        out.println("set isosamples 10, 10");
+        out.println("set surface");
+        out.println("set nocontour");
+        out.println("set clabel '%8.3g'");
+        out.println("set mapping cartesian");
+        out.println("set nohidden3d");
+        out.println("set cntrparam order 4");
+        out.println("set cntrparam linear");
+        out.println("set cntrparam levels auto 5");
+        out.println("set cntrparam points 5");
+        out.println("set size ratio 0 1,1");
+        out.println("set origin 0,0");
+        out.println("set data style lines");
+        out.println("set function style lines");
+        out.println("set xzeroaxis lt -2 lw 1.000");
+        out.println("set x2zeroaxis lt -2 lw 1.000");
+        out.println("set yzeroaxis lt -2 lw 1.000");
+        out.println("set y2zeroaxis lt -2 lw 1.000");
+        out.println("set tics in");
+        out.println("set ticslevel 0.5");
+        out.println("set ticscale 1 0.5");
+        out.println("set mxtics default");
+        out.println("set mytics default");
+        out.println("set mx2tics default");
+        out.println("set my2tics default");
+        out.println("set xtics border mirror norotate autofreq ");
+        out.println("set ytics border mirror norotate autofreq ");
+        out.println("set ztics border nomirror norotate autofreq ");
+        out.println("set nox2tics");
+        out.println("set noy2tics");
+        out.println("set title \"" + x_axis + " versus " + y_axis + "\" 0.000000,0.000000  \"\"");
+        out.println("set timestamp \"\" bottom norotate 0.000000,0.000000  \"\"");
+        out.println("set rrange [ * : * ] noreverse nowriteback  # (currently [0:10] )");
+        out.println("set trange [ * : * ] noreverse nowriteback  # (currently [-5:5] )");
+        out.println("set urange [ * : * ] noreverse nowriteback  # (currently [-5:5] )");
+        out.println("set vrange [ * : * ] noreverse nowriteback  # (currently [-5:5] )");
+        out.println("set xlabel \"" + x_axis + "\" 0.000000,0.000000  \"\"");
+        out.println("set x2label \"\" 0.000000,0.000000  \"\"");
+        out.println("set xrange [ * : * ] noreverse nowriteback  # (currently [-10:10] )");
+        out.println("set x2range [ * : * ] noreverse nowriteback  # (currently [-10:10] )");
+        out.println("set ylabel \"" + y_axis + "\" 0.000000,0.000000  \"\"");
+        out.println("set y2label \"\" 0.000000,0.000000  \"\"");
+        out.println("set yrange [ 0 : * ] # currently [-10:10] ) ");
+        out.println("set y2range [ * : * ] noreverse nowriteback  # (currently [-10:10] )");
+        out.println("set zlabel \"\" 0.000000,0.000000  \"\"");
+        out.println("set zrange [ * : * ] noreverse nowriteback  # (currently [-10:10] )");
+        out.println("set zero 1e-008");
+        out.println("set lmargin -1");
+        out.println("set bmargin -1");
+        out.println("set rmargin -1");
+        out.println("set tmargin -1");
+        out.println("set locale \"C\"");
+        out.println("plot " + files_string);
+        out.close();
     }
 
-    public void drawConstructionHistory(Conjecture var1, Theory var2, String var3) {
-        PrintWriter var4 = this.openFile("delgraph.dot");
-        if (var4 != null) {
-            Vector var6;
-            Vector var7;
-            if (var1 instanceof Equivalence) {
-                Equivalence var5 = (Equivalence)var1;
-                var6 = (Vector)var5.lh_concept.ancestors.clone();
-                var7 = (Vector)var5.rh_concept.ancestors.clone();
-                var6.addElement(var5.lh_concept);
-                var7.addElement(var5.rh_concept);
-                this.addAncestors(var6, var4, var3);
-                this.addAncestors(var7, var4, var3);
-                var4.write("\"" + var5.lh_concept.id + "\" -> \"" + var5.rh_concept.id + "\" [ label = \"equivalence\" style = \"dotted\" dir = \"both\"];");
+    /** This draws the construction history of a concept using the dot program.
+     */
+
+    public void drawConstructionHistory(Conjecture conjecture, Theory theory, String language)
+    {
+        PrintWriter out = openFile("delgraph.dot");
+        if (out!=null)
+        {
+            if (conjecture instanceof Equivalence)
+            {
+                Equivalence equiv = (Equivalence)conjecture;
+                Vector lh_ancestors = (Vector)equiv.lh_concept.ancestors.clone();
+                Vector rh_ancestors = (Vector)equiv.rh_concept.ancestors.clone();
+                lh_ancestors.addElement(equiv.lh_concept);
+                rh_ancestors.addElement(equiv.rh_concept);
+                addAncestors(lh_ancestors, out, language);
+                addAncestors(rh_ancestors, out, language);
+                out.write("\"" + equiv.lh_concept.id + "\" -> \"" + equiv.rh_concept.id + "\" [ label = \"equivalence\" style = \"dotted\" dir = \"both\"];");
             }
-
-            if (var1 instanceof Implication) {
-                Implication var8 = (Implication)var1;
-                var6 = (Vector)var8.lh_concept.ancestors.clone();
-                var7 = (Vector)var8.rh_concept.ancestors.clone();
-                var6.addElement(var8.lh_concept);
-                var7.addElement(var8.rh_concept);
-                this.addAncestors(var6, var4, var3);
-                this.addAncestors(var7, var4, var3);
-                var4.write("\"" + var8.lh_concept.id + "\" -> \"" + var8.rh_concept.id + "\" [ label = \"implication\" style = \"dotted\" ];");
+            if (conjecture instanceof Implication)
+            {
+                Implication imp = (Implication)conjecture;
+                Vector lh_ancestors = (Vector)imp.lh_concept.ancestors.clone();
+                Vector rh_ancestors = (Vector)imp.rh_concept.ancestors.clone();
+                lh_ancestors.addElement(imp.lh_concept);
+                rh_ancestors.addElement(imp.rh_concept);
+                addAncestors(lh_ancestors, out, language);
+                addAncestors(rh_ancestors, out, language);
+                out.write("\"" + imp.lh_concept.id + "\" -> \"" + imp.rh_concept.id + "\" [ label = \"implication\" style = \"dotted\" ];");
             }
-
-            if (var1 instanceof NonExists) {
-                NonExists var9 = (NonExists)var1;
-                var6 = (Vector)var9.concept.ancestors.clone();
-                var6.addElement(var9.concept);
-                this.addAncestors(var6, var4, var3);
+            if (conjecture instanceof NonExists)
+            {
+                NonExists ne = (NonExists)conjecture;
+                Vector ancestors = (Vector)ne.concept.ancestors.clone();
+                ancestors.addElement(ne.concept);
+                addAncestors(ancestors, out, language);
             }
-
-            var4.write("\n}");
-            var4.close();
-            this.showGraph();
-        }
-
-    }
-
-    public void drawConstructionHistory(Concept var1, Theory var2, String var3) {
-        PrintWriter var4 = this.openFile("delgraph.dot");
-        if (var4 != null) {
-            Vector var5 = var1.getAncestors(var2);
-            this.addAncestors(var5, var4, var3);
-            var4.write("\n}");
-            var4.close();
-            this.showGraph();
-        }
-
-    }
-
-    private void showGraph() {
-        try {
-            Process var1 = Runtime.getRuntime().exec("drawgraph.bat");
-            int var2 = var1.waitFor();
-            var1.destroy();
-            Process var3 = Runtime.getRuntime().exec("showgraph.bat");
-            int var4 = var3.exitValue();
-            var3.destroy();
-        } catch (Exception var5) {
-            ;
-        }
-
-    }
-
-    private PrintWriter openFile(String var1) {
-        try {
-            PrintWriter var2 = new PrintWriter(new BufferedWriter(new FileWriter("delgraph.dot")));
-            var2.write("digraph mygraph {\nsize=\"7.5,10.5\";");
-            var2.write("\norientation=portrait;\nrankdir = TB;\nnode [shape=box];\nconcentrate=true;\nratio=fill;\n");
-            return var2;
-        } catch (Exception var3) {
-            return null;
+            out.write("\n}");
+            out.close();
+            showGraph();
         }
     }
 
-    private void addAncestors(Vector var1, PrintWriter var2, String var3) {
-        int var4;
-        Concept var5;
-        for(var4 = 0; var4 < var1.size(); ++var4) {
-            var5 = (Concept)var1.elementAt(var4);
-            if (!var5.writeDefinition(var3).trim().equals("")) {
-                var2.write("\"" + var5.id + "\" [ label = \"[" + var5.id + "] " + var5.writeDefinitionWithStartLetters(var3) + "\"];\n");
-            } else {
-                var2.write("\"" + var5.id + "\" [ label = \"[" + var5.id + "] " + var5.writeDefinitionWithStartLetters(var3) + "\"];\n");
+    public void drawConstructionHistory(Concept concept, Theory theory, String language)
+    {
+        PrintWriter out = openFile("delgraph.dot");
+        if (out!=null)
+        {
+            Vector ancestors = concept.getAncestors(theory);
+            addAncestors(ancestors, out, language);
+            out.write("\n}");
+            out.close();
+            showGraph();
+        }
+    }
+
+    private void showGraph()
+    {
+        try
+        {
+            Process draw_process = Runtime.getRuntime().exec("drawgraph.bat");
+            int exit_value = draw_process.waitFor();
+            draw_process.destroy();
+            Process show_process = Runtime.getRuntime().exec("showgraph.bat");
+            int next_exit_value = show_process.exitValue();
+            show_process.destroy();
+        }
+        catch(Exception e)
+        {
+        }
+    }
+
+    private PrintWriter openFile(String filename)
+    {
+        try
+        {
+            PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("delgraph.dot")));
+            out.write("digraph mygraph {\nsize=\"7.5,10.5\";");
+            out.write("\norientation=portrait;\nrankdir = TB;\nnode [shape=box];\nconcentrate=true;\nratio=fill;\n");
+            return out;
+        }
+        catch(Exception e)
+        {
+        }
+        return null;
+    }
+
+    private void addAncestors(Vector ancestors, PrintWriter out, String language)
+    {
+        for (int i=0; i<ancestors.size(); i++)
+        {
+            Concept ancestor = (Concept)ancestors.elementAt(i);
+            if (!ancestor.writeDefinition(language).trim().equals(""))
+                out.write("\"" + ancestor.id + "\" [ label = \"[" + ancestor.id + "] "
+                        + ancestor.writeDefinitionWithStartLetters(language)+"\"];\n");
+            else
+                out.write("\"" + ancestor.id + "\" [ label = \"[" + ancestor.id + "] "
+                        + ancestor.writeDefinitionWithStartLetters(language)+"\"];\n");
+
+        }
+        for (int i=0; i<ancestors.size(); i++)
+        {
+            Concept ancestor = (Concept)ancestors.elementAt(i);
+            for (int j=0; j<ancestor.parents.size(); j++)
+            {
+                Concept parent = (Concept)ancestor.parents.elementAt(j);
+                out.write("\"" + parent.id + "\" -> \"" + ancestor.id + "\"");
+                out.write(" [ label = \"" + ancestor.construction.asString() + "\"];\n");
             }
         }
-
-        for(var4 = 0; var4 < var1.size(); ++var4) {
-            var5 = (Concept)var1.elementAt(var4);
-
-            for(int var6 = 0; var6 < var5.parents.size(); ++var6) {
-                Concept var7 = (Concept)var5.parents.elementAt(var6);
-                var2.write("\"" + var7.id + "\" -> \"" + var5.id + "\"");
-                var2.write(" [ label = \"" + var5.construction.asString() + "\"];\n");
-            }
-        }
-
     }
+
 }

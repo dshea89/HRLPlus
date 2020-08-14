@@ -1,459 +1,460 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.Serializable;
 import java.util.Vector;
+import java.lang.String;
+import java.io.Serializable;
 
-/**
- * A class representing the forall production rule. This production rule takes an old datatable as input and a set of parameterisations.
- * The parameterisation is a list of columns which are to be #removed# in the output datatable.
- */
-public class Forall extends ProductionRule implements Serializable {
-    /**
-     * A compose rule which will be used for this production rule.
+/** A class representing the forall production rule. This production
+ * rule takes an old datatable as input and a set of parameterizations.
+ * The parameterization is a list of columns which are to be #removed#
+ * in the output datatable.
+ *
+ * @author Simon Colton, started 6th October 2000
+ * @version 1.0 */
+
+public class Forall extends ProductionRule implements Serializable
+{
+    /** A compose rule which will be used for this production rule.
      */
+
     public Compose compose = new Compose();
 
-    /**
-     * An exists rule which will be used for this production rule.
+    /** An exists rule which will be used for this production rule.
      */
+
     public Exists exists = new Exists();
 
-    /**
-     * Whether or not this produces cumulative concepts.
+    /** Returns false as this is a unary production rule.
      */
-    public boolean is_cumulative = false;
 
-    public Forall() {
-    }
-
-    /**
-     * Returns false as this is a unary production rule.
-     */
-    public boolean isBinary() {
+    public boolean isBinary()
+    {
         return true;
     }
 
-    /**
-     * Returns "forall" as that is the name of this production rule.
+    /** Whether or not this produces cumulative concepts.
+     * @see Concept
      */
-    public String getName() {
+
+    public boolean is_cumulative = false;
+
+    /** Returns "forall" as that is the name of this production rule.
+     */
+
+    public String getName()
+    {
         return "forall";
     }
 
-    /**
-     * Given a vector of two concepts, this will return all the parameterisations for this concept.
+    /** Given a vector of two concepts, this will return all the parameterisations for this
+     * concept.
      */
-    public Vector allParameters(Vector old_concepts, Theory theory) {
-        Vector var3 = new Vector();
-        Concept var4 = (Concept) old_concepts.elementAt(0);
-        Concept var5 = (Concept) old_concepts.elementAt(1);
-        Vector var6 = new Vector();
 
-        int var7;
-        Concept var8;
-        for(var7 = 0; var7 < var4.generalisations.size(); ++var7) {
-            var8 = (Concept)var4.generalisations.elementAt(var7);
-            var6.addElement(var8);
+    public Vector allParameters(Vector old_concepts, Theory theory)
+    {
+        Vector output = new Vector();
+        Concept lh_concept = (Concept)old_concepts.elementAt(0);
+        Concept rh_concept = (Concept)old_concepts.elementAt(1);
+
+        // Find the base concepts //
+
+        Vector base_concepts = new Vector();
+        for (int i=0; i<lh_concept.generalisations.size(); i++)
+        {
+            Concept base_concept = (Concept)lh_concept.generalisations.elementAt(i);
+            base_concepts.addElement(base_concept);
         }
-
-        for(var7 = 0; var7 < var5.generalisations.size(); ++var7) {
-            var8 = (Concept)var5.generalisations.elementAt(var7);
-            if (!var6.contains(var8)) {
-                var6.addElement(var8);
-            }
+        for (int i=0; i<rh_concept.generalisations.size(); i++)
+        {
+            Concept base_concept = (Concept)rh_concept.generalisations.elementAt(i);
+            if (!base_concepts.contains(base_concept))
+                base_concepts.addElement(base_concept);
         }
+        if (!base_concepts.contains(lh_concept))
+            base_concepts.addElement(lh_concept);
+        if (!base_concepts.contains(rh_concept))
+            base_concepts.addElement(rh_concept);
 
-        if (!var6.contains(var4)) {
-            var6.addElement(var4);
-        }
-
-        if (!var6.contains(var5)) {
-            var6.addElement(var5);
-        }
-
-        Vector var10;
-        for(var7 = 0; var7 < var6.size(); ++var7) {
-            var8 = (Concept)var6.elementAt(var7);
-            if (var8.arity <= this.arity_limit) {
-                Vector var9 = new Vector();
-                var9.addElement(var4);
-                var9.addElement(var8);
-                var10 = new Vector();
-                var10.addElement(var5);
-                var10.addElement(var8);
-                boolean var11 = this.compose.subobject_overlap;
-                this.compose.subobject_overlap = false;
-                Vector var12 = this.compose.allParameters(var9, theory);
-                Vector var13 = this.compose.allParameters(var10, theory);
-                this.compose.subobject_overlap = var11;
-
-                for(int var14 = 0; var14 < var12.size(); ++var14) {
-                    Vector var15 = (Vector)var12.elementAt(var14);
-                    Vector var16 = this.compose.transformTypes(var9, var15);
-
-                    for(int var17 = 0; var17 < var13.size(); ++var17) {
-                        Vector var18 = (Vector)var13.elementAt(var17);
-                        Vector var19 = this.compose.transformTypes(var10, var18);
-                        if (var16.toString().equals(var19.toString()) && var8.arity < var15.size() && ((String)var15.elementAt(0)).equals("1") && ((String)var18.elementAt(0)).equals("1")) {
-                            Vector var20 = new Vector();
-                            var20.addElement(var8);
-                            var20.addElement(var15);
-                            var20.addElement(var18);
-                            var3.addElement(var20);
-                            Vector var21 = new Vector();
-                            var21.addElement(var8);
-                            var21.addElement(var15);
-                            var21.addElement(var18);
-                            var21.addElement("s");
-                            var3.addElement(var21);
+        for (int i=0; i<base_concepts.size(); i++)
+        {
+            Concept base_concept = (Concept)base_concepts.elementAt(i);
+            if (base_concept.arity<=arity_limit)
+            {
+                Vector lh_concepts = new Vector();
+                lh_concepts.addElement(lh_concept);
+                lh_concepts.addElement(base_concept);
+                Vector rh_concepts = new Vector();
+                rh_concepts.addElement(rh_concept);
+                rh_concepts.addElement(base_concept);
+                boolean old_cso = compose.subobject_overlap;
+                compose.subobject_overlap = false;
+                Vector lh_params = compose.allParameters(lh_concepts, theory);
+                Vector rh_params = compose.allParameters(rh_concepts, theory);
+                compose.subobject_overlap = old_cso;
+                for (int j=0; j<lh_params.size(); j++)
+                {
+                    Vector lh_param = (Vector)lh_params.elementAt(j);
+                    Vector lh_types = compose.transformTypes(lh_concepts, lh_param);
+                    for (int k=0; k<rh_params.size(); k++)
+                    {
+                        Vector rh_param = (Vector)rh_params.elementAt(k);
+                        Vector rh_types = compose.transformTypes(rh_concepts, rh_param);
+                        if (lh_types.toString().equals(rh_types.toString()) &&
+                                base_concept.arity < lh_param.size() &&
+                                ((String)lh_param.elementAt(0)).equals("1") &&
+                                ((String)rh_param.elementAt(0)).equals("1"))
+                        {
+                            Vector new_param1 = new Vector();
+                            new_param1.addElement(base_concept);
+                            new_param1.addElement(lh_param);
+                            new_param1.addElement(rh_param);
+                            output.addElement(new_param1);
+                            Vector new_param2 = new Vector();
+                            new_param2.addElement(base_concept);
+                            new_param2.addElement(lh_param);
+                            new_param2.addElement(rh_param);
+                            new_param2.addElement("s");
+                            output.addElement(new_param2);
                         }
                     }
                 }
             }
         }
-
-        Vector var22 = new Vector();
-        Vector var23 = new Vector();
-
-        for(int var24 = 0; var24 < var3.size(); ++var24) {
-            var10 = (Vector)var3.elementAt(var24);
-            this.addParametersIfOK(old_concepts, theory, var10, var22, var23);
+        Vector pruned_output = new Vector();
+        Vector good_specs = new Vector();
+        for (int i=0; i<output.size(); i++)
+        {
+            Vector param = (Vector)output.elementAt(i);
+            addParametersIfOK(old_concepts, theory, param, pruned_output, good_specs);
         }
-
-        return var22;
+        return pruned_output;
     }
 
-    private void addParametersIfOK(Vector var1, Theory var2, Vector var3, Vector var4, Vector var5) {
-        Vector var6 = this.newSpecifications(var1, var3, var2, new Vector());
-        Specification var7 = (Specification)var6.lastElement();
-
-        for(int var8 = var7.rh_starts; var8 < var7.previous_specifications.size(); ++var8) {
-            Specification var9 = (Specification)var7.previous_specifications.elementAt(var8);
-            boolean var10 = false;
-
-            for(int var11 = 0; var11 < var7.rh_starts && !var10; ++var11) {
-                Specification var12 = (Specification)var7.previous_specifications.elementAt(var11);
-                if (var12.equals(var9)) {
-                    var10 = true;
-                }
+    private void addParametersIfOK(Vector concepts, Theory theory, Vector param, Vector pruned_output, Vector good_specs)
+    {
+        Vector specs = newSpecifications(concepts, param, theory, new Vector());
+        Specification forall_spec = (Specification)specs.lastElement();
+        for (int i=forall_spec.rh_starts; i<forall_spec.previous_specifications.size(); i++)
+        {
+            Specification rh_spec = (Specification)forall_spec.previous_specifications.elementAt(i);
+            boolean in_lhs = false;
+            for (int j=0; j<forall_spec.rh_starts && !in_lhs; j++)
+            {
+                Specification lh_spec = (Specification)forall_spec.previous_specifications.elementAt(j);
+                if (lh_spec.equals(rh_spec))
+                    in_lhs = true;
             }
-
-            if (!var10 && !this.repeatedSpecifications(var5, var6)) {
-                var5.addElement(var6);
-                var4.addElement(var3);
+            if (!in_lhs && !repeatedSpecifications(good_specs, specs))
+            {
+                good_specs.addElement(specs);
+                pruned_output.addElement(param);
                 break;
             }
         }
-
     }
 
-    private boolean repeatedSpecifications(Vector var1, Vector var2) {
-        boolean var3 = false;
-
-        for(int var4 = 0; var4 < var1.size() && !var3; ++var4) {
-            Vector var5 = (Vector)var1.elementAt(var4);
-            if (var5.size() == var2.size()) {
-                boolean var6 = true;
-
-                for(int var7 = 0; var7 < var5.size() && var6; ++var7) {
-                    Specification var8 = (Specification)var5.elementAt(var7);
-                    boolean var9 = false;
-
-                    for(int var10 = 0; var10 < var2.size(); ++var10) {
-                        Specification var11 = (Specification)var2.elementAt(var10);
-                        if (var11.equals(var8)) {
-                            var9 = true;
-                        }
+    private boolean repeatedSpecifications(Vector good_specs, Vector specs)
+    {
+        boolean output = false;
+        for (int i=0; i<good_specs.size() && !output; i++)
+        {
+            Vector already_specs = (Vector)good_specs.elementAt(i);
+            if (already_specs.size()==specs.size())
+            {
+                boolean matching_specs = true;
+                for (int j=0; j<already_specs.size() && matching_specs; j++)
+                {
+                    Specification already_spec = (Specification)already_specs.elementAt(j);
+                    boolean spec_there = false;
+                    for (int k=0; k<specs.size(); k++)
+                    {
+                        Specification spec = (Specification)specs.elementAt(k);
+                        if (spec.equals(already_spec))
+                            spec_there=true;
                     }
-
-                    if (!var9) {
-                        var6 = false;
-                    }
+                    if (!spec_there)
+                        matching_specs = false;
                 }
-
-                if (var6) {
-                    var3 = true;
-                }
+                if (matching_specs)
+                    output = true;
             }
         }
-
-        return var3;
+        return output;
     }
 
-    /**
-     * This produces the new specifications for concepts output using the forall production rule.
+    /** This produces the new specifications for concepts output using the forall production
+     * rule.
      */
-    public Vector newSpecifications(Vector input_concepts, Vector input_parameters, Theory theory, Vector new_functions) {
-        Vector var5 = new Vector();
-        Concept var6 = (Concept) input_parameters.elementAt(0);
-        Concept var7 = (Concept) input_concepts.elementAt(0);
-        Concept var8 = (Concept) input_concepts.elementAt(1);
-        Vector var9 = (Vector) input_parameters.elementAt(1);
-        Vector var10 = (Vector) input_parameters.elementAt(2);
-        if (input_parameters.size() == 4) {
-            var7 = (Concept) input_concepts.elementAt(1);
-            var8 = (Concept) input_concepts.elementAt(0);
-            var9 = (Vector) input_parameters.elementAt(2);
-            var10 = (Vector) input_parameters.elementAt(1);
+
+    public Vector newSpecifications(Vector input_concepts, Vector input_parameters,
+                                    Theory theory, Vector new_functions)
+    {
+        Vector output = new Vector();
+        Concept base_concept = (Concept)input_parameters.elementAt(0);
+        Concept lh_concept = (Concept)input_concepts.elementAt(0);
+        Concept rh_concept = (Concept)input_concepts.elementAt(1);
+        Vector lh_params = (Vector)input_parameters.elementAt(1);
+        Vector rh_params = (Vector)input_parameters.elementAt(2);
+
+        if (input_parameters.size()==4)
+        {
+            lh_concept = (Concept)input_concepts.elementAt(1);
+            rh_concept = (Concept)input_concepts.elementAt(0);
+            lh_params = (Vector)input_parameters.elementAt(2);
+            rh_params = (Vector)input_parameters.elementAt(1);
         }
+        Vector lh_concepts = new Vector();
+        Vector rh_concepts = new Vector();
+        lh_concepts.addElement(lh_concept);
+        lh_concepts.addElement(base_concept);
+        rh_concepts.addElement(rh_concept);
+        rh_concepts.addElement(base_concept);
+        Vector lh_specifications = compose.newSpecifications(lh_concepts, lh_params, theory, new Vector());
+        Vector rh_specifications = compose.newSpecifications(rh_concepts, rh_params, theory, new Vector());
+        Vector all_positions = new Vector();
+        Specification forall_specification = new Specification();
+        forall_specification.type = "forall";
+        Vector all_positions_used = new Vector();
 
-        Vector var11 = new Vector();
-        Vector var12 = new Vector();
-        var11.addElement(var7);
-        var11.addElement(var6);
-        var12.addElement(var8);
-        var12.addElement(var6);
-        Vector var13 = this.compose.newSpecifications(var11, var9, theory, new Vector());
-        Vector var14 = this.compose.newSpecifications(var12, var10, theory, new Vector());
-        new Vector();
-        Specification var16 = new Specification();
-        var16.type = "forall";
-        Vector var17 = new Vector();
-        Vector var18 = this.compose.transformTypes(var11, var9);
-        Vector var19 = new Vector();
-
-        int var20;
-        for(var20 = 0; var20 < var9.size(); ++var20) {
-            String var21 = (String)var9.elementAt(var20);
-            if (var21.equals("0")) {
-                var19.addElement(Integer.toString(var20));
-                var16.multiple_variable_columns.addElement(Integer.toString(var20));
-                var16.multiple_types.addElement(var18.elementAt(var20));
+        Vector lh_types = compose.transformTypes(lh_concepts, lh_params);
+        Vector forall_columns = new Vector();
+        for (int i=0; i<lh_params.size(); i++)
+        {
+            String col = (String)lh_params.elementAt(i);
+            if (col.equals("0"))
+            {
+                forall_columns.addElement(Integer.toString(i));
+                forall_specification.multiple_variable_columns.addElement(Integer.toString(i));
+                forall_specification.multiple_types.addElement(lh_types.elementAt(i));
             }
         }
 
-        int var22;
-        String var23;
-        int var24;
-        int var25;
-        int var26;
-        int var27;
-        Specification var28;
-        Specification var30;
-        int var31;
-        for(var20 = 0; var20 < var13.size(); ++var20) {
-            var28 = (Specification)var13.elementAt(var20);
-            if (!var28.involvesColumns(var19)) {
-                var30 = var28.copy();
-                var30.permutation = new Vector();
-
-                for(var31 = 0; var31 < var28.permutation.size(); ++var31) {
-                    var24 = 0;
-                    var25 = new Integer((String)var28.permutation.elementAt(var31));
-
-                    for(var26 = 0; var26 < var19.size(); ++var26) {
-                        var27 = new Integer((String)var19.elementAt(var26));
-                        if (var27 < var25) {
-                            ++var24;
-                        }
+        for (int i=0; i<lh_specifications.size(); i++)
+        {
+            Specification lh_specification = (Specification)lh_specifications.elementAt(i);
+            if (!lh_specification.involvesColumns(forall_columns))
+            {
+                Specification new_specification = lh_specification.copy();
+                new_specification.permutation = new Vector();
+                for (int j=0;j<lh_specification.permutation.size();j++)
+                {
+                    int number_of_columns_to_remove = 0;
+                    int add_column =
+                            (new Integer((String)lh_specification.permutation.elementAt(j))).intValue();
+                    for (int k=0;k<forall_columns.size();k++)
+                    {
+                        int param = (new Integer((String)forall_columns.elementAt(k))).intValue();
+                        if (param<add_column)
+                            number_of_columns_to_remove++;
                     }
-
-                    var30.permutation.addElement(Integer.toString(var25 - var24));
+                    new_specification.permutation.
+                            addElement(Integer.toString(add_column-number_of_columns_to_remove));
                 }
-
-                var5.addElement(var30);
-            } else {
-                var16.previous_specifications.addElement(var28);
-
-                for(var22 = 0; var22 < var28.permutation.size(); ++var22) {
-                    var23 = (String)var28.permutation.elementAt(var22);
-                    if (!var17.contains(var23)) {
-                        var17.addElement(var23);
-                    }
+                output.addElement(new_specification);
+            }
+            else
+            {
+                forall_specification.previous_specifications.addElement(lh_specification);
+                for (int j=0;j<lh_specification.permutation.size();j++)
+                {
+                    String pos = (String)lh_specification.permutation.elementAt(j);
+                    if (!all_positions_used.contains(pos))
+                        all_positions_used.addElement(pos);
                 }
-
-                ++var16.rh_starts;
+                forall_specification.rh_starts++;
             }
         }
 
-        for(var20 = 0; var20 < var14.size(); ++var20) {
-            var28 = (Specification)var14.elementAt(var20);
-            if (var28.involvesColumns(var19)) {
-                var16.previous_specifications.addElement(var28);
-
-                for(var22 = 0; var22 < var28.permutation.size(); ++var22) {
-                    var23 = (String)var28.permutation.elementAt(var22);
-                    if (!var17.contains(var23)) {
-                        var17.addElement(var23);
+        for (int i=0; i<rh_specifications.size(); i++)
+        {
+            Specification rh_specification = (Specification)rh_specifications.elementAt(i);
+            if (!rh_specification.involvesColumns(forall_columns))
+            {
+                Specification new_specification = rh_specification.copy();
+                new_specification.permutation = new Vector();
+                for (int j=0;j<rh_specification.permutation.size();j++)
+                {
+                    int number_of_columns_to_remove = 0;
+                    int add_column =
+                            (new Integer((String)rh_specification.permutation.elementAt(j))).intValue();
+                    for (int k=0;k<forall_columns.size();k++)
+                    {
+                        int param = (new Integer((String)forall_columns.elementAt(k))).intValue();
+                        if (param<add_column)
+                            number_of_columns_to_remove++;
                     }
+                    new_specification.permutation.
+                            addElement(Integer.toString(add_column-number_of_columns_to_remove));
                 }
-            } else {
-                var30 = var28.copy();
-                var30.permutation = new Vector();
-
-                for(var31 = 0; var31 < var28.permutation.size(); ++var31) {
-                    var24 = 0;
-                    var25 = new Integer((String)var28.permutation.elementAt(var31));
-
-                    for(var26 = 0; var26 < var19.size(); ++var26) {
-                        var27 = new Integer((String)var19.elementAt(var26));
-                        if (var27 < var25) {
-                            ++var24;
-                        }
-                    }
-
-                    var30.permutation.addElement(Integer.toString(var25 - var24));
+                boolean already_there = false;
+                for (int j=0; j<output.size() && !already_there; j++)
+                {
+                    Specification already_spec = (Specification)output.elementAt(j);
+                    if (already_spec.equals(new_specification))
+                        already_there = true;
                 }
-
-                boolean var33 = false;
-
-                for(var24 = 0; var24 < var5.size() && !var33; ++var24) {
-                    Specification var34 = (Specification)var5.elementAt(var24);
-                    if (var34.equals(var30)) {
-                        var33 = true;
-                    }
-                }
-
-                if (!var33) {
-                    var5.addElement(var30);
+                if (!already_there)
+                    output.addElement(new_specification);
+            }
+            else
+            {
+                forall_specification.previous_specifications.addElement(rh_specification);
+                for (int j=0;j<rh_specification.permutation.size();j++)
+                {
+                    String pos = (String)rh_specification.permutation.elementAt(j);
+                    if (!all_positions_used.contains(pos))
+                        all_positions_used.addElement(pos);
                 }
             }
         }
 
-        var20 = 0;
-
-        for(int var29 = 0; var29 < var18.size(); ++var29) {
-            String var32 = Integer.toString(var29);
-            if (var17.contains(var32) && !var19.contains(var32)) {
-                var16.permutation.addElement(Integer.toString(var20));
-                ++var20;
+        int add_to_perm_pos = 0;
+        for (int i=0;i<lh_types.size();i++)
+        {
+            String try_pos = Integer.toString(i);
+            if (all_positions_used.contains(try_pos) && !forall_columns.contains(try_pos))
+            {
+                forall_specification.permutation.addElement(Integer.toString(add_to_perm_pos));
+                add_to_perm_pos++;
             }
-
-            if (!var19.contains(var32) && !var17.contains(var32)) {
-                var16.redundant_columns.addElement(Integer.toString(var20));
-                ++var20;
+            if (!forall_columns.contains(try_pos) && !all_positions_used.contains(try_pos))
+            {
+                forall_specification.redundant_columns.addElement(Integer.toString(add_to_perm_pos));
+                add_to_perm_pos++;
             }
         }
-
-        var5.addElement(var16);
-        return var5;
+        output.addElement(forall_specification);
+        return output;
     }
 
-    /**
-     * This produces the new datatable from the given datatable, using the parameters specified.
+    /** This produces the new datatable from the given datatable, using the parameters
+     * specified.
      */
-    public Datatable transformTable(Vector input_datatables, Vector input_concepts, Vector input_parameters, Vector all_concepts) {
-        Datatable var5 = new Datatable();
-        Concept var6 = (Concept) input_parameters.elementAt(0);
-        Concept var7 = (Concept) input_concepts.elementAt(0);
-        Concept var8 = (Concept) input_concepts.elementAt(1);
-        Vector var9 = (Vector) input_parameters.elementAt(1);
-        Vector var10 = (Vector) input_parameters.elementAt(2);
-        Datatable var11 = (Datatable) input_datatables.elementAt(0);
-        Datatable var12 = (Datatable) input_datatables.elementAt(1);
-        if (input_parameters.size() == 4) {
-            var7 = (Concept) input_concepts.elementAt(1);
-            var8 = (Concept) input_concepts.elementAt(0);
-            var9 = (Vector) input_parameters.elementAt(2);
-            var10 = (Vector) input_parameters.elementAt(1);
-            var11 = (Datatable) input_datatables.elementAt(1);
-            var12 = (Datatable) input_datatables.elementAt(0);
+
+    public Datatable transformTable(Vector input_datatables, Vector input_concepts,
+                                    Vector input_parameters, Vector all_concepts)
+    {
+        Datatable output = new Datatable();
+        Concept base_concept = (Concept)input_parameters.elementAt(0);
+
+        Concept lh_concept = (Concept)input_concepts.elementAt(0);
+        Concept rh_concept = (Concept)input_concepts.elementAt(1);
+        Vector lh_params = (Vector)input_parameters.elementAt(1);
+        Vector rh_params = (Vector)input_parameters.elementAt(2);
+        Datatable lh_datatable = (Datatable)input_datatables.elementAt(0);
+        Datatable rh_datatable = (Datatable)input_datatables.elementAt(1);
+
+        if (input_parameters.size()==4)
+        {
+            lh_concept = (Concept)input_concepts.elementAt(1);
+            rh_concept = (Concept)input_concepts.elementAt(0);
+            lh_params = (Vector)input_parameters.elementAt(2);
+            rh_params = (Vector)input_parameters.elementAt(1);
+            lh_datatable = (Datatable)input_datatables.elementAt(1);
+            rh_datatable = (Datatable)input_datatables.elementAt(0);
         }
 
-        Vector var13 = new Vector();
-        Vector var14 = new Vector();
-        var13.addElement(var7);
-        var13.addElement(var6);
-        var14.addElement(var8);
-        var14.addElement(var6);
-        Vector var15 = new Vector();
-        var15.addElement(var11);
-        var15.addElement(var6.datatable);
-        Vector var16 = new Vector();
-        var16.addElement(var12);
-        var16.addElement(var6.datatable);
-        Datatable var17 = this.compose.transformTable(var15, var13, var9, all_concepts);
-        Datatable var18 = this.compose.transformTable(var16, var14, var10, all_concepts);
-        Vector var19 = new Vector();
+        Vector lh_concepts = new Vector();
+        Vector rh_concepts = new Vector();
+        lh_concepts.addElement(lh_concept);
+        lh_concepts.addElement(base_concept);
+        rh_concepts.addElement(rh_concept);
+        rh_concepts.addElement(base_concept);
 
-        int var20;
-        for(var20 = var6.arity; var20 < var9.size(); ++var20) {
-            var19.addElement(Integer.toString(var20));
-        }
+        Vector lh_datatables = new Vector();
+        lh_datatables.addElement(lh_datatable);
+        lh_datatables.addElement(base_concept.datatable);
+        Vector rh_datatables = new Vector();
+        rh_datatables.addElement(rh_datatable);
+        rh_datatables.addElement(base_concept.datatable);
 
-        for(var20 = 0; var20 < var11.size(); ++var20) {
-            Row var21 = (Row)var11.elementAt(var20);
-            Row var22 = var6.calculateRow(all_concepts, var21.entity);
-            Row var23 = new Row();
-            var23.entity = var22.entity;
+        Datatable lh_composed_datatable = compose.transformTable(lh_datatables, lh_concepts, lh_params, all_concepts);
+        Datatable rh_composed_datatable = compose.transformTable(rh_datatables, rh_concepts, rh_params, all_concepts);
 
-            for(int var24 = 0; var24 < var22.tuples.size(); ++var24) {
-                Vector var25 = (Vector)var22.tuples.elementAt(var24);
-                Tuples var26 = var17.rowWithEntity(var22.entity).tuples;
-                Tuples var27 = var18.rowWithEntity(var22.entity).tuples;
-                Vector var28 = this.getTuples(var26, var9, var25);
-                Vector var29 = this.getTuples(var27, var10, var25);
-                if (this.subsumptionOccurs(var28, var29)) {
-                    var23.tuples.addElement((Vector)var25.clone());
-                }
+        Vector forall_columns = new Vector();
+        for (int i=base_concept.arity; i<lh_params.size(); i++)
+            forall_columns.addElement(Integer.toString(i));
+
+        for (int i=0; i<lh_datatable.size(); i++)
+        {
+            Row lh_row = (Row)lh_datatable.elementAt(i);
+            Row base_row = base_concept.calculateRow(all_concepts, lh_row.entity);
+            Row new_row = new Row();
+            new_row.entity = base_row.entity;
+            for (int j=0; j<base_row.tuples.size(); j++)
+            {
+                Vector base_tuple = (Vector)base_row.tuples.elementAt(j);
+                Vector all_lh_tuples = lh_composed_datatable.rowWithEntity(base_row.entity).tuples;
+                Vector all_rh_tuples = rh_composed_datatable.rowWithEntity(base_row.entity).tuples;
+                Vector tuples_extracted_from_lhs = getTuples(all_lh_tuples, lh_params, base_tuple);
+                Vector tuples_extracted_from_rhs = getTuples(all_rh_tuples, rh_params, base_tuple);
+                if (subsumptionOccurs(tuples_extracted_from_lhs, tuples_extracted_from_rhs))
+                    new_row.tuples.addElement((Vector)base_tuple.clone());
             }
-
-            var5.addElement(var23);
+            output.addElement(new_row);
         }
-
-        return var5;
+        return output;
     }
 
-    private boolean subsumptionOccurs(Vector var1, Vector var2) {
-        Vector var3 = new Vector();
-
-        int var4;
-        for(var4 = 0; var4 < var2.size(); ++var4) {
-            var3.addElement(((Vector)var2.elementAt(var4)).toString());
-        }
-
-        for(var4 = 0; var4 < var1.size(); ++var4) {
-            Vector var5 = (Vector)var1.elementAt(var4);
-            if (!var3.contains(var5.toString())) {
+    private boolean subsumptionOccurs(Vector lh_tuples, Vector rh_tuples)
+    {
+        Vector rh_strings = new Vector();
+        for (int i=0; i<rh_tuples.size(); i++)
+            rh_strings.addElement(((Vector)rh_tuples.elementAt(i)).toString());
+        for (int i=0; i<lh_tuples.size(); i++)
+        {
+            Vector lh_tuple = (Vector)lh_tuples.elementAt(i);
+            if (!rh_strings.contains(lh_tuple.toString()))
                 return false;
-            }
         }
-
         return true;
     }
 
-    private Vector getTuples(Vector var1, Vector var2, Vector var3) {
-        Vector var4 = new Vector();
-
-        for(int var5 = 0; var5 < var1.size(); ++var5) {
-            Vector var6 = (Vector)var1.elementAt(var5);
-            Vector var7 = new Vector();
-            boolean var8 = true;
-
-            for(int var9 = 0; var9 < var6.size() && var8; ++var9) {
-                String var10 = (String)var6.elementAt(var9);
-                String var11 = (String)var2.elementAt(var9 + 1);
-                if (!var11.equals("0")) {
-                    int var12 = new Integer(var11) - 2;
-                    String var13 = (String)var3.elementAt(var12);
-                    if (!var10.equals(var13)) {
-                        var8 = false;
-                    }
-                } else {
-                    var7.addElement(var10);
+    private Vector getTuples(Vector all_tuples, Vector params, Vector base_tuple)
+    {
+        Vector output = new Vector();
+        for (int i=0; i<all_tuples.size(); i++)
+        {
+            Vector tuple = (Vector)all_tuples.elementAt(i);
+            Vector extracted_tuple = new Vector();
+            boolean keep_tuple = true;
+            for (int j=0; j<tuple.size() && keep_tuple; j++)
+            {
+                String tuple_element = (String)tuple.elementAt(j);
+                String pos = (String)params.elementAt(j+1);
+                if (!pos.equals("0"))
+                {
+                    int pos_int = (new Integer(pos)).intValue() - 2;
+                    String base_element = (String)base_tuple.elementAt(pos_int);
+                    if (!tuple_element.equals(base_element))
+                        keep_tuple = false;
                 }
+                else
+                    extracted_tuple.addElement(tuple_element);
             }
-
-            if (var8) {
-                var4.addElement(var7);
-            }
+            if (keep_tuple)
+                output.addElement(extracted_tuple);
         }
-
-        return var4;
+        return output;
     }
 
-    /**
-     * Returns the types of the objects in the columns of the new datatable.
+    /** Returns the types of the objects in the columns of the new datatable.
      */
-    public Vector transformTypes(Vector old_concepts, Vector parameters) {
-        Concept var3 = (Concept) parameters.elementAt(0);
-        return (Vector)var3.types.clone();
+
+    public Vector transformTypes(Vector old_concepts, Vector parameters)
+    {
+        Concept base_concept = (Concept)parameters.elementAt(0);
+        return (Vector)base_concept.types.clone();
     }
 
-    /**
-     * This assigns a score to a concept depending on whether the production rule can see any likelihood of a pattern.
+    /** This assigns a score to  a concept depending on whether the
+     * production rule can see any likelihood of a pattern.
      */
-    public int patternScore(Vector concept_list, Vector all_concepts, Vector entity_list, Vector non_entity_list) {
+    // TODO: NEED TO IMPLEMENT THIS
+    public int patternScore(Vector concept_list, Vector all_concepts,
+                            Vector entity_list, Vector non_entity_list)
+    {
         return 0;
     }
+
 }

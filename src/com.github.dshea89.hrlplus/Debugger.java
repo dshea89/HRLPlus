@@ -1,30 +1,28 @@
 package com.github.dshea89.hrlplus;
 
+import java.lang.String;
 import java.io.Serializable;
-import javax.swing.JEditorPane;
-import javax.swing.JFrame;
-import javax.swing.JScrollPane;
+import javax.swing.*;
 
-/**
- * A class for debugging with.
- */
-public class Debugger implements Serializable {
-    public Debugger() {
-    }
+/** A class for debugging with.
+ *
+ * @author Simon Colton, started 17th December 2001
+ * @version 1.0 */
 
-    public void runFunction(Theory var1, String var2) {
-        JFrame var3 = new JFrame();
-        var3.setSize(500, 500);
-        JEditorPane var4 = new JEditorPane("text/html", var2);
-        JScrollPane var5 = new JScrollPane(var4);
-        var3.getContentPane().add(var5);
-        var3.setVisible(true);
-
-        try {
-            var4.setPage(var2);
-        } catch (Exception var7) {
-            ;
+public class Debugger implements Serializable
+{
+    public void runFunction(Theory theory, String param)
+    {
+        JFrame f = new JFrame();
+        f.setSize(500,500);
+        JEditorPane jt = new JEditorPane("text/html",param);
+        JScrollPane jsp = new JScrollPane(jt);
+        f.getContentPane().add(jsp);
+        f.setVisible(true);
+        try
+        {
+            jt.setPage(param);
         }
-
+        catch(Exception ignored){}
     }
 }

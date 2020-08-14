@@ -1,111 +1,139 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.Serializable;
-import java.util.Hashtable;
 import java.util.Vector;
+import java.lang.String;
+import java.util.Hashtable;
+import java.io.Serializable;
 
-public class HoldBackChecker extends DataGenerator implements Serializable {
+/** A class for checking whether any data held back by the user (but specified as
+ * available for counterexamples) breaks a given conjecture.
+ *
+ * @author Simon Colton, started 1st September 2001
+ * @version 1.0 */
+
+public class HoldBackChecker extends DataGenerator implements Serializable
+{
+    /** The hashtable of counterexamples.
+     */
+
     public Hashtable counterexamples = new Hashtable();
 
-    public HoldBackChecker() {
+    /** This adds a counterexample for the particular domain (key).
+     */
+
+    public void addCounterexample(String key, String counterexample)
+    {
+        if (counterexamples.get(key)==null)
+        {
+            Vector c_vector = new Vector();
+            c_vector.addElement(counterexample);
+            counterexamples.put(key,c_vector);
+        }
+        else
+        {
+            Vector c_vector = (Vector)counterexamples.get(key);
+            c_vector.addElement(counterexample);
+        }
     }
 
-    public void addCounterexample(String var1, String var2) {
-        Vector var3;
-        if (this.counterexamples.get(var1) == null) {
-            var3 = new Vector();
-            var3.addElement(var2);
-            this.counterexamples.put(var1, var3);
-        } else {
-            var3 = (Vector)this.counterexamples.get(var1);
-            var3.addElement(var2);
+    /** This checks whether the given conjecture is broken by any counterexamples
+     * held back by the user. It stops if it finds num_required counterexamples.
+     */
+
+    public Vector counterexamplesFor(Conjecture conjecture, Theory theory, int num_required)
+    {
+        Vector output = new Vector();
+
+        // Deals with equivalence conjectures //
+
+        if (conjecture instanceof Equivalence)
+        {
+            String entity_name = "";
+            Equivalence equiv = (Equivalence)conjecture;
+            String entity_type = (String)equiv.lh_concept.types.elementAt(0);
+            Vector possible_counterexamples = (Vector)counterexamples.get(entity_type);
+            if (possible_counterexamples==null || possible_counterexamples.isEmpty())
+                return new Vector();
+            int i=0;
+            while (i<possible_counterexamples.size() && num_required > output.size())
+            {
+                entity_name = (String)possible_counterexamples.elementAt(i);
+                Tuples lh_tuples = equiv.lh_concept.calculateRow(theory.concepts, entity_name).tuples;
+                lh_tuples.sort();
+                Tuples rh_tuples = equiv.rh_concept.calculateRow(theory.concepts, entity_name).tuples;
+                rh_tuples.sort();
+                String lh_row = lh_tuples.toString();
+                String rh_row = rh_tuples.toString();
+                if (!lh_row.equals(rh_row))
+                {
+                    Entity entity = new Entity();
+                    entity.name = entity_name;
+                    entity.conjecture = conjecture;
+                    output.addElement(entity);
+                    possible_counterexamples.removeElementAt(i);
+                    i--;
+                }
+                i++;
+            }
         }
 
+        // Deals with implication conjectures //
+
+        if (conjecture instanceof Implication)
+        {
+            Implication implication = (Implication)conjecture;
+            String entity_name = "";
+            String entity_type = (String)implication.lh_concept.types.elementAt(0);
+            Vector possible_counterexamples = (Vector)counterexamples.get(entity_type);
+            if (possible_counterexamples==null || possible_counterexamples.isEmpty())
+                return new Vector();
+            int i=0;
+            while (i<possible_counterexamples.size() && num_required > output.size())
+            {
+                entity_name = (String)possible_counterexamples.elementAt(i);
+                Tuples lh_tuples = implication.lh_concept.calculateRow(theory.concepts, entity_name).tuples;
+                Tuples rh_tuples = implication.rh_concept.calculateRow(theory.concepts, entity_name).tuples;
+                if (!rh_tuples.subsumes(lh_tuples))
+                {
+                    Entity entity = new Entity();
+                    entity.name = entity_name;
+                    entity.conjecture = conjecture;
+                    possible_counterexamples.removeElementAt(i);
+                    output.addElement(entity);
+                    i--;
+                }
+                i++;
+            }
+        }
+
+        // Deals with non-existence conjectures //
+
+        if (conjecture instanceof NonExists)
+        {
+            NonExists non_exists = (NonExists)conjecture;
+            String entity_name = "";
+            String entity_type = (String)non_exists.concept.types.elementAt(0);
+            Vector possible_counterexamples = (Vector)counterexamples.get(entity_type);
+            if (possible_counterexamples == null || possible_counterexamples.isEmpty())
+                return new Vector();
+            int i=0;
+            while (i<possible_counterexamples.size() && num_required > output.size())
+            {
+                entity_name = (String)possible_counterexamples.elementAt(i);
+                Tuples tuples = non_exists.concept.calculateRow(theory.concepts, entity_name).tuples;
+                if (!tuples.isEmpty())
+                {
+                    possible_counterexamples.removeElementAt(i);
+                    Entity entity = new Entity();
+                    entity.name = entity_name;
+                    entity.conjecture = conjecture;
+                    output.addElement(entity);
+                    i--;
+                }
+                i++;
+            }
+        }
+        return output;
     }
 
-    public Vector counterexamplesFor(Conjecture conj, Theory theory, int num_required) {
-        Vector var4 = new Vector();
-        String var7;
-        Vector var8;
-        int var9;
-        Tuples var10;
-        Tuples var11;
-        if (conj instanceof Equivalence) {
-            String var5 = "";
-            Equivalence var6 = (Equivalence) conj;
-            var7 = (String)var6.lh_concept.types.elementAt(0);
-            var8 = (Vector)this.counterexamples.get(var7);
-            if (var8 == null || var8.isEmpty()) {
-                return new Vector();
-            }
-
-            for(var9 = 0; var9 < var8.size() && num_required > var4.size(); ++var9) {
-                var5 = (String)var8.elementAt(var9);
-                var10 = var6.lh_concept.calculateRow(theory.concepts, var5).tuples;
-                var10.sort();
-                var11 = var6.rh_concept.calculateRow(theory.concepts, var5).tuples;
-                var11.sort();
-                String var12 = var10.toString();
-                String var13 = var11.toString();
-                if (!var12.equals(var13)) {
-                    Entity var14 = new Entity();
-                    var14.name = var5;
-                    var14.conjecture = conj;
-                    var4.addElement(var14);
-                    var8.removeElementAt(var9);
-                    --var9;
-                }
-            }
-        }
-
-        String var17;
-        if (conj instanceof Implication) {
-            Implication var15 = (Implication) conj;
-            var17 = "";
-            var7 = (String)var15.lh_concept.types.elementAt(0);
-            var8 = (Vector)this.counterexamples.get(var7);
-            if (var8 == null || var8.isEmpty()) {
-                return new Vector();
-            }
-
-            for(var9 = 0; var9 < var8.size() && num_required > var4.size(); ++var9) {
-                var17 = (String)var8.elementAt(var9);
-                var10 = var15.lh_concept.calculateRow(theory.concepts, var17).tuples;
-                var11 = var15.rh_concept.calculateRow(theory.concepts, var17).tuples;
-                if (!var11.subsumes(var10)) {
-                    Entity var19 = new Entity();
-                    var19.name = var17;
-                    var19.conjecture = conj;
-                    var8.removeElementAt(var9);
-                    var4.addElement(var19);
-                    --var9;
-                }
-            }
-        }
-
-        if (conj instanceof NonExists) {
-            NonExists var16 = (NonExists) conj;
-            var17 = "";
-            var7 = (String)var16.concept.types.elementAt(0);
-            var8 = (Vector)this.counterexamples.get(var7);
-            if (var8 == null || var8.isEmpty()) {
-                return new Vector();
-            }
-
-            for(var9 = 0; var9 < var8.size() && num_required > var4.size(); ++var9) {
-                var17 = (String)var8.elementAt(var9);
-                var10 = var16.concept.calculateRow(theory.concepts, var17).tuples;
-                if (!var10.isEmpty()) {
-                    var8.removeElementAt(var9);
-                    Entity var18 = new Entity();
-                    var18.name = var17;
-                    var18.conjecture = conj;
-                    var4.addElement(var18);
-                    --var9;
-                }
-            }
-        }
-
-        return var4;
-    }
 }

@@ -1,164 +1,200 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.Serializable;
 import java.util.Vector;
+import java.lang.String;
+import java.io.Serializable;
 
-public class Disjunct extends ProductionRule implements Serializable {
-    public boolean is_cumulative = false;
+/** A class representing the exists production rule. This production
+ * rule takes an old datatable as input and a set of parameterizations.
+ * The parameterization is a list of columns which are to be #removed#
+ * in the output datatable.
+ *
+ * @author Simon Colton, started 1st September 2001
+ * @version 1.0 */
 
-    public Disjunct() {
-    }
+public class Disjunct extends ProductionRule implements Serializable
+{
+    /** Returns true as this is a binary production rule.
+     */
 
-    public boolean isBinary() {
+    public boolean isBinary()
+    {
         return true;
     }
 
-    public String getName() {
+    /** Whether or not this produces cumulative concepts.
+     * @see Concept
+     */
+
+    public boolean is_cumulative = false;
+
+    /** Returns "disjunct" as that is the name of this production rule.
+     */
+
+    public String getName()
+    {
         return "disjunct";
     }
 
-    public Vector allParameters(Vector concept_list, Theory theory) {
-        Vector var3 = new Vector();
-        Concept var4 = (Concept) concept_list.elementAt(0);
-        Concept var5 = (Concept) concept_list.elementAt(1);
-        if (var4 == var5) {
-            return var3;
-        } else if (var4.arity > this.arity_limit) {
-            return var3;
-        } else if (var4.isGeneralisationOf(var5) < 0 && var5.isGeneralisationOf(var4) < 0) {
-            if (var4.types.toString().equals(var5.types.toString())) {
-                var3.addElement(new Vector());
-            }
+    /** Given a vector of one concept, this will return all the parameterisations for this
+     * concept. It will return all tuples of columns which do not contain the first column.
+     */
 
-            return var3;
-        } else {
-            return var3;
-        }
+    public Vector allParameters(Vector old_concepts, Theory theory)
+    {
+        Vector output = new Vector();
+        Concept primary_concept = (Concept)old_concepts.elementAt(0);
+        Concept secondary_concept = (Concept)old_concepts.elementAt(1);
+        if (primary_concept==secondary_concept)
+            return output;
+        if (primary_concept.arity > arity_limit)
+            return output;
+        if (primary_concept.isGeneralisationOf(secondary_concept)>=0 ||
+                secondary_concept.isGeneralisationOf(primary_concept)>=0)
+            return output;
+        if (primary_concept.types.toString().equals(secondary_concept.types.toString()))
+            output.addElement(new Vector());
+        return output;
     }
 
-    public Vector newSpecifications(Vector concept_list, Vector parameters, Theory theory, Vector new_functions) {
-        Vector var5 = new Vector();
-        Concept var6 = (Concept) concept_list.elementAt(0);
-        Concept var7 = (Concept) concept_list.elementAt(1);
-        Vector var8 = (Vector)var6.specifications.clone();
-        Vector var9 = (Vector)var7.specifications.clone();
+    public Vector newSpecifications(Vector input_concepts, Vector input_parameters, Theory theory, Vector new_functions)
+    {
+        Vector output = new Vector();
+        Concept primary_concept = (Concept)input_concepts.elementAt(0);
+        Concept secondary_concept = (Concept)input_concepts.elementAt(1);
 
-        int var12;
-        for(int var10 = 0; var10 < var8.size(); ++var10) {
-            Specification var11 = (Specification)var8.elementAt(var10);
-            var12 = var9.indexOf(var11);
-            if (var12 >= 0) {
-                var8.removeElementAt(var10);
-                var9.removeElementAt(var12);
-                var5.addElement(var11);
+        // Add in the old specifications which appear in both concepts //
+
+        Vector primary_specs = (Vector)primary_concept.specifications.clone();
+        Vector secondary_specs = (Vector)secondary_concept.specifications.clone();
+
+        for (int i=0; i<primary_specs.size(); i++)
+        {
+            Specification primary_spec = (Specification)primary_specs.elementAt(i);
+            int ind = secondary_specs.indexOf(primary_spec);
+            if (ind >= 0)
+            {
+                primary_specs.removeElementAt(i);
+                secondary_specs.removeElementAt(ind);
+                output.addElement(primary_spec);
             }
         }
 
-        Specification var16 = new Specification();
-        var16.type = "disjunct";
-        var16.rh_starts = var8.size();
-        var16.previous_specifications = var8;
+        // Construct the new disjunct specification //
 
-        for(int var17 = 0; var17 < var9.size(); ++var17) {
-            var16.previous_specifications.addElement(var9.elementAt(var17));
-        }
-
-        Vector var18 = new Vector();
-
-        for(var12 = 0; var12 < var16.previous_specifications.size(); ++var12) {
-            Specification var13 = (Specification)var16.previous_specifications.elementAt(var12);
-
-            for(int var14 = 0; var14 < var13.permutation.size(); ++var14) {
-                String var15 = (String)var13.permutation.elementAt(var14);
-                if (!var18.contains(var15)) {
-                    var18.addElement(var15);
-                }
+        Specification disjunct_spec = new Specification();
+        disjunct_spec.type = "disjunct";
+        disjunct_spec.rh_starts = primary_specs.size();
+        disjunct_spec.previous_specifications = primary_specs;
+        for (int i=0; i<secondary_specs.size(); i++)
+            disjunct_spec.previous_specifications.addElement(secondary_specs.elementAt(i));
+        Vector columns_used = new Vector();
+        for (int i=0; i<disjunct_spec.previous_specifications.size(); i++)
+        {
+            Specification prev_spec =
+                    (Specification)disjunct_spec.previous_specifications.elementAt(i);
+            for (int j=0; j<prev_spec.permutation.size(); j++)
+            {
+                String column = (String)prev_spec.permutation.elementAt(j);
+                if (!columns_used.contains(column))
+                    columns_used.addElement(column);
             }
         }
-
-        for(var12 = 0; var12 < var6.arity; ++var12) {
-            String var19 = Integer.toString(var12);
-            if (var18.contains(var19)) {
-                var16.permutation.addElement(var19);
-            } else {
-                var16.redundant_columns.addElement(var19);
-            }
+        for (int i=0; i<primary_concept.arity; i++)
+        {
+            String column = Integer.toString(i);
+            if (columns_used.contains(column))
+                disjunct_spec.permutation.addElement(column);
+            else
+                disjunct_spec.redundant_columns.addElement(column);
         }
-
-        var5.addElement(var16);
-        return var5;
+        output.addElement(disjunct_spec);
+        return output;
     }
 
-    public Datatable transformTable(Vector old_datatables, Vector old_concepts, Vector parameters, Vector all_concepts) {
-        Datatable var5 = new Datatable();
-        Datatable var6 = (Datatable) old_datatables.elementAt(0);
-        Datatable var7 = (Datatable) old_datatables.elementAt(1);
-
-        for(int var8 = 0; var8 < var6.size(); ++var8) {
+    public Datatable transformTable(Vector input_datatables, Vector input_concepts,
+                                    Vector parameters, Vector all_concepts)
+    {
+        Datatable output = new Datatable();
+        Datatable primary_datatable = (Datatable)input_datatables.elementAt(0);
+        Datatable secondary_datatable = (Datatable)input_datatables.elementAt(1);
+        for (int i=0; i<primary_datatable.size(); i++)
+        {
             try {
-                Row var9 = (Row) var6.elementAt(var8);
-                Row var10 = (Row) var7.elementAt(var8);
-                var5.addElement(new Row(var9.entity, this.makeDisjunctRow(var9, var10)));
+                Row primary_row = (Row)primary_datatable.elementAt(i);
+                Row secondary_row = (Row)secondary_datatable.elementAt(i);
+                output.addElement(new Row(primary_row.entity, makeDisjunctRow(primary_row, secondary_row)));
             } catch (ArrayIndexOutOfBoundsException ignored) {
             }
         }
-
-        return var5;
+        return output;
     }
 
-    private Tuples makeDisjunctRow(Row var1, Row var2) {
-        Tuples var3 = new Tuples();
-        Vector var4 = new Vector();
-
-        int var5;
-        Vector var6;
-        for(var5 = 0; var5 < var1.tuples.size(); ++var5) {
-            var6 = (Vector)var1.tuples.elementAt(var5);
-            var3.addElement((Vector)var6.clone());
-            var4.addElement(var6.toString());
+    private Tuples makeDisjunctRow(Row primary_row, Row secondary_row)
+    {
+        Tuples new_tuples = new Tuples();
+        Vector tuple_strings = new Vector();
+        for (int i=0; i<primary_row.tuples.size(); i++)
+        {
+            Vector tuple = (Vector)primary_row.tuples.elementAt(i);
+            new_tuples.addElement((Vector)tuple.clone());
+            tuple_strings.addElement(tuple.toString());
         }
-
-        for(var5 = 0; var5 < var2.tuples.size(); ++var5) {
-            var6 = (Vector)var2.tuples.elementAt(var5);
-            String var7 = var6.toString();
-            if (!var4.contains(var7)) {
-                var3.addElement((Vector)var6.clone());
-                var4.addElement(var7);
+        for (int i=0; i<secondary_row.tuples.size(); i++)
+        {
+            Vector tuple = (Vector)secondary_row.tuples.elementAt(i);
+            String tuple_string = tuple.toString();
+            if (!tuple_strings.contains(tuple_string))
+            {
+                new_tuples.addElement((Vector)tuple.clone());
+                tuple_strings.addElement(tuple_string);
             }
         }
-
-        return var3;
+        return new_tuples;
     }
 
-    public Vector transformTypes(Vector old_concepts, Vector parameters) {
-        Concept var3 = (Concept) old_concepts.elementAt(0);
-        return var3.types;
+    /** Returns the types of the objects in the columns of the new datatable.
+     */
+
+    public Vector transformTypes(Vector old_concepts, Vector parameters)
+    {
+        Concept primary_concept = (Concept)old_concepts.elementAt(0);
+        return primary_concept.types;
     }
 
-    public int patternScore(Vector concept_list, Vector all_concepts, Vector entity_list, Vector non_entity_list) {
-        Concept var5 = (Concept) concept_list.elementAt(0);
-        Concept var6 = (Concept) concept_list.elementAt(1);
-        String var7 = (String) entity_list.elementAt(0);
-        Row var8 = var5.datatable.rowWithEntity(var7);
-        Row var9 = var6.datatable.rowWithEntity(var7);
-        Tuples var10 = this.makeDisjunctRow(var8, var9);
-        int var11 = non_entity_list.size();
+    /** This assigns a score to  a concept depending on whether the
+     * production rule can see any likelihood of a pattern.
+     */
 
-        for(int var12 = 1; var11 > 0 && var12 < var10.size(); ++var12) {
-            Vector var13 = (Vector)var10.elementAt(var12);
-
-            for(int var14 = 1; var11 > 0 && var14 < entity_list.size(); ++var14) {
-                String var15 = (String) entity_list.elementAt(var14);
-                Row var16 = var5.datatable.rowWithEntity(var15);
-                if (!var16.tuples.contains(var13)) {
-                    Row var17 = var5.datatable.rowWithEntity(var15);
-                    if (!var17.tuples.contains(var13)) {
-                        var11 = 0;
-                    }
+    public int patternScore(Vector concept_list, Vector all_concepts,
+                            Vector entity_list, Vector non_entity_list)
+    {
+        Concept primary_concept = (Concept)concept_list.elementAt(0);
+        Concept secondary_concept = (Concept)concept_list.elementAt(1);
+        String first_entity = (String)entity_list.elementAt(0);
+        Row primary_first_row = primary_concept.datatable.rowWithEntity(first_entity);
+        Row secondary_first_row = secondary_concept.datatable.rowWithEntity(first_entity);
+        Tuples first_tuples = makeDisjunctRow(primary_first_row, secondary_first_row);
+        int score = non_entity_list.size();
+        int i=1;
+        while (score>0 && i<first_tuples.size())
+        {
+            Vector tuple = (Vector)first_tuples.elementAt(i);
+            int j=1;
+            while (score>0 && j<entity_list.size())
+            {
+                String entity = (String)entity_list.elementAt(j);
+                Row primary_row = primary_concept.datatable.rowWithEntity(entity);
+                if (!primary_row.tuples.contains(tuple))
+                {
+                    Row secondary_row = primary_concept.datatable.rowWithEntity(entity);
+                    if (!secondary_row.tuples.contains(tuple))
+                        score=0;
                 }
+                j++;
             }
+            i++;
         }
-
-        return var11;
+        return score;
     }
 }

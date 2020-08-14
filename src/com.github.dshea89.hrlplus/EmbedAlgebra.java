@@ -1,220 +1,290 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.io.Serializable;
-import java.util.Enumeration;
-import java.util.Hashtable;
 import java.util.Vector;
+import java.util.Hashtable;
+import java.util.Enumeration;
+import java.lang.String;
+import java.io.*;
 
-public class EmbedAlgebra extends ProductionRule implements Serializable {
+/** A class representing the embed algebra production rule.
+ *
+ * @author Simon Colton, started 19th April 2002
+ * @version 1.0 */
+
+public class EmbedAlgebra extends ProductionRule implements Serializable
+{
+    /** Where the batch files to call Mace are.
+     */
+
     public String input_files_directory = "";
+
+    /** The hashtables of isomorphism which to test for isomorphism.
+     */
+
     public Hashtable isomorphisms = new Hashtable();
+
+    /** The maths object for this production rule. This is used for checking whether
+     * two algebras are isomorphic or not.
+     */
+
     public Maths maths = new Maths();
+
+    /** The Mace object for this production rule. (Mace is used to model check
+     * whether the sub-algebras satisfy the axioms of particular algebras).
+     */
+
     public Mace mace = new Mace();
+
+    /** The Hashtable of <algebra_name, Vector of axiom strings> this will use.
+     */
+
     public Hashtable algebra_hashtable = new Hashtable();
+
+    /** Which algebras to try and embed.
+     */
+
     public Vector algebras_to_check_for = new Vector();
-    public boolean is_cumulative = false;
 
-    public EmbedAlgebra() {
-    }
-
-    public boolean isBinary() {
+    public boolean isBinary()
+    {
         return false;
     }
 
-    public String getName() {
+    /** Whether or not this produces cumulative concepts.
+     * @see Concept
+     */
+
+    public boolean is_cumulative = false;
+
+    /** Returns "exists" as that is the name of this production rule.
+     */
+
+    public String getName()
+    {
         return "embed_algebra";
     }
 
-    public Vector allParameters(Vector concept_list, Theory theory) {
-        Concept var3 = (Concept) concept_list.elementAt(0);
-        Vector var4 = new Vector();
-        if (var3.arity == 4) {
-            for(int var5 = 0; var5 < this.algebras_to_check_for.size(); ++var5) {
-                Vector var6 = new Vector();
-                var6.addElement((String)this.algebras_to_check_for.elementAt(var5));
-                var4.addElement(var6);
+    /** Given a vector of one concept, this will return all the parameterisations for this
+     * concept. It will return all tuples of columns which do not contain the first column.
+     */
+
+    public Vector allParameters(Vector old_concepts, Theory theory)
+    {
+        Concept old_concept = (Concept)old_concepts.elementAt(0);
+        Vector output = new Vector();
+        if (old_concept.arity==4)
+        {
+            for (int i=0; i<algebras_to_check_for.size(); i++)
+            {
+                Vector param = new Vector();
+                param.addElement((String)algebras_to_check_for.elementAt(i));
+                output.addElement(param);
             }
         }
-
-        return var4;
+        return output;
     }
 
-    public Vector newSpecifications(Vector concept_list, Vector parameters, Theory theory, Vector new_functions) {
-        Concept var5 = (Concept) concept_list.elementAt(0);
-        String var6 = (String) parameters.elementAt(0);
-        Relation var7 = new Relation();
-        var7.addDefinition("ab", var5.id + " forms " + var6 + " @b@ for @a@", "ascii");
-        var7.name = var5.id + var6;
-        Specification var8 = new Specification();
-        Vector var9 = new Vector();
-        var9.addElement("0");
-        var9.addElement("1");
-        var8.addRelation(var9, var7);
-        var8.permutation.addElement("0");
-        var8.permutation.addElement("1");
-        Vector var10 = new Vector();
-        var10.addElement(var8);
-        return var10;
+    /** This produces the new specifications for concepts output using the embed
+     * algebra production rule.
+     */
+
+    public Vector newSpecifications(Vector input_concepts, Vector input_parameters,
+                                    Theory theory, Vector new_functions)
+    {
+        Concept old_concept = (Concept)input_concepts.elementAt(0);
+        String algebra = (String)input_parameters.elementAt(0);
+        Relation relation = new Relation();
+        relation.addDefinition("ab", old_concept.id + " forms " + algebra + " @b@ for @a@", "ascii");
+        relation.name = old_concept.id + algebra;
+        Specification new_specification = new Specification();
+        Vector permutation = new Vector();
+        permutation.addElement("0");
+        permutation.addElement("1");
+        new_specification.addRelation(permutation, relation);
+        new_specification.permutation.addElement("0");
+        new_specification.permutation.addElement("1");
+
+        Vector output = new Vector();
+        output.addElement(new_specification);
+        return output;
     }
 
-    public Datatable transformTable(Vector old_datatables, Vector old_concepts, Vector parameters, Vector all_concepts) {
-        Datatable var5 = new Datatable();
-        String var6 = (String) parameters.elementAt(0);
-        Datatable var7 = (Datatable) old_datatables.elementAt(0);
+    /** This produces the new datatable from the given datatable, using the parameters
+     * specified. This production rule removes columns from the input datatable, then
+     * removes any duplicated rows. The parameters details which columns are to be #removed#.
+     */
 
-        for(int var8 = 0; var8 < var7.size(); ++var8) {
-            Hashtable var9 = new Hashtable();
-            int var10 = 0;
-            Vector var11 = new Vector();
-            Row var12 = (Row)var7.elementAt(var8);
-            if (!this.isomorphisms.containsKey(var12.entity)) {
-                this.isomorphisms.put(var12.entity, var12.entity);
-            }
-
-            int var13;
-            Vector var14;
-            for(var13 = 0; var13 < var12.tuples.size(); ++var13) {
-                var14 = (Vector)var12.tuples.elementAt(var13);
-
-                for(int var15 = 0; var15 < var14.size(); ++var15) {
-                    String var16 = (String)var14.elementAt(var15);
-                    if (!var9.containsKey(var16)) {
-                        var9.put(var16, Integer.toString(var10));
-                        var11.addElement(Integer.toString(var10));
-                        ++var10;
+    public Datatable transformTable(Vector input_datatables, Vector input_concepts,
+                                    Vector parameters, Vector all_concepts)
+    {
+        Datatable output = new Datatable();
+        String algebra = (String)parameters.elementAt(0);
+        Datatable old_datatable = (Datatable)input_datatables.elementAt(0);
+        for (int i=0; i<old_datatable.size(); i++)
+        {
+            Hashtable element_names = new Hashtable();
+            int new_element_number = 0;
+            Vector all_numbered_elements = new Vector();
+            Row row = (Row)old_datatable.elementAt(i);
+            if (!isomorphisms.containsKey(row.entity))
+                isomorphisms.put(row.entity, row.entity);
+            for (int j=0; j<row.tuples.size(); j++)
+            {
+                Vector tuple = (Vector)row.tuples.elementAt(j);
+                for (int k=0; k<tuple.size(); k++)
+                {
+                    String element = (String)tuple.elementAt(k);
+                    if (!element_names.containsKey(element))
+                    {
+                        element_names.put(element, Integer.toString(new_element_number));
+                        all_numbered_elements.addElement(Integer.toString(new_element_number));
+                        new_element_number++;
                     }
                 }
             }
 
-            var13 = var11.size();
-            var14 = (Vector)this.algebra_hashtable.get(var6);
-            String var29 = "";
-            Vector var30 = new Vector();
-            boolean var17 = false;
-            String var18 = "";
-            Vector var19 = new Vector();
-
-            Vector var21;
-            String var22;
-            String var23;
-            String var24;
-            for(int var20 = 0; var20 < var12.tuples.size(); ++var20) {
-                var21 = (Vector)var12.tuples.elementAt(var20);
-                var22 = (String)var9.get((String)var21.elementAt(0));
-                var23 = (String)var9.get((String)var21.elementAt(1));
-                var24 = (String)var9.get((String)var21.elementAt(2));
-                String var25 = var22 + " * " + var23 + " = " + var24 + ".\n";
-                var29 = var29 + var25;
-                String var26 = var22 + "," + var23;
-                if (var30.contains(var26)) {
-                    var17 = true;
-                } else {
-                    var19.addElement(var24);
-                    var30.addElement(var26);
+            int algebra_size = all_numbered_elements.size();
+            Vector axioms_for_algebra = (Vector)algebra_hashtable.get(algebra);
+            String mult_string = "";
+            Vector all_mult_rows = new Vector();
+            boolean repeated_entry = false;
+            String string_rep = "";
+            Vector mult_in_place = new Vector();
+            for (int j=0; j<row.tuples.size(); j++)
+            {
+                Vector tuple = (Vector)row.tuples.elementAt(j);
+                String element0 = (String)element_names.get((String)tuple.elementAt(0));
+                String element1 = (String)element_names.get((String)tuple.elementAt(1));
+                String element2 = (String)element_names.get((String)tuple.elementAt(2));
+                String mult_row = element0 + " * " + element1 + " = " + element2 + ".\n";
+                mult_string = mult_string + mult_row;
+                String multiplicands = element0 + "," + element1;
+                if (all_mult_rows.contains(multiplicands))
+                    repeated_entry = true;
+                else
+                {
+                    mult_in_place.addElement(element2);
+                    all_mult_rows.addElement(multiplicands);
                 }
             }
-
-            boolean var31 = true;
-
-            for(int var32 = 0; var32 < var11.size() && var31; ++var32) {
-                for(int var34 = 0; var34 < var11.size() && var31; ++var34) {
-                    var23 = (String)var11.elementAt(var32) + "," + (String)var11.elementAt(var34);
-                    if (!var30.contains(var23)) {
-                        var31 = false;
-                    } else {
-                        int var36 = var30.indexOf(var23);
-                        var18 = var18 + (String)var19.elementAt(var36);
+            boolean closed = true;
+            for (int j=0; j<all_numbered_elements.size() && closed; j++)
+            {
+                for (int k=0; k<all_numbered_elements.size() && closed; k++)
+                {
+                    String multiplicand = (String)all_numbered_elements.elementAt(j) + "," +
+                            (String)all_numbered_elements.elementAt(k);
+                    if (!all_mult_rows.contains(multiplicand))
+                        closed=false;
+                    else
+                    {
+                        int pos = all_mult_rows.indexOf(multiplicand);
+                        string_rep = string_rep + (String)mult_in_place.elementAt(pos);
                     }
                 }
             }
-
-            if (var31 && !var17 && !var18.trim().equals("")) {
-                var21 = (Vector)this.algebra_hashtable.get(var6);
-                var22 = "set(auto).\nformula_list(usable).\n" + var29;
-
-                for(int var35 = 0; var35 < var21.size(); ++var35) {
-                    var24 = (String)var21.elementAt(var35);
-                    var22 = var22 + var24 + "\n";
+            if (closed && !repeated_entry && !string_rep.trim().equals(""))
+            {
+                Vector axiom_strings = (Vector)algebra_hashtable.get(algebra);
+                String mace_string = "set(auto).\nformula_list(usable).\n" + mult_string;
+                for (int j=0; j<axiom_strings.size(); j++)
+                {
+                    String axiom = (String)axiom_strings.elementAt(j);
+                    mace_string = mace_string + axiom + "\n";
                 }
-
-                var22 = var22 + "end_of_list.\n";
-
-                try {
-                    PrintWriter var37 = new PrintWriter(new BufferedWriter(new FileWriter("delembedalgebra.in")));
-                    var37.write(var22);
-                    var37.close();
-                } catch (Exception var28) {
+                mace_string = mace_string + "end_of_list.\n";
+                try
+                {
+                    PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("delembedalgebra.in")));
+                    out.write(mace_string);
+                    out.close();
+                }
+                catch(Exception e)
+                {
                     System.out.println("Having trouble opening file delembedalgebra.in");
                 }
-
-                if (this.mace.operating_system.equals("windows")) {
-                    try {
-                        var23 = this.input_files_directory + "ea.bat " + Integer.toString(var13);
-                        Process var39 = Runtime.getRuntime().exec(var23);
-                        int var41 = var39.waitFor();
-                    } catch (Exception var27) {
+                if (mace.operating_system.equals("windows"))
+                {
+                    try
+                    {
+                        String mace_process_string = input_files_directory + "ea.bat " + Integer.toString(algebra_size);
+                        Process mace_process = Runtime.getRuntime().exec(mace_process_string);
+                        int exit_value = mace_process.waitFor();
+                    }
+                    catch(Exception e)
+                    {
                         System.out.println("Having trouble running mace");
                     }
                 }
+                Hashtable concept_data = mace.readModelFromMace("delembedalgebra.out");
 
-                Hashtable var38 = this.mace.readModelFromMace("delembedalgebra.out");
-                Row var40 = new Row(var12.entity, new Tuples());
-                if (!var38.isEmpty()) {
-                    Vector var42 = new Vector();
-                    var42.addElement(this.getIsomorphism(var18));
-                    var40.tuples.addElement(var42);
+                Row new_row = new Row(row.entity, new Tuples());
+                if (!concept_data.isEmpty())
+                {
+                    Vector tuple = new Vector();
+                    tuple.addElement(getIsomorphism(string_rep));
+                    new_row.tuples.addElement(tuple);
                 }
-
-                var5.addElement(var40);
-            } else {
-                Row var33 = new Row(var12.entity, new Tuples());
-                var5.addElement(var33);
+                output.addElement(new_row);
+            }
+            else
+            {
+                Row new_row = new Row(row.entity, new Tuples());
+                output.addElement(new_row);
             }
         }
-
-        return var5;
+        return output;
     }
 
-    private String getIsomorphism(String var1) {
-        String var2 = (String)this.isomorphisms.get(var1);
-        if (var2 != null) {
-            return var2;
-        } else {
-            Enumeration var3 = this.isomorphisms.keys();
+    private String getIsomorphism(String string_rep)
+    {
+        String output = (String)isomorphisms.get(string_rep);
+        if (output!=null)
+            return output;
+        Enumeration isos = isomorphisms.keys();
+        while (isos.hasMoreElements())
+        {
+            String iso = (String)isos.nextElement();
+            Vector check_vector = new Vector();
+            check_vector.addElement(string_rep);
+            check_vector.addElement(iso);
 
-            String var4;
-            Vector var5;
-            do {
-                if (!var3.hasMoreElements()) {
-                    this.isomorphisms.put(var1, var1);
-                    return var1;
-                }
-
-                var4 = (String)var3.nextElement();
-                var5 = new Vector();
-                var5.addElement(var1);
-                var5.addElement(var4);
-            } while(var4.length() != var1.length() || this.maths.nonIsomorphic(var5).size() != 1);
-
-            this.isomorphisms.put(var1, var4);
-            return var4;
+            if (iso.length()==string_rep.length() &&
+                    maths.nonIsomorphic(check_vector).size()==1)
+            {
+                isomorphisms.put(string_rep, iso);
+                return iso;
+            }
         }
+        isomorphisms.put(string_rep, string_rep);
+        return string_rep;
     }
 
-    public Vector transformTypes(Vector old_concepts, Vector parameters) {
-        Vector var3 = (Vector)((Concept) old_concepts.elementAt(0)).types.clone();
-        Vector var4 = new Vector();
-        String var5 = (String) parameters.elementAt(0);
-        var4.addElement((String)var3.elementAt(0));
-        var4.addElement(var5);
-        return var4;
+    /** Returns the types of the objects in the columns of the new datatable.
+     */
+
+    public Vector transformTypes(Vector old_concepts, Vector parameters)
+    {
+        Vector old_types = (Vector)((Concept)old_concepts.elementAt(0)).types.clone();
+        Vector new_types = new Vector();
+        String algebra = (String)parameters.elementAt(0);
+        new_types.addElement((String)old_types.elementAt(0));
+        new_types.addElement(algebra);
+        return new_types;
     }
 
-    public int patternScore(Vector concept_list, Vector all_concepts, Vector entity_list, Vector non_entity_list) {
-        byte var5 = 0;
-        return var5;
+    /** This assigns a score to  a concept depending on whether the
+     * production rule can see any likelihood of a pattern. The pattern for the exists
+     * production rule is that each of the entities has a non-empty row of tuples. The
+     * fewer the non-entities that have a non-empty row, the better. Alternatively, if
+     * none of the entities to learn has a non-empty row of tuples, this is also a
+     * pattern.
+     */
+
+    public int patternScore(Vector concept_list, Vector all_concepts,
+                            Vector entity_list, Vector non_entity_list)
+    {
+        int score = 0;
+        return score;
     }
 }

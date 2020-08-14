@@ -1,240 +1,319 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.Serializable;
-import java.util.Hashtable;
 import java.util.Vector;
+import java.util.Hashtable;
+import java.lang.String;
+import java.io.Serializable;
 
-/**
- * This removes columns.
- */
-public class Exists extends ProductionRule implements Serializable {
+/** A class representing the exists production rule. This production
+ * rule takes an old datatable as input and a set of parameterizations.
+ * The parameterization is a list of columns which are to be #removed#
+ * in the output datatable.
+ *
+ * @author Simon Colton, started 3rd January 2000
+ * @version 1.0 */
+
+public class Exists extends ProductionRule implements Serializable
+{
+    /** Whether or not to merge previous existence specifications when producing
+     * the specifications for a new concept.
+     */
+
     public boolean merge_previous_exists = true;
-    public boolean is_cumulative = false;
 
-    public Exists() {
-    }
+    /** Returns false as this is a unary production rule.
+     */
 
-    public boolean isBinary() {
+    public boolean isBinary()
+    {
         return false;
     }
 
-    public String getName() {
+    /** Whether or not this produces cumulative concepts.
+     * @see Concept
+     */
+
+    public boolean is_cumulative = false;
+
+    /** Returns "exists" as that is the name of this production rule.
+     */
+
+    public String getName()
+    {
         return "exists";
     }
 
-    public Vector allParameters(Vector concept_list, Theory theory) {
-        Concept var3 = (Concept) concept_list.elementAt(0);
-        Vector var4 = super.allColumnTuples(var3.arity);
-        Vector var5 = new Vector();
+    /** Given a vector of one concept, this will return all the parameterisations for this
+     * concept. It will return all tuples of columns which do not contain the first column.
+     */
 
-        for(int var6 = 0; var6 < var4.size(); ++var6) {
-            Vector var7 = (Vector)var4.elementAt(var6);
-            if (var3.arity - var7.size() <= this.arity_limit) {
-                var5.addElement(var7);
+    public Vector allParameters(Vector old_concepts, Theory theory)
+    {
+        Concept old_concept = (Concept)old_concepts.elementAt(0);
+        Vector params = super.allColumnTuples(old_concept.arity);
+        Vector output = new Vector();
+        for (int i=0; i<params.size(); i++)
+        {
+            Vector p = (Vector)params.elementAt(i);
+
+            if (old_concept.arity - p.size() <= arity_limit)
+                output.addElement(p);
+        }
+        return output;
+    }
+
+    /** This produces the new specifications for concepts output using the exists production
+     * rule. To do this, it first finds which old specifications do not involve any of the
+     * quantified variables, and these specifications are added. Note that it may be
+     * necessary to alter the permutations for these. Then, a single new specification is
+     * added which is the quantification of the variables over the set of old specification
+     * in which the quantified variables are involved.
+     */
+
+    public Vector newSpecifications(Vector input_concepts, Vector input_parameters,
+                                    Theory theory, Vector new_functions)
+    {
+        Vector output = new Vector();
+        Concept old_concept = (Concept)input_concepts.elementAt(0);
+        Vector old_specifications = new Vector();
+        old_specifications = old_concept.specifications;
+        Vector old_types = old_concept.types;
+        Vector all_positions_used = new Vector();
+        Specification quantified_specification = new Specification();
+        quantified_specification.type = "exists";
+        quantified_specification.multiple_variable_columns = (Vector)input_parameters.clone();
+
+        // First make the quantified types for the quantified specification.
+
+        for (int i=0;i<input_parameters.size();i++)
+        {
+            quantified_specification.multiple_types.addElement(old_types.
+                    elementAt((new Integer((String)input_parameters.elementAt(i))).intValue()));
+        }
+
+        // Next run through all the old specifications, and add them to the new specifications
+        // if they are not involved in the quantification, or add them to the quantified specification
+        // otherwise.
+
+        for (int i=0;i<old_specifications.size();i++)
+        {
+            Specification old_specification = (Specification)old_specifications.elementAt(i);
+
+            // Work out whether the old specification involves any variables which are to be
+            // quantified.
+
+            boolean involves_removed_columns = old_specification.involvesColumns(input_parameters);
+
+            // Second case - old specification does not involve a variable which is to be quantified.
+            // Must change the permutation to reflect the loss of columns.
+
+            if (!involves_removed_columns)
+            {
+                Specification new_specification = old_specification.copy();
+                new_specification.permutation = new Vector();
+                for (int j=0;j<old_specification.permutation.size();j++)
+                {
+                    int number_of_columns_to_remove = 0;
+                    int add_column =
+                            (new Integer((String)old_specification.permutation.elementAt(j))).intValue();
+                    for (int k=0;k<input_parameters.size();k++)
+                    {
+                        int param =
+                                (new Integer((String)input_parameters.elementAt(k))).intValue();
+                        if (param<add_column) number_of_columns_to_remove++;
+                    }
+                    new_specification.permutation.
+                            addElement(Integer.toString(add_column-number_of_columns_to_remove));
+                }
+                output.addElement(new_specification);
+            }
+
+            // Third case - old specification gets added to previous specifications of the
+            // quantified specification.
+
+            if (involves_removed_columns)
+            {
+                quantified_specification.previous_specifications.addElement(old_specification);
+                for (int j=0;j<old_specification.permutation.size();j++)
+                {
+                    String pos = (String)old_specification.permutation.elementAt(j);
+                    if (!all_positions_used.contains(pos))
+                        all_positions_used.addElement(pos);
+                }
+            }
+        }
+        int add_to_perm_pos = 0;
+
+        // Now we specify which columns are used (put in the permutation) and
+        // which columns are redundant. All these columns will be added in so that the
+        // previous specifications can be used later.
+
+        for (int i=0;i<old_types.size();i++)
+        {
+            String try_pos = Integer.toString(i);
+            if (all_positions_used.contains(try_pos) && !input_parameters.contains(try_pos))
+            {
+                quantified_specification.permutation.addElement(Integer.toString(add_to_perm_pos));
+                add_to_perm_pos++;
+            }
+            if (!input_parameters.contains(try_pos) && !all_positions_used.contains(try_pos))
+            {
+                quantified_specification.redundant_columns.addElement(Integer.toString(add_to_perm_pos));
+                add_to_perm_pos++;
             }
         }
 
-        return var5;
-    }
+        // We now collect together the existence specifications which are old specifications
+        // of the new existence specification, so that only one existence is required.
 
-    public Vector newSpecifications(Vector concept_list, Vector parameters, Theory theory, Vector new_functions) {
-        Vector var5 = new Vector();
-        Concept var6 = (Concept) concept_list.elementAt(0);
-        new Vector();
-        Vector var7 = var6.specifications;
-        Vector var8 = var6.types;
-        Vector var9 = new Vector();
-        Specification var10 = new Specification();
-        var10.type = "exists";
-        var10.multiple_variable_columns = (Vector) parameters.clone();
+        if (merge_previous_exists)
+        {
+            int exists_pos = old_concept.arity - input_parameters.size() +
+                    quantified_specification.multiple_variable_columns.size();
+            Hashtable column_hashtable = new Hashtable();
 
-        int var11;
-        for(var11 = 0; var11 < parameters.size(); ++var11) {
-            var10.multiple_types.addElement(var8.elementAt(new Integer((String) parameters.elementAt(var11))));
-        }
-
-        int var16;
-        int var17;
-        int var19;
-        int var26;
-        for(var11 = 0; var11 < var7.size(); ++var11) {
-            Specification var12 = (Specification)var7.elementAt(var11);
-            boolean var13 = var12.involvesColumns(parameters);
-            if (!var13) {
-                Specification var14 = var12.copy();
-                var14.permutation = new Vector();
-                int var15 = 0;
-
-                while(true) {
-                    if (var15 >= var12.permutation.size()) {
-                        var5.addElement(var14);
-                        break;
-                    }
-
-                    var16 = 0;
-                    var17 = new Integer((String)var12.permutation.elementAt(var15));
-
-                    for(int var18 = 0; var18 < parameters.size(); ++var18) {
-                        var19 = new Integer((String) parameters.elementAt(var18));
-                        if (var19 < var17) {
-                            ++var16;
+            for (int i=0; i<quantified_specification.previous_specifications.size(); i++)
+            {
+                Specification prev_exists_spec =
+                        (Specification)quantified_specification.previous_specifications.elementAt(i);
+                if (prev_exists_spec.type.equals("exists"))
+                {
+                    for (int j=0; j<prev_exists_spec.permutation.size(); j++)
+                    {
+                        int old_pos_int = j;
+                        String old_pos = Integer.toString(j);
+                        for (int k=0; k<prev_exists_spec.multiple_variable_columns.size(); k++)
+                        {
+                            String mvc_pos = (String)prev_exists_spec.multiple_variable_columns.elementAt(k);
+                            int mvc_pos_int = (new Integer(mvc_pos)).intValue();
+                            if (mvc_pos_int<=old_pos_int)
+                                old_pos_int++;
                         }
+                        old_pos = Integer.toString(old_pos_int);
+                        String new_pos = (String)prev_exists_spec.permutation.elementAt(j);
+                        column_hashtable.put(old_pos, new_pos);
                     }
 
-                    var14.permutation.addElement(Integer.toString(var17 - var16));
-                    ++var15;
-                }
-            }
+                    // Add the existence variables from the previous existence specification
+                    // to those of the top level (new) existence specification. Remember which
+                    // variables become which new ones.
 
-            if (var13) {
-                var10.previous_specifications.addElement(var12);
-
-                for(var26 = 0; var26 < var12.permutation.size(); ++var26) {
-                    String var27 = (String)var12.permutation.elementAt(var26);
-                    if (!var9.contains(var27)) {
-                        var9.addElement(var27);
+                    for (int j=0; j<prev_exists_spec.multiple_variable_columns.size(); j++)
+                    {
+                        String old_pos = (String)prev_exists_spec.multiple_variable_columns.elementAt(j);
+                        String new_pos = Integer.toString(exists_pos);
+                        column_hashtable.put(old_pos, new_pos);
+                        quantified_specification.multiple_variable_columns.addElement(new_pos);
+                        quantified_specification.multiple_types.addElement(prev_exists_spec.multiple_types.elementAt(j));
+                        exists_pos++;
                     }
-                }
-            }
-        }
 
-        var11 = 0;
+                    // Add the specifications from the previous existence specification to
+                    // the top level (new) existence specification. Change their permutations
+                    // according to the hashtable. Change their functions according to the hashtable.
 
-        int var22;
-        for(var22 = 0; var22 < var8.size(); ++var22) {
-            String var23 = Integer.toString(var22);
-            if (var9.contains(var23) && !parameters.contains(var23)) {
-                var10.permutation.addElement(Integer.toString(var11));
-                ++var11;
-            }
-
-            if (!parameters.contains(var23) && !var9.contains(var23)) {
-                var10.redundant_columns.addElement(Integer.toString(var11));
-                ++var11;
-            }
-        }
-
-        if (this.merge_previous_exists) {
-            var22 = var6.arity - parameters.size() + var10.multiple_variable_columns.size();
-            Hashtable var24 = new Hashtable();
-
-            for(var26 = 0; var26 < var10.previous_specifications.size(); ++var26) {
-                Specification var28 = (Specification)var10.previous_specifications.elementAt(var26);
-                if (var28.type.equals("exists")) {
-                    String var20;
-                    String var32;
-                    for(var16 = 0; var16 < var28.permutation.size(); ++var16) {
-                        var17 = var16;
-                        var32 = Integer.toString(var16);
-
-                        for(var19 = 0; var19 < var28.multiple_variable_columns.size(); ++var19) {
-                            var20 = (String)var28.multiple_variable_columns.elementAt(var19);
-                            int var21 = new Integer(var20);
-                            if (var21 <= var17) {
-                                ++var17;
-                            }
+                    for (int j=0; j<prev_exists_spec.previous_specifications.size(); j++)
+                    {
+                        Specification prev_exists_prev_spec =
+                                (Specification)prev_exists_spec.previous_specifications.elementAt(j);
+                        Vector new_prev_perm = new Vector();
+                        for (int k=0; k<prev_exists_prev_spec.permutation.size(); k++)
+                        {
+                            String old_pos = (String)prev_exists_prev_spec.permutation.elementAt(k);
+                            String new_pos = (String)column_hashtable.get(old_pos);
+                            new_prev_perm.addElement(new_pos);
                         }
 
-                        var32 = Integer.toString(var17);
-                        String var34 = (String)var28.permutation.elementAt(var16);
-                        var24.put(var32, var34);
+                        Specification new_prev_exists_prev_spec = prev_exists_prev_spec.copy();
+                        new_prev_exists_prev_spec.permutation = new_prev_perm;
+                        quantified_specification.previous_specifications.addElement(new_prev_exists_prev_spec);
                     }
 
-                    for(var16 = 0; var16 < var28.multiple_variable_columns.size(); ++var16) {
-                        String var30 = (String)var28.multiple_variable_columns.elementAt(var16);
-                        var32 = Integer.toString(var22);
-                        var24.put(var30, var32);
-                        var10.multiple_variable_columns.addElement(var32);
-                        var10.multiple_types.addElement(var28.multiple_types.elementAt(var16));
-                        ++var22;
-                    }
-
-                    for(var16 = 0; var16 < var28.previous_specifications.size(); ++var16) {
-                        Specification var31 = (Specification)var28.previous_specifications.elementAt(var16);
-                        Vector var33 = new Vector();
-
-                        for(var19 = 0; var19 < var31.permutation.size(); ++var19) {
-                            var20 = (String)var31.permutation.elementAt(var19);
-                            String var36 = (String)var24.get(var20);
-                            var33.addElement(var36);
-                        }
-
-                        Specification var35 = var31.copy();
-                        var35.permutation = var33;
-                        var10.previous_specifications.addElement(var35);
-                    }
-
-                    var10.previous_specifications.removeElementAt(var26);
-                    --var26;
+                    quantified_specification.previous_specifications.removeElementAt(i);
+                    i--;
                 }
             }
         }
 
-        var5.addElement(var10);
+        output.addElement(quantified_specification);
 
-        for(var22 = 0; var22 < var6.functions.size(); ++var22) {
-            Function var25 = (Function)var6.functions.elementAt(var22);
-            Function var29 = var25.copy();
-            if (!var29.containsAColumnFrom(parameters)) {
-                var29.removeHoles(parameters);
-                new_functions.addElement(var29);
+        // Finally, add any functions which do not involve any columns which have been
+        // removed. Adjust the columns accordingly.
+
+        for (int i=0;i<old_concept.functions.size();i++)
+        {
+            Function function = (Function)old_concept.functions.elementAt(i);
+            Function new_function = function.copy();
+            if (!new_function.containsAColumnFrom(input_parameters))
+            {
+                new_function.removeHoles(input_parameters);
+                new_functions.addElement(new_function);
             }
         }
-
-        return var5;
+        return output;
     }
 
-    public Datatable transformTable(Vector old_datatables, Vector old_concepts, Vector parameters, Vector all_concepts) {
-        Datatable var5 = (Datatable) old_datatables.elementAt(0);
-        return super.removeColumns(var5, parameters);
+    /** This produces the new datatable from the given datatable, using the parameters
+     * specified. This production rule removes columns from the input datatable, then
+     * removes any duplicated rows. The parameters details which columns are to be #removed#.
+     */
+
+    public Datatable transformTable(Vector input_datatables, Vector input_concepts,
+                                    Vector parameters, Vector all_concepts)
+    {
+        Datatable old_datatable = (Datatable)input_datatables.elementAt(0);
+        return super.removeColumns(old_datatable, parameters);
     }
 
-    public Vector transformTypes(Vector old_concepts, Vector parameters) {
-        Vector var3 = (Vector)((Concept) old_concepts.elementAt(0)).types.clone();
-        return super.removeColumns(var3, parameters);
+    /** Returns the types of the objects in the columns of the new datatable.
+     */
+
+    public Vector transformTypes(Vector old_concepts, Vector parameters)
+    {
+        Vector old_types = (Vector)((Concept)old_concepts.elementAt(0)).types.clone();
+        return(super.removeColumns(old_types,parameters));
     }
 
-    public int patternScore(Vector concept_list, Vector all_concepts, Vector entity_list, Vector non_entity_list) {
-        Concept var5 = (Concept) concept_list.elementAt(0);
-        int var6 = 0;
-        boolean var7 = false;
-        boolean var8 = false;
-        String var9 = (String) entity_list.elementAt(0);
-        Row var10 = var5.calculateRow(all_concepts, var9);
-        if (var10.tuples.size() == 0) {
-            var7 = true;
-        } else {
-            var8 = true;
+    /** This assigns a score to  a concept depending on whether the
+     * production rule can see any likelihood of a pattern. The pattern for the exists
+     * production rule is that each of the entities has a non-empty row of tuples. The
+     * fewer the non-entities that have a non-empty row, the better. Alternatively, if
+     * none of the entities to learn has a non-empty row of tuples, this is also a
+     * pattern.
+     */
+
+    public int patternScore(Vector concept_list, Vector all_concepts,
+                            Vector entity_list, Vector non_entity_list)
+    {
+        Concept c = (Concept)concept_list.elementAt(0);
+        int i=0;
+        boolean empty_pattern = false;
+        boolean full_pattern = false;
+        String entity = (String)entity_list.elementAt(0);
+        Row row = c.calculateRow(all_concepts,entity);
+        if (row.tuples.size()==0) empty_pattern = true;
+        else full_pattern = true;
+        while ((full_pattern || empty_pattern) && i<entity_list.size())
+        {
+            entity = (String)entity_list.elementAt(i);
+            row = c.calculateRow(all_concepts,entity);
+            if (row.tuples.size()==0)
+                full_pattern = false;
+            else
+                empty_pattern = false;
+            i++;
         }
-
-        for(; (var8 || var7) && var6 < entity_list.size(); ++var6) {
-            var9 = (String) entity_list.elementAt(var6);
-            var10 = var5.calculateRow(all_concepts, var9);
-            if (var10.tuples.size() == 0) {
-                var8 = false;
-            } else {
-                var7 = false;
-            }
+        if (!full_pattern && !empty_pattern) return 0;
+        int score = non_entity_list.size();
+        for (i=0;i<non_entity_list.size();i++)
+        {
+            entity = (String)non_entity_list.elementAt(i);
+            row = c.calculateRow(all_concepts,entity);
+            if (row.tuples.size()>0 && full_pattern)
+                score--;
+            if (row.tuples.size()==0 && empty_pattern)
+                score--;
         }
-
-        if (!var8 && !var7) {
-            return 0;
-        } else {
-            int var11 = non_entity_list.size();
-
-            for(var6 = 0; var6 < non_entity_list.size(); ++var6) {
-                var9 = (String) non_entity_list.elementAt(var6);
-                var10 = var5.calculateRow(all_concepts, var9);
-                if (var10.tuples.size() > 0 && var8) {
-                    --var11;
-                }
-
-                if (var10.tuples.size() == 0 && var7) {
-                    --var11;
-                }
-            }
-
-            return var11;
-        }
+        return score;
     }
 }

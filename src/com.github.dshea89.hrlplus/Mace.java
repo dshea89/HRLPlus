@@ -1,286 +1,292 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.io.Serializable;
-import java.util.Enumeration;
-import java.util.Hashtable;
 import java.util.Vector;
+import java.util.Hashtable;
+import java.util.Enumeration;
+import java.lang.String;
+import java.io.*;
+import java.lang.Runtime.*;
+import java.awt.Label;
 
-public class Mace extends DataGenerator implements Serializable {
-    public Mace() {
+/** A super class for the mace model generator
+ *
+ * @author Simon Colton, started 18th December 2000
+ * @version 1.0 */
+
+public class Mace extends DataGenerator implements Serializable
+{
+    /** The standard constructor. Just sets the name of the model generator to "mace".
+     */
+
+    public Mace()
+    {
     }
 
-    public Hashtable readModelFromMace(String var1) {
-        Hashtable var2 = new Hashtable();
+    public Hashtable readModelFromMace(String filename)
+    {
+        Hashtable output = new Hashtable();
         System.out.println("Thurs - 1");
-
-        try {
+        try
+        {
             System.out.println("Thurs - 2");
-            BufferedReader var3 = new BufferedReader(new FileReader(var1));
+            BufferedReader file = new BufferedReader(new FileReader(filename));
             System.out.println("Thurs - 3");
-            String var4 = "";
-            boolean var5 = true;
-            boolean var6 = false;
-            boolean var7 = false;
-            boolean var8 = false;
-            boolean var9 = false;
-            boolean var10 = false;
-            boolean var11 = false;
-            int var12 = 0;
-            String var13 = "";
-            Tuples var14 = new Tuples();
-            Vector var15 = new Vector();
-            Vector var16 = new Vector();
+            String line = "";
+            boolean starting_up = true;
+            boolean found_counterexample = false;
+            boolean end_now = false;
+            boolean read_now = false;
+            boolean reading_data = false;
+            boolean get_name_now = false;
+            boolean wait_one_more_line = false;
+            int line_num = 0;
+            String pred_name = "";
+            Tuples tuples = new Tuples();
+            Vector tuple = new Vector();
+            Vector elements = new Vector();
             System.out.println("Thurs - 4");
-            var4 = var3.readLine().trim();
+            line = file.readLine().trim();
             System.out.println("Thurs - 5");
-
-            String var19;
-            while(var4 != null && !var7 && (var5 || !var4.equals(")"))) {
-                if (var8) {
-                    if (var5 && var4.indexOf("((") >= 0 && var12 > 1) {
-                        var10 = true;
-                        var5 = false;
+            while (line!=null && !end_now)
+            {
+                if (!starting_up && line.equals(")"))	      break;
+                if (read_now)
+                {
+                    if (starting_up && line.indexOf("((")>=0 && line_num>1)
+                    {
+                        get_name_now = true;
+                        starting_up = false;
                     }
-
-                    if (var11) {
-                        var9 = true;
-                        var11 = false;
+                    if (wait_one_more_line)
+                    {
+                        reading_data = true;
+                        wait_one_more_line = false;
                     }
-
-                    if (var10) {
-                        var13 = var4.substring(2, var4.indexOf(" "));
-                        var10 = false;
-                        var11 = true;
+                    if (get_name_now)
+                    {
+                        pred_name = line.substring(2, line.indexOf(" "));
+                        get_name_now = false;
+                        wait_one_more_line = true;
                     }
-
-                    String var17;
-                    if (var4.indexOf("))") >= 0) {
-                        if (!var13.equals("") && !var13.equals("equal") && !var14.isEmpty() && var13.indexOf("$") < 0) {
-                            var2.put(var13, var14);
-                        }
-
-                        if (var4.indexOf("((") >= 0) {
-                            var13 = var4.substring(2, var4.indexOf(" "));
-                            if (var13.indexOf("$") < 0) {
-                                var15 = new Vector();
-                                var14 = new Tuples();
-                                var17 = var4.substring(var4.lastIndexOf(" ") + 1, var4.indexOf("))"));
-                                var15.addElement(var17);
-                                var14.addElement(var15);
-                                if (!var16.contains(var17)) {
-                                    var16.addElement(var17);
-                                }
-
-                                var2.put(var13, var14);
+                    if (line.indexOf("))")>=0)
+                    {
+                        if (!pred_name.equals("") && !pred_name.equals("equal") &&
+                                !tuples.isEmpty() && pred_name.indexOf("$")<0)
+                            output.put(pred_name, tuples);
+                        if (line.indexOf("((")>=0)
+                        {
+                            pred_name = line.substring(2, line.indexOf(" "));
+                            if (pred_name.indexOf("$")<0)
+                            {
+                                tuple = new Vector();
+                                tuples = new Tuples();
+                                String element = line.substring(line.lastIndexOf(" ")+1,line.indexOf("))"));
+                                tuple.addElement(element);
+                                tuples.addElement(tuple);
+                                if (!elements.contains(element))
+                                    elements.addElement(element);
+                                output.put(pred_name,tuples);
                             }
                         }
-
-                        var9 = false;
-                        var10 = true;
-                        var15 = new Vector();
-                        var14 = new Tuples();
+                        reading_data = false;
+                        get_name_now = true;
+                        tuple = new Vector();
+                        tuples = new Tuples();
                     }
-
-                    if (var9 && !var10) {
-                        var17 = var4.substring(2, var4.indexOf(")"));
-                        String var18 = "";
-
-                        while(var17.indexOf(" ") >= 0) {
-                            var18 = var17.substring(0, var17.indexOf(" "));
-                            var15.addElement(var18);
-                            var17 = var17.substring(var17.indexOf(" ") + 1, var17.length());
-                            if (!var16.contains(var18) && !var18.equals(var13) && !var18.equals(".") && !var18.equals("")) {
-                                var16.addElement(var18);
-                            }
+                    if (reading_data && !get_name_now)
+                    {
+                        String first_entries = line.substring(2,line.indexOf(")"));
+                        String entry = "";
+                        while (first_entries.indexOf(" ")>=0)
+                        {
+                            entry = first_entries.substring(0, first_entries.indexOf(" "));
+                            tuple.addElement(entry);
+                            first_entries = first_entries.substring(first_entries.indexOf(" ")+1,
+                                    first_entries.length());
+                            if (!elements.contains(entry) && !entry.equals(pred_name) && !entry.equals(".") &&
+                                    !entry.equals(""))
+                                elements.addElement(entry);
                         }
-
-                        var15.addElement(var17);
-                        var19 = var4.substring(var4.lastIndexOf(" ") + 1, var4.length() - 1);
-                        var15.addElement(var19);
-                        if (!var15.contains(var13)) {
-                            var14.addElement((Vector)var15.clone());
-                        }
-
-                        var15 = new Vector();
-                        if (!var16.contains(var19) && !var19.equals(var13) && !var19.equals(".") && !var19.equals("")) {
-                            var16.addElement(var19);
-                        }
+                        tuple.addElement(first_entries);
+                        String final_entry = line.substring(line.lastIndexOf(" ")+1, line.length()-1);
+                        tuple.addElement(final_entry);
+                        if (!tuple.contains(pred_name))
+                            tuples.addElement((Vector)tuple.clone());
+                        tuple = new Vector();
+                        if (!elements.contains(final_entry) && !final_entry.equals(pred_name) && !final_entry.equals(".")
+                                && !final_entry.equals(""))
+                            elements.addElement(final_entry);
                     }
-
-                    ++var12;
+                    line_num++;
                 }
-
-                if (var4.equals(";; BEGINNING OF IVY MODEL")) {
-                    var8 = true;
-                }
-
-                var4 = var3.readLine();
-                if (var4 != null) {
-                    var4 = var4.trim();
-                }
+                if (line.equals(";; BEGINNING OF IVY MODEL"))
+                    read_now = true;
+                line = file.readLine();
+                if (line!=null)
+                    line = line.trim();
             }
-
-            if (!var16.isEmpty()) {
-                Tuples var22 = new Tuples();
-
-                for(int var23 = 0; var23 < var16.size(); ++var23) {
-                    var19 = (String)var16.elementAt(var23);
-                    if (!var19.equals("t") && !var19.equals("nil")) {
-                        Vector var20 = new Vector();
-                        var20.addElement(var19);
-                        var22.addElement(var20);
+            if (!elements.isEmpty())
+            {
+                Tuples element_tuples = new Tuples();
+                for (int i=0; i<elements.size(); i++)
+                {
+                    String element = (String)elements.elementAt(i);
+                    if (!element.equals("t") && !element.equals("nil"))
+                    {
+                        Vector element_tuple = new Vector();
+                        element_tuple.addElement(element);
+                        element_tuples.addElement(element_tuple);
                     }
                 }
-
-                var22.sort();
-                var2.put("element", var22);
+                element_tuples.sort();
+                output.put("element",element_tuples);
             }
-        } catch (Exception var21) {
+        }
+        catch(Exception e)
+        {
             System.out.println("Problem reading Mace model");
-            System.out.println(var21);
+            System.out.println(e);
         }
-
-        return var2;
+        return output;
     }
 
-    public String conjectureStatement(Conjecture var1) {
-        String var2 = var1.writeConjecture("otter");
-        if (!var2.equals("")) {
-            if (var1 instanceof NonExists) {
-                var2 = var2.substring(1, var2.length());
-            } else {
-                var2 = "-(" + var2 + ").";
-            }
+    /** Returns a string for the conjecture statement (in Otter's format).
+     */
+
+    public String conjectureStatement(Conjecture conjecture)
+    {
+        String conjecture_text = conjecture.writeConjecture("otter");
+        if (!conjecture_text.equals(""))
+        {
+            if (conjecture instanceof NonExists)
+                conjecture_text = conjecture_text.substring(1,conjecture_text.length());
+            else
+                conjecture_text = "-(" + conjecture_text + ").";
         }
-
-        if (var1 instanceof NonExists) {
-            NonExists var3 = (NonExists)var1;
-            if (var3.concept.is_object_of_interest_concept) {
-                var2 = "";
-            }
+        if (conjecture instanceof NonExists)
+        {
+            NonExists ne = (NonExists)conjecture;
+            if (ne.concept.is_object_of_interest_concept)
+                conjecture_text = "";
         }
-
-        String var6 = "set(auto).\n";
-        var6 = var6 + "formula_list(usable).\n";
-        var6 = var6 + this.writeAxioms();
-
-        for(int var4 = 0; var4 < this.axiom_conjectures.size(); ++var4) {
-            Conjecture var5 = (Conjecture)this.axiom_conjectures.elementAt(var4);
-            var6 = var6 + var5.writeConjecture("otter") + ".\n";
+        String mace_text = "set(auto).\n";
+        mace_text = mace_text + "formula_list(usable).\n";
+        mace_text = mace_text + writeAxioms();
+        for (int i=0; i<axiom_conjectures.size(); i++)
+        {
+            Conjecture ax_conj = (Conjecture)axiom_conjectures.elementAt(i);
+            mace_text = mace_text + ax_conj.writeConjecture("otter") + ".\n";
         }
-
-        if (this.use_ground_instances) {
-            var6 = var6 + this.ground_instances_as_axioms + "\n";
-        }
-
-        var6 = var6 + var2;
-        var6 = var6 + "\nend_of_list.\n";
-        return var6;
+        if (use_ground_instances)
+            mace_text = mace_text + ground_instances_as_axioms + "\n";
+        mace_text = mace_text + conjecture_text;
+        mace_text = mace_text + "\nend_of_list.\n";
+        return mace_text;
     }
 
-    public Vector counterexamplesFor(Conjecture conj, Theory theory, int num_required) {
-        String var4 = this.executionParameter("size_limit");
-        String var5 = this.executionParameter("time_limit");
-        Vector var6 = new Vector();
-        Entity var7 = new Entity();
-        String var8 = "";
-        boolean var9 = false;
-        boolean var10 = false;
-        this.operating_system = "york_unix";
-        if (conj instanceof NonExists) {
-            NonExists var11 = (NonExists) conj;
-            if (var11.concept.is_object_of_interest_concept) {
-                var10 = true;
-            }
+    /** The method for attempting to prove the given conjecture.
+     */
+
+    public Vector counterexamplesFor(Conjecture conjecture, Theory theory, int num_required)
+    {
+        String size_limit = executionParameter("size_limit");
+        String time_limit = executionParameter("time_limit");
+        Vector output = new Vector();
+        Entity counterexample = new Entity();
+        String entity_string = "";
+        boolean is_proved = false;
+        boolean look_for_single = false;
+        operating_system = "york_unix";//added alisonp
+        if (conjecture instanceof NonExists)
+        {
+            NonExists ne = (NonExists)conjecture;
+            if (ne.concept.is_object_of_interest_concept)
+                look_for_single = true;
         }
-
-        String var22 = this.conjectureStatement(conj);
-
-        try {
-            PrintWriter var12 = new PrintWriter(new BufferedWriter(new FileWriter("delmodel.in")));
-            var12.write(var22);
-            var12.close();
-        } catch (Exception var20) {
+        String conjecture_text = conjectureStatement(conjecture);
+        try
+        {
+            PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("delmodel.in")));
+            out.write(conjecture_text);
+            out.close();
+        }
+        catch(Exception e)
+        {
             System.out.println("Having trouble opening file delmodel.in");
         }
-
-        try {
-            if (this.operating_system.equals("jcu_unix")) {
-                String[] var23 = new String[]{"/bin/sh", "-c", "/home/guest/hr/devel/mace1.bat"};
-                Process var13 = Runtime.getRuntime().exec(var23);
-                var13.waitFor();
+        try
+        {
+            if (operating_system.equals("jcu_unix"))
+            {
+                String[] inputs = new String[3];
+                inputs[0] = "/bin/sh";
+                inputs[1] = "-c";
+                inputs[2] = "/home/guest/hr/devel/mace1.bat";
+                Process mace_process = Runtime.getRuntime().exec(inputs);
+                mace_process.waitFor();
             }
-
-            if (this.operating_system.equals("york_unix")) {
-                Process var24 = Runtime.getRuntime().exec("mace1.bat");
-                int var26 = var24.waitFor();
+            if (operating_system.equals("york_unix"))
+            {
+                Process otter_process = Runtime.getRuntime().exec("mace1.bat");
+                int exit_value = otter_process.waitFor();
             }
-
-            if (this.operating_system.equals("windows")) {
-                boolean var25 = false;
-                Process var14;
-                int var15;
-                String var27;
-                if (var10) {
-                    var27 = this.input_files_directory + "mace2.bat 1 " + var5;
-                    var14 = Runtime.getRuntime().exec(var27);
-                    var15 = var14.waitFor();
-                    Hashtable var16 = this.readModelFromMace("delmodel.out");
-                    if (var16.isEmpty()) {
-                        var25 = true;
+            if (operating_system.equals("windows"))
+            {
+                boolean no_single = false;
+                if (look_for_single)
+                {
+                    String mace_process_string =
+                            input_files_directory + "mace2.bat 1 " + time_limit;
+                    Process otter_process = Runtime.getRuntime().exec(mace_process_string);
+                    int exit_value = otter_process.waitFor();
+                    Hashtable concept_data_temp = readModelFromMace("delmodel.out");
+                    if (concept_data_temp.isEmpty())
+                        no_single = true;
+                }
+                if (!look_for_single || no_single)
+                {
+                    String mace_process_string =
+                            input_files_directory + "mace1.bat " + size_limit + " " + time_limit;
+                    Process otter_process = Runtime.getRuntime().exec(mace_process_string);
+                    int exit_value = otter_process.waitFor();
+                }
+            }
+            Hashtable concept_data = readModelFromMace("delmodel.out");
+            if (!concept_data.isEmpty())
+            {
+                counterexample.concept_data = concept_data;
+                counterexample.conjecture = conjecture;
+                output.addElement(counterexample);
+                conjecture.counterexamples.addElement(counterexample);
+                conjecture.proof_status = "disproved";
+            }
+            Enumeration keys = concept_data.keys();
+            String counterexample_name = "";
+            boolean not_simple_algebra = false;
+            while (keys.hasMoreElements())
+            {
+                String key = (String)keys.nextElement();
+                if (key.equals("*"))
+                {
+                    Tuples tuples = (Tuples)concept_data.get(key);
+                    for (int i=0; i<tuples.size(); i++)
+                    {
+                        Vector tuple = (Vector)tuples.elementAt(i);
+                        counterexample_name = counterexample_name + (String)tuple.lastElement();
                     }
                 }
-
-                if (!var10 || var25) {
-                    var27 = this.input_files_directory + "mace1.bat " + var4 + " " + var5;
-                    var14 = Runtime.getRuntime().exec(var27);
-                    var15 = var14.waitFor();
-                }
+                if (key.equals("+"))
+                    not_simple_algebra = true;
             }
-
-            Hashtable var28 = this.readModelFromMace("delmodel.out");
-            if (!var28.isEmpty()) {
-                var7.concept_data = var28;
-                var7.conjecture = conj;
-                var6.addElement(var7);
-                conj.counterexamples.addElement(var7);
-                conj.proof_status = "disproved";
-            }
-
-            Enumeration var29 = var28.keys();
-            String var30 = "";
-            boolean var31 = false;
-
-            while(var29.hasMoreElements()) {
-                String var32 = (String)var29.nextElement();
-                if (var32.equals("*")) {
-                    Tuples var17 = (Tuples)var28.get(var32);
-
-                    for(int var18 = 0; var18 < var17.size(); ++var18) {
-                        Vector var19 = (Vector)var17.elementAt(var18);
-                        var30 = var30 + (String)var19.lastElement();
-                    }
-                }
-
-                if (var32.equals("+")) {
-                    var31 = true;
-                }
-            }
-
-            if (!var31) {
-                var7.name = var30;
-            } else {
-                var7.name = "new_" + Integer.toString(theory.entities.size());
-            }
-        } catch (Exception var21) {
+            if (!not_simple_algebra)
+                counterexample.name = counterexample_name;
+            else
+                counterexample.name = "new_" + Integer.toString(theory.entities.size());
+        }
+        catch(Exception e)
+        {
             System.out.println("Having trouble running MACE");
         }
-
-        return var6;
+        return output;
     }
 }

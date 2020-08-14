@@ -1,696 +1,733 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.Serializable;
 import java.util.Vector;
+import java.lang.String;
+import java.io.Serializable;
 
-/**
- * This takes two old data-tables which can used to define functions, and computes the data-table representing their composition.
- */
-public class Compose extends ProductionRule implements Serializable {
+/** A class representing the compose production rule. This production
+ * rule takes two concepts as input and produces a third concept which
+ * has all the specifications from both concepts.  This production
+ * rule takes two concepts as input and a set of parameters such as
+ * [0,1,0,3,2] which state that the output concept will be of
+ * arity 5 and will have the specifications of the first concept
+ * acting on the original variables, along with the specifications of
+ * the second concept acting on the variables in columns 2, 5 and 4.
+ *
+ * @author Simon Colton, started 12th December 1999
+ * @version 1.0 */
+
+public class Compose extends ProductionRule implements Serializable
+{
+    /** Whether or not to swap concepts when producing new specifications.
+     */
+
     public boolean dont_swap = false;
+
+    /** Whether or not to allow repeated specifications in the specifications for
+     * a new concept.
+     */
+
     public boolean allow_repeated_specifications = false;
+
+    /** Subobject overlap flag. If this is set to true, then the parameterisations must
+     * produce a concept with some non-trivial overlapping of the subobject columns of the
+     * concept. eg. parameters [1,0,2] would not be allowed for two arity-2 concepts, as
+     * the subobjects do not overlap, but [1,2] is allowed.
+     */
+
     boolean subobject_overlap = false;
+
+    /** The limit in seconds for the time allowed to construct a new datatable.
+     */
+
     int time_limit = 10;
+
+    /** The limit for the product of the tuple sizes for two concepts.
+     * If two concepts with big tables are composed, this can seriously
+     * slow things down. The default is 10000.
+     */
+
     int tuple_product_limit = 150000;
 
-    public Compose() {
-    }
+    /** Returns true as this is a binary production rule.
+     */
 
-    public boolean isBinary() {
+    public boolean isBinary()
+    {
         return true;
     }
 
-    public String getName() {
+    /** Returns "compose" as that is the name of this production rule.
+     */
+
+    public String getName()
+    {
         return "compose";
     }
 
-    public boolean isCumulative() {
+    /** Whether or not this produces cumulative concepts.
+     * @see Concept
+     */
+
+    public boolean isCumulative()
+    {
         return false;
     }
 
-    public Vector allParameters(Vector concept_list, Theory theory) {
-        this.parameter_failure_reason = "";
-        Vector var3 = new Vector();
-        Concept var4 = (Concept) concept_list.elementAt(0);
-        Concept var5 = (Concept) concept_list.elementAt(1);
-        int var6 = var4.datatable.number_of_tuples * var5.datatable.number_of_tuples;
-        if (var6 > this.tuple_product_limit) {
-            this.parameter_failure_reason = "t_prod (" + Integer.toString(var6) + ">" + Integer.toString(this.tuple_product_limit) + ")";
-            return var3;
-        } else {
-            int var7 = var4.arity;
-            int var8 = var5.arity;
-            int var9 = var7 + var8 - 1;
-            if (var9 > this.arity_limit) {
-                var9 = this.arity_limit;
-            }
 
-            if (this.subobject_overlap && var7 > 1 && var8 > 1 && var9 > var7 + var8 - 2) {
-                var9 = var7 + var8 - 2;
-            }
+    /** Given a vector of two concepts, this will return all the parameterisations for these
+     * concepts. Note that it does not check whether the resulting concept will be syntactically
+     * different to the rest in the theory (ie. has a different set of specifications).
+     * Syntactic checking is carried out just before the parameterisation is used. If it were
+     * used here, some concepts may be introduced before these parameters were used.
+     */
 
-            int var10 = var8;
-            if (var8 < var7) {
-                var10 = var7;
-            }
+    public Vector allParameters(Vector concepts, Theory theory)
+    {
+        parameter_failure_reason = "";
+        Vector output = new Vector();
+        Concept primary_concept = (Concept)concepts.elementAt(0);
+        Concept secondary_concept = (Concept)concepts.elementAt(1);
 
-            Vector var11 = var4.types;
-            Vector var12 = var5.types;
-
-            for(int var13 = var10; var13 <= var9; ++var13) {
-                Vector var14 = this.getParameterisations(var13, var11, var12);
-
-                for(int var15 = 0; var15 < var14.size(); ++var15) {
-                    var3.addElement(var14.elementAt(var15));
-                }
-            }
-
-            return var3;
+        int t_prod = primary_concept.datatable.number_of_tuples*secondary_concept.datatable.number_of_tuples;
+        if (t_prod > tuple_product_limit)
+        {
+            parameter_failure_reason = "t_prod ("+Integer.toString(t_prod)+">"+Integer.toString(tuple_product_limit)+")";
+            return output;
         }
+        int primary_arity = primary_concept.arity;
+        int secondary_arity = secondary_concept.arity;
+        int top_width = primary_arity + secondary_arity - 1;
+        if (top_width > arity_limit)
+            top_width = arity_limit;
+        if (subobject_overlap &&
+                primary_arity > 1 && secondary_arity > 1 &&
+                top_width > primary_arity + secondary_arity - 2)
+            top_width = primary_arity + secondary_arity - 2;
+        int bottom_width = secondary_arity;
+        if (bottom_width < primary_arity)
+            bottom_width = primary_arity;
+
+        Vector primary_types = primary_concept.types;
+        Vector secondary_types = secondary_concept.types;
+
+        for (int i=bottom_width; i<=top_width; i++)
+        {
+            Vector additional_parameterisations =
+                    getParameterisations(i, primary_types, secondary_types);
+            for (int j=0; j<additional_parameterisations.size(); j++)
+                output.addElement(additional_parameterisations.elementAt(j));
+        }
+        return output;
     }
 
-    private Vector getParameterisations(int var1, Vector var2, Vector var3) {
-        Vector var4 = new Vector();
-        boolean var5 = false;
-        Vector var6 = (Vector)var2.clone();
-        Vector var7 = (Vector)var3.clone();
-        if (var2.size() < var3.size()) {
-            var5 = true;
-            var6 = (Vector)var3.clone();
-            var7 = (Vector)var2.clone();
+    private Vector getParameterisations(int param_size, Vector primary_types, Vector secondary_types)
+    {
+        // Base Parameters will be something like this: [0,1,2,-1]
+
+        Vector output = new Vector();
+        boolean add_s = false;
+        Vector types1 = (Vector)primary_types.clone();
+        Vector types2 = (Vector)secondary_types.clone();
+        if (primary_types.size() < secondary_types.size())
+        {
+            add_s = true;
+            types1 = (Vector)secondary_types.clone();
+            types2 = (Vector)primary_types.clone();
         }
 
-        int[] var8 = new int[var1];
-
-        int var9;
-        for(var9 = 0; var9 < var1; ++var9) {
-            if (var9 < var6.size()) {
-                var8[var9] = var9;
-            } else {
-                var8[var9] = -1;
-            }
+        int[] base_param = new int[param_size];
+        for (int i=0; i<param_size; i++)
+        {
+            if (i<types1.size())
+                base_param[i]=i;
+            else
+                base_param[i]=-1;
         }
 
-        Vector var15;
-        if (var5) {
-            var15 = new Vector();
-            var15.addElement("s");
-            var4.addElement(var15);
-        } else {
-            var4.addElement(new Vector());
+        if (add_s)
+        {
+            Vector first_param = new Vector();
+            first_param.addElement("s");
+            output.addElement(first_param);
         }
+        else
+            output.addElement(new Vector());
 
-        int var19;
-        for(var9 = 0; var9 < var8.length; ++var9) {
-            Vector var10 = new Vector();
-
-            for(int var11 = 0; var11 < var4.size(); ++var11) {
-                Vector var12 = (Vector)var4.elementAt(var11);
-                if (var8[var9] >= 0) {
-                    Vector var13 = (Vector)var12.clone();
-                    var13.addElement("0");
-                    var10.addElement(var13);
+        for (int i=0; i<base_param.length; i++)
+        {
+            Vector new_output = new Vector();
+            for (int j=0; j<output.size(); j++)
+            {
+                Vector param = (Vector)output.elementAt(j);
+                if (base_param[i]>=0)
+                {
+                    Vector blank_param = (Vector)param.clone();
+                    blank_param.addElement("0");
+                    new_output.addElement(blank_param);
                 }
-
-                for(var19 = 0; var19 < var7.size(); ++var19) {
-                    if (!var12.contains(Integer.toString(var19 + 1)) && (var8[var9] < 0 || var6.elementAt(var8[var9]).equals(var7.elementAt(var19))) && (var19 != 0 || var8[var9] >= 0)) {
-                        Vector var14 = (Vector)var12.clone();
-                        var14.addElement(Integer.toString(var19 + 1));
-                        var10.addElement(var14);
+                for (int k=0; k<types2.size(); k++)
+                {
+                    if (!param.contains(Integer.toString(k+1)) &&
+                            (base_param[i]<0 || types1.elementAt(base_param[i]).equals(types2.elementAt(k))) &&
+                            !(k==0 && base_param[i]<0))
+                    {
+                        Vector new_param = (Vector)param.clone();
+                        new_param.addElement(Integer.toString(k+1));
+                        new_output.addElement(new_param);
                     }
                 }
             }
-
-            var4 = var10;
+            output = new_output;
         }
 
-        var15 = new Vector();
-
-        for(int var16 = 0; var16 < var4.size(); ++var16) {
-            Vector var17 = (Vector)var4.elementAt(var16);
-            boolean var18 = true;
-
-            for(var19 = 1; var19 <= var7.size() && var18; ++var19) {
-                if (!var17.contains(Integer.toString(var19))) {
-                    var18 = false;
-                }
-            }
-
-            if (var18) {
-                var15.addElement(var17);
-            }
+        Vector final_output = new Vector();
+        for (int i=0; i<output.size(); i++)
+        {
+            Vector param = (Vector)output.elementAt(i);
+            boolean keep = true;
+            for (int j=1; j<=types2.size() && keep; j++)
+                if (!param.contains(Integer.toString(j)))
+                    keep=false;
+            if (keep)
+                final_output.addElement(param);
         }
-
-        return var15;
+        return final_output;
     }
 
-    public Vector newSpecifications(Vector concept_list, Vector parameters, Theory theory, Vector new_functions) {
-        Vector var5 = (Vector) parameters.clone();
-        Vector var6 = concept_list;
-        if (((String) parameters.elementAt(0)).equals("s")) {
-            var5.removeElementAt(0);
-            var6 = super.swap(concept_list);
+    /** Composing two concepts together will result in a new concept with all
+     * the specifications of both. This calculates all the specifications, removing
+     * any duplicates.
+     */
+
+    public Vector newSpecifications(Vector input_concepts, Vector input_parameters,
+                                    Theory theory, Vector new_functions)
+    {
+        Vector old_parameters = (Vector)input_parameters.clone();
+        Vector concept_list = input_concepts;
+        if (((String)input_parameters.elementAt(0)).equals("s"))
+        {
+            old_parameters.removeElementAt(0);
+            concept_list = super.swap(input_concepts);
         }
+        Concept primary_concept = (Concept)concept_list.elementAt(0);
+        Concept secondary_concept = (Concept)concept_list.elementAt(1);
+        Vector primary_specifications = primary_concept.specifications;
+        Vector secondary_specifications = secondary_concept.specifications;
 
-        Concept var7 = (Concept)var6.elementAt(0);
-        Concept var8 = (Concept)var6.elementAt(1);
-        Vector var9 = var7.specifications;
-        Vector var10 = var8.specifications;
-        Vector var11 = (Vector)var9.clone();
-        Vector var12 = new Vector();
-
-        int var13;
-        for(var13 = 0; var13 < var5.size(); ++var13) {
-            int var14 = new Integer((String)var5.elementAt(var13));
-            var12.addElement(Integer.toString(var14 - 1));
+        Vector output = (Vector)primary_specifications.clone();
+        Vector parameters = new Vector();
+        for (int i=0;i<old_parameters.size();i++)
+        {
+            int val = (new Integer((String)old_parameters.elementAt(i))).intValue();
+            parameters.addElement(Integer.toString(val-1));
         }
-
-        for(var13 = 0; var13 < var10.size(); ++var13) {
-            Specification var20 = (Specification)var10.elementAt(var13);
-            Vector var15 = var20.permutation;
-            Vector var16 = new Vector();
-
-            for(int var17 = 0; var17 < var15.size(); ++var17) {
-                String var18 = (String)var15.elementAt(var17);
-                if (var17 >= 0) {
-                    int var19;
-                    for(var19 = 0; var19 < var12.size() && !((String)var12.elementAt(var19)).equals(var18); ++var19) {
-                        ;
-                    }
-
-                    var16.addElement(Integer.toString(var19));
+        for (int i=0;i<secondary_specifications.size();i++)
+        {
+            Specification secondary_specification =
+                    (Specification)secondary_specifications.elementAt(i);
+            Vector permutation = secondary_specification.permutation;
+            Vector new_permutation = new Vector();
+            for (int j=0;j<permutation.size();j++)
+            {
+                String position =(String)permutation.elementAt(j);
+                if (j>=0)
+                {
+                    int k=0;
+                    while (k<parameters.size() && !((String)parameters.elementAt(k)).equals(position))
+                        k++;
+                    new_permutation.addElement(Integer.toString(k));
                 }
             }
-
-            Specification var23 = var20.copy();
-            var23.relations = var20.relations;
-            var23.permutation = var16;
-            int var24 = 0;
-            if (this.allow_repeated_specifications) {
-                if (this.dont_swap && ((String) parameters.elementAt(0)).equals("s")) {
-                    var11.insertElementAt(var23, var13);
-                } else {
-                    var11.addElement(var23);
+            Specification new_specification = secondary_specification.copy();
+            new_specification.relations = secondary_specification.relations;
+            new_specification.permutation = new_permutation;
+            int j=0;
+            if (!allow_repeated_specifications)
+            {
+                while (j<primary_specifications.size())
+                {
+                    if (new_specification.equals((Specification)primary_specifications.elementAt(j)))
+                        break;
+                    j++;
                 }
-            } else {
-                while(var24 < var9.size() && !var23.equals((Specification)var9.elementAt(var24))) {
-                    ++var24;
-                }
-
-                if (var24 == var9.size()) {
-                    var11.addElement(var23);
-                }
+                if (j==primary_specifications.size())
+                    output.addElement(new_specification);
+            }
+            else
+            {
+                if (dont_swap && ((String)input_parameters.elementAt(0)).equals("s"))
+                    output.insertElementAt(new_specification, i);
+                else
+                    output.addElement(new_specification);
             }
         }
 
-        Function var21;
-        for(var13 = 0; var13 < var7.functions.size(); ++var13) {
-            var21 = (Function)var7.functions.elementAt(var13);
-            new_functions.addElement(var21.copy());
+        // Finally, make the new functions
+
+        for (int i=0;i<primary_concept.functions.size();i++)
+        {
+            Function function = (Function)primary_concept.functions.elementAt(i);
+            new_functions.addElement(function.copy());
         }
 
-        for(var13 = 0; var13 < var8.functions.size(); ++var13) {
-            var21 = (Function)var8.functions.elementAt(var13);
-            Function var22 = var21.copy();
-            var22.permute(var12);
-            new_functions.addElement(var22);
+        for (int i=0;i<secondary_concept.functions.size();i++)
+        {
+            Function function = (Function)secondary_concept.functions.elementAt(i);
+            Function new_function = function.copy();
+            new_function.permute(parameters);
+            new_functions.addElement(new_function);
         }
 
-        return var11;
+        return output;
     }
 
-    public Datatable transformTable(Vector old_datatables, Vector old_concepts, Vector parameters, Vector all_concepts) {
-        long var5 = System.currentTimeMillis() / 1000L;
-        new Vector();
-        new Vector();
-        new Vector();
-        Vector var7;
-        Vector var8;
-        Vector var9;
-        if (((String) parameters.elementAt(0)).equals("s")) {
-            var9 = (Vector) parameters.clone();
-            var9.removeElementAt(0);
-            var7 = super.swap(old_concepts);
-            var8 = super.swap(old_datatables);
-        } else {
-            var7 = old_concepts;
-            var8 = old_datatables;
-            var9 = parameters;
+    /** This produces the new datatable from the two given datatables, using the parameters
+     * specified.
+     */
+
+    public Datatable transformTable(Vector input_datatables, Vector input_concepts,
+                                    Vector input_s_params, Vector all_concepts)
+    {
+        long start_time = System.currentTimeMillis()/1000;
+        Vector concepts = new Vector();
+        Vector datatables = new Vector();
+        Vector s_params = new Vector();
+        if (((String)input_s_params.elementAt(0)).equals("s"))
+        {
+            s_params = (Vector)input_s_params.clone();
+            s_params.removeElementAt(0);
+            concepts = super.swap(input_concepts);
+            datatables = super.swap(input_datatables);
         }
+        else
+        {
+            concepts = input_concepts;
+            datatables = input_datatables;
+            s_params = input_s_params;
+        }
+        int entity_column = s_params.indexOf("1");
+        Datatable primary_table = (Datatable)datatables.elementAt(0);
+        Concept primary_concept = (Concept)concepts.elementAt(0);
+        int primary_arity = primary_concept.arity;
 
-        int var10 = var9.indexOf("1");
-        Datatable var11 = (Datatable)var8.elementAt(0);
-        Concept var12 = (Concept)var7.elementAt(0);
-        int var13 = var12.arity;
-        Concept var14 = (Concept)var7.elementAt(1);
-        Datatable var15 = new Datatable();
+        Concept secondary_concept = (Concept)concepts.elementAt(1);
 
-        for(int var16 = 0; var16 < var11.size(); ++var16) {
-            Tuples var17 = new Tuples();
-            Row var18 = (Row)var11.elementAt(var16);
-            Datatable var19 = new Datatable();
-            var19.addElement(var18);
-            Vector var20 = var19.toFlatTable();
-            Vector var21 = new Vector();
-            Row var22;
-            if (var10 == 0) {
-                var22 = var14.calculateRow(all_concepts, var18.entity);
-                Datatable var23 = new Datatable();
-                var23.addElement(var22);
-                var21 = var23.toFlatTable();
+        Datatable output = new Datatable();
+        for(int primary_row_number=0;primary_row_number<primary_table.size();primary_row_number++)
+        {
+            Tuples new_tuples = new Tuples();
+            Row p_row = (Row)primary_table.elementAt(primary_row_number);
+            Datatable p_sub_table = new Datatable();
+            p_sub_table.addElement(p_row);
+            Vector primary_tuples = p_sub_table.toFlatTable();
+            Vector secondary_tuples = new Vector();
+            if(entity_column==0)
+            {
+                Row s_row = secondary_concept.calculateRow(all_concepts,p_row.entity);
+                Datatable s_sub_table = new Datatable();
+                s_sub_table.addElement(s_row);
+                secondary_tuples = s_sub_table.toFlatTable();
             }
+            for(int primary_tuple_number=0;primary_tuple_number<primary_tuples.size();
+                primary_tuple_number++)
+            {
+                Vector p_tuple = (Vector)primary_tuples.elementAt(primary_tuple_number);
 
-            for(int var33 = 0; var33 < var20.size(); ++var33) {
-                Vector var34 = (Vector)var20.elementAt(var33);
-                if (var34.size() == var13) {
-                    if (var10 > 0) {
-                        String var24 = (String)var34.elementAt(var10);
-                        Row var25 = var14.calculateRow(all_concepts, var24);
-                        Datatable var26 = new Datatable();
-                        var26.addElement(var25);
-                        var21 = var26.toFlatTable();
+                if(p_tuple.size()==primary_arity)
+                {
+                    if(entity_column>0)// && entity_column<p_tuple.size())// && entity_column<p_tuple.size() added dec2006
+                    {
+                        String entity_now = (String)p_tuple.elementAt(entity_column);
+                        Row s_row = secondary_concept.calculateRow(all_concepts,entity_now);
+                        Datatable s_sub_table = new Datatable();
+                        s_sub_table.addElement(s_row);
+                        secondary_tuples = s_sub_table.toFlatTable();
                     }
+                    for(int secondary_tuple_number=0;secondary_tuple_number<secondary_tuples.size();
+                        secondary_tuple_number++)
+                    {
 
-                    for(int var35 = 0; var35 < var21.size(); ++var35) {
-                        long var36 = System.currentTimeMillis() / 1000L - var5;
-                        if (var36 > (long)this.time_limit) {
+                        long time_taken_so_far = System.currentTimeMillis()/1000 - start_time;
+                        if (time_taken_so_far > time_limit)
                             return new Datatable();
-                        }
 
-                        Vector var27 = (Vector)var21.elementAt(var35);
-
-                        int var28;
-                        for(var28 = 0; var28 < var9.size(); ++var28) {
-                            int var29;
-                            if (var28 < var34.size()) {
-                                var29 = var28;
-                            } else {
-                                var29 = -1;
-                            }
-
-                            int var30 = new Integer((String)var9.elementAt(var28)) - 1;
-                            if (var30 >= 0 && var29 >= 0) {
+                        Vector s_tuple = (Vector)secondary_tuples.elementAt(secondary_tuple_number);
+                        int k=0;
+                        while(k<s_params.size())
+                        {
+                            int p_pos;
+                            if (k<p_tuple.size()) p_pos = k; else p_pos=-1;
+                            int s_pos = new Integer((String)s_params.elementAt(k)).intValue()-1;
+                            if (s_pos >= 0 && p_pos >= 0)
+                            {
                                 try {
-                                    String var31 = (String) var34.elementAt(var29);
-                                    String var32 = (String) var27.elementAt(var30);
-                                    if (!var31.equals(var32)) {
-                                        break;
-                                    }
+                                    String p_element = (String)p_tuple.elementAt(p_pos);
+                                    String s_element = (String)s_tuple.elementAt(s_pos);
+                                    if(!p_element.equals(s_element)) break;
                                 } catch (ArrayIndexOutOfBoundsException e) {
                                     break;
                                 }
                             }
+                            k++;
                         }
-
-                        if (var28 == var9.size()) {
-                            Vector var37 = this.composeTuples(var34, var27, var9);
-                            var37.removeElementAt(0);
-                            var17.addElement(var37);
+                        if (k==s_params.size())
+                        {
+                            Vector new_tuple = composeTuples(p_tuple,s_tuple,s_params);
+                            new_tuple.removeElementAt(0);
+                            new_tuples.addElement(new_tuple);
                         }
                     }
                 }
             }
-
-            var22 = new Row(var18.entity, var17);
-            var15.addElement(var22);
+            Row new_row = new Row(p_row.entity,new_tuples);
+            output.addElement(new_row);
         }
-
-        return var15;
+        return output;
     }
 
-    public Vector transformTypes(Vector old_concepts, Vector parameters) {
-        new Vector();
-        new Vector();
-        Vector var3;
-        Vector var4;
-        if (((String) parameters.elementAt(0)).equals("s")) {
-            var4 = (Vector) parameters.clone();
-            var4.removeElementAt(0);
-            var3 = super.swap(old_concepts);
-        } else {
-            var3 = old_concepts;
-            var4 = parameters;
-        }
+    /** Returns the types of the objects in the columns of the new datatable.
+     */
 
-        Vector var5 = (Vector)((Concept)var3.elementAt(0)).types.clone();
-        Vector var6 = (Vector)((Concept)var3.elementAt(1)).types.clone();
-        return this.composeTuples(var5, var6, var4);
+    public Vector transformTypes(Vector old_concepts, Vector input_s_params)
+    {
+        Vector concepts = new Vector();
+        Vector s_params = new Vector();
+        if (((String)input_s_params.elementAt(0)).equals("s"))
+        {
+            s_params = (Vector)input_s_params.clone();
+            s_params.removeElementAt(0);
+            concepts = super.swap(old_concepts);
+        }
+        else
+        {
+            concepts = old_concepts;
+            s_params = input_s_params;
+        }
+        Vector p_types = (Vector)((Concept)concepts.elementAt(0)).types.clone();
+        Vector s_types = (Vector)((Concept)concepts.elementAt(1)).types.clone();
+        return(composeTuples(p_types,s_types,s_params));
     }
 
-    public int patternScore(Vector concept_list, Vector all_concepts, Vector entity_list, Vector non_entity_list) {
-        Concept var5 = (Concept) concept_list.elementAt(0);
-        Concept var6 = (Concept) concept_list.elementAt(1);
-        if (var5.datatable.number_of_tuples * var6.datatable.number_of_tuples > this.tuple_product_limit) {
+    /** This assigns a score to  a concept depending on whether the
+     * production rule can see any likelihood of a pattern. At present, the pattern
+     * spotting is limited. It can notice that all values in one column have
+     * the property of another concept.
+     */
+
+    public int patternScore(Vector concept_list, Vector all_concepts,
+                            Vector entity_list, Vector non_entity_list)
+    {
+        Concept c1 = (Concept)concept_list.elementAt(0);
+        Concept c2 = (Concept)concept_list.elementAt(1);
+
+        if (c1.datatable.number_of_tuples*c2.datatable.number_of_tuples >
+                tuple_product_limit)
             return 0;
-        } else {
-            int var7 = non_entity_list.size();
-            Row var13;
-            boolean var32;
-            Row var40;
-            if (var5.arity == 1 && var6.arity == 1 && var5.object_type.equals(var6.object_type)) {
-                boolean var29 = true;
-                boolean var31 = true;
-                var32 = true;
+        int score = non_entity_list.size();
 
-                int var34;
-                String var38;
-                for(var34 = 0; (var29 || var31 || var32) && var34 < entity_list.size(); ++var34) {
-                    var38 = (String) entity_list.elementAt(var34);
-                    var13 = var5.calculateRow(all_concepts, var38);
-                    var40 = var6.calculateRow(all_concepts, var38);
-                    if (var13.tuples.size() != var40.tuples.size()) {
-                        var29 = false;
-                        var31 = false;
-                    }
-
-                    if (var13.tuples.size() == var40.tuples.size() && !var13.tuples.isEmpty()) {
-                        var32 = false;
-                        var31 = false;
-                    }
-
-                    if (var13.tuples.size() == var40.tuples.size() && var13.tuples.isEmpty()) {
-                        var32 = false;
-                        var29 = false;
-                    }
+        // Both Entity Types //
+        if (c1.arity==1 && c2.arity==1 &&
+                c1.object_type.equals(c2.object_type))
+        {
+            boolean full_pattern_holds = true;
+            boolean empty_pattern_holds = true;
+            boolean negate_pattern_holds = true;
+            int i=0;
+            while ((full_pattern_holds || empty_pattern_holds || negate_pattern_holds) &&
+                    i < entity_list.size())
+            {
+                String entity = (String)entity_list.elementAt(i);
+                Row row1 = c1.calculateRow(all_concepts, entity);
+                Row row2 = c2.calculateRow(all_concepts, entity);
+                if (row1.tuples.size()!=row2.tuples.size())
+                {
+                    full_pattern_holds = false;
+                    empty_pattern_holds = false;
                 }
-
-                if (!var29 && !var31 && !var32) {
-                    return 0;
-                } else {
-                    for(var34 = 0; var34 < non_entity_list.size(); ++var34) {
-                        var38 = (String) non_entity_list.elementAt(var34);
-                        var13 = var5.calculateRow(all_concepts, var38);
-                        var40 = var6.calculateRow(all_concepts, var38);
-                        if (var13.tuples.size() == var40.tuples.size() && var29 && !var13.tuples.isEmpty()) {
-                            --var7;
-                        }
-
-                        if (var13.tuples.size() == var40.tuples.size() && var31 && var13.tuples.isEmpty()) {
-                            --var7;
-                        }
-
-                        if (var13.tuples.size() != var40.tuples.size() && var32) {
-                            --var7;
-                        }
-                    }
-
-                    return var7;
+                if (row1.tuples.size()==row2.tuples.size() && !row1.tuples.isEmpty())
+                {
+                    negate_pattern_holds = false;
+                    empty_pattern_holds = false;
                 }
-            } else {
-                int var12;
-                Vector var17;
-                Vector var20;
-                String var21;
-                int var43;
-                if (var5.arity == 2 && var6.arity == 2 && var5.object_type.equals(var6.object_type)) {
-                    if (var5.id.equals(var6.id)) {
-                        return 0;
-                    } else {
-                        String var8 = (String)var5.types.elementAt(1);
-                        String var30 = (String)var6.types.elementAt(1);
-                        if (!var8.equals(var30)) {
-                            return 0;
-                        } else {
-                            var32 = true;
-                            boolean var33 = true;
+                if (row1.tuples.size()==row2.tuples.size() && row1.tuples.isEmpty())
+                {
+                    negate_pattern_holds = false;
+                    full_pattern_holds = false;
+                }
+                i++;
+            }
+            if (!full_pattern_holds && !empty_pattern_holds && !negate_pattern_holds)
+                return 0;
+            for (i=0;i<non_entity_list.size();i++)
+            {
+                String entity = (String)non_entity_list.elementAt(i);
+                Row row1 = c1.calculateRow(all_concepts, entity);
+                Row row2 = c2.calculateRow(all_concepts, entity);
+                if (row1.tuples.size()==row2.tuples.size() && full_pattern_holds && !row1.tuples.isEmpty())
+                    score--;
+                if (row1.tuples.size()==row2.tuples.size() && empty_pattern_holds && row1.tuples.isEmpty())
+                    score--;
+                if (row1.tuples.size()!=row2.tuples.size() && negate_pattern_holds)
+                    score--;
+            }
+            return score;
+        }
 
-                            String var37;
-                            Row var41;
-                            Vector var42;
-                            Vector var44;
-                            for(var12 = 0; (var32 || var33) && var12 < entity_list.size(); ++var12) {
-                                var37 = (String) entity_list.elementAt(var12);
-                                var40 = var5.calculateRow(all_concepts, var37);
-                                var41 = var6.calculateRow(all_concepts, var37);
-                                var42 = new Vector();
-                                var17 = new Vector();
-                                var44 = new Vector();
+        // Both subobject types //
+        if (c1.arity==2 && c2.arity==2 &&
+                c1.object_type.equals(c2.object_type))
+        {
+            if (c1.id.equals(c2.id))
+                return 0;
+            String p_type = (String)c1.types.elementAt(1);
+            String s_type = (String)c2.types.elementAt(1);
+            if (!p_type.equals(s_type))
+                return 0;
+            boolean pattern_holds = true;
+            boolean negate_pattern_holds = true;
+            int i=0;
+            while ((pattern_holds || negate_pattern_holds) &&
+                    i < entity_list.size())
+            {
+                String entity = (String)entity_list.elementAt(i);
+                Row row1 = c1.calculateRow(all_concepts, entity);
+                Row row2 = c2.calculateRow(all_concepts, entity);
 
-                                for(var43 = 0; var43 < var40.tuples.size(); ++var43) {
-                                    var20 = (Vector)var40.tuples.elementAt(var43);
-                                    var21 = (String)var20.elementAt(0);
-                                    var42.addElement(var21);
-                                }
+                // A tuple from every primary row must appear in the secondary row or vice versa //
 
-                                for(var43 = 0; var43 < var41.tuples.size(); ++var43) {
-                                    var20 = (Vector)var41.tuples.elementAt(var43);
-                                    var21 = (String)var20.elementAt(0);
-                                    var17.addElement(var21);
-                                    if (var42.contains(var21)) {
-                                        var44.addElement(var21);
-                                    }
-                                }
+                Vector row1_elements = new Vector();
+                Vector row2_elements = new Vector();
+                Vector shared_elements = new Vector();
+                for (int j=0; j<row1.tuples.size(); j++)
+                {
+                    Vector tuple = (Vector)row1.tuples.elementAt(j);
+                    String element = (String)tuple.elementAt(0);
+                    row1_elements.addElement(element);
+                }
+                for (int j=0; j<row2.tuples.size(); j++)
+                {
+                    Vector tuple = (Vector)row2.tuples.elementAt(j);
+                    String element = (String)tuple.elementAt(0);
+                    row2_elements.addElement(element);
+                    if (row1_elements.contains(element))
+                        shared_elements.addElement(element);
+                }
+                if (shared_elements.isEmpty())
+                    pattern_holds = false;
+                else
+                    negate_pattern_holds = false;
+                i++;
+            }
+            if (!pattern_holds && !negate_pattern_holds)
+                return 0;
+            for (i=0;i<non_entity_list.size();i++)
+            {
+                String entity = (String)non_entity_list.elementAt(i);
+                Row row1 = c1.calculateRow(all_concepts, entity);
+                Row row2 = c2.calculateRow(all_concepts, entity);
+                Vector row1_elements = new Vector();
+                Vector row2_elements = new Vector();
+                Vector shared_elements = new Vector();
+                for (int j=0; j<row1.tuples.size(); j++)
+                {
+                    Vector tuple = (Vector)row1.tuples.elementAt(j);
+                    String element = (String)tuple.elementAt(0);
+                    row1_elements.addElement(element);
+                }
+                for (int j=0; j<row2.tuples.size(); j++)
+                {
+                    Vector tuple = (Vector)row2.tuples.elementAt(j);
+                    String element = (String)tuple.elementAt(0);
+                    row2_elements.addElement(element);
+                    if (row1_elements.contains(element))
+                        shared_elements.addElement(element);
+                }
+                if (shared_elements.isEmpty() && negate_pattern_holds)
+                    score--;
+                if (!shared_elements.isEmpty() && pattern_holds)
+                    score--;
+            }
+            return score;
+        }
 
-                                if (var44.isEmpty()) {
-                                    var32 = false;
-                                } else {
-                                    var33 = false;
-                                }
-                            }
+        if (c1.arity==c2.arity || c1.arity>2 || c2.arity>2)
+            return 0;
 
-                            if (!var32 && !var33) {
-                                return 0;
-                            } else {
-                                for(var12 = 0; var12 < non_entity_list.size(); ++var12) {
-                                    var37 = (String) non_entity_list.elementAt(var12);
-                                    var40 = var5.calculateRow(all_concepts, var37);
-                                    var41 = var6.calculateRow(all_concepts, var37);
-                                    var42 = new Vector();
-                                    var17 = new Vector();
-                                    var44 = new Vector();
+        if (c1.object_type!=c2.object_type)
+            return 0;
 
-                                    for(var43 = 0; var43 < var40.tuples.size(); ++var43) {
-                                        var20 = (Vector)var40.tuples.elementAt(var43);
-                                        var21 = (String)var20.elementAt(0);
-                                        var42.addElement(var21);
-                                    }
+        if (c1.isGeneralisationOf(c2)==0 || c2.isGeneralisationOf(c1)==0)
+            return 0;
 
-                                    for(var43 = 0; var43 < var41.tuples.size(); ++var43) {
-                                        var20 = (Vector)var41.tuples.elementAt(var43);
-                                        var21 = (String)var20.elementAt(0);
-                                        var17.addElement(var21);
-                                        if (var42.contains(var21)) {
-                                            var44.addElement(var21);
-                                        }
-                                    }
+        // One is of arity one, the other is of arity two.
 
-                                    if (var44.isEmpty() && var33) {
-                                        --var7;
-                                    }
+        Vector columns_to_check = new Vector();
+        Concept object_concept = new Concept();
+        Concept subobject_concept = new Concept();
 
-                                    if (!var44.isEmpty() && var32) {
-                                        --var7;
-                                    }
-                                }
+        if (c1.arity<c2.arity)
+        {
+            object_concept = c1;
+            subobject_concept = c2;
+        }
+        else
+        {
+            object_concept = c2;
+            subobject_concept = c1;
+        }
 
-                                return var7;
-                            }
-                        }
-                    }
-                } else if (var5.arity != var6.arity && var5.arity <= 2 && var6.arity <= 2) {
-                    if (var5.object_type != var6.object_type) {
-                        return 0;
-                    } else if (var5.isGeneralisationOf(var6) != 0 && var6.isGeneralisationOf(var5) != 0) {
-                        new Vector();
-                        new Concept();
-                        new Concept();
-                        Concept var9;
-                        Concept var10;
-                        if (var5.arity < var6.arity) {
-                            var9 = var5;
-                            var10 = var6;
-                        } else {
-                            var9 = var6;
-                            var10 = var5;
-                        }
+        // Case one - an exists step will occur with the subobject concept //
+        // This means that we can re-use code. Simply make the concept which would //
+        // occur after the exists step, and pass it back through this function //
 
-                        Concept var11 = new Concept();
+        Concept new_object_concept = new Concept();
+        for (int i=0; i<subobject_concept.datatable.size(); i++)
+        {
+            Row row = (Row)subobject_concept.datatable.elementAt(i);
+            Tuples tuples = new Tuples();
+            if (!row.tuples.isEmpty())
+                tuples.addElement(new Vector());
+            new_object_concept.datatable.addElement(new Row(row.entity,tuples));
+        }
+        new_object_concept.arity = 1;
+        Vector both_concepts = new Vector();
+        both_concepts.addElement(object_concept);
+        both_concepts.addElement(new_object_concept);
+        score = patternScore(both_concepts, all_concepts, entity_list, non_entity_list);
+        if (score == non_entity_list.size())
+            return score;
 
-                        for(var12 = 0; var12 < var10.datatable.size(); ++var12) {
-                            var13 = (Row)var10.datatable.elementAt(var12);
-                            Tuples var14 = new Tuples();
-                            if (!var13.tuples.isEmpty()) {
-                                var14.addElement(new Vector());
-                            }
+        // Case two - at least one subobjects for each entity to learn is an object from
+        // the primary table. Or the same number of subobjects are found for each entity
+        // to learn.
 
-                            var11.datatable.addElement(new Row(var13.entity, var14));
-                        }
+        boolean exists_pattern_holds = true;
+        boolean negate_pattern_holds = true;
+        boolean number_pattern_holds = true;
+        boolean split_pattern_holds = true;
 
-                        var11.arity = 1;
-                        Vector var35 = new Vector();
-                        var35.addElement(var9);
-                        var35.addElement(var11);
-                        var7 = this.patternScore(var35, all_concepts, entity_list, non_entity_list);
-                        if (var7 == non_entity_list.size()) {
-                            return var7;
-                        } else {
-                            boolean var36 = true;
-                            boolean var39 = true;
-                            boolean var15 = true;
-                            boolean var16 = true;
-                            var17 = new Vector();
+        // First set up the set of entities which appear as entities in the object datatable.
 
-                            int var18;
-                            for(var18 = 0; var18 < var9.datatable.size(); ++var18) {
-                                Row var19 = (Row)var9.datatable.elementAt(var18);
-                                if (!var19.tuples.isEmpty()) {
-                                    var17.addElement("[" + var19.entity + "]");
-                                }
-                            }
+        Vector object_entities = new Vector();
+        for (int i=0; i<object_concept.datatable.size(); i++)
+        {
+            Row row = (Row)object_concept.datatable.elementAt(i);
+            if (!row.tuples.isEmpty())
+                object_entities.addElement("["+row.entity+"]");
+        }
 
-                            var18 = 0;
-                            var43 = 0;
+        int i=0;
+        int same_set_size = 0;
+        Vector same_set = new Vector();
 
-                            int var24;
-                            for(var20 = new Vector(); (var36 || var39 || var15 || var16) && var18 < entity_list.size(); ++var18) {
-                                var21 = (String) entity_list.elementAt(var18);
-                                Row var22 = var10.calculateRow(all_concepts, var21);
-                                Vector var23 = new Vector();
-
-                                for(var24 = 0; var24 < var22.tuples.size(); ++var24) {
-                                    Vector var25 = (Vector)var22.tuples.elementAt(var24);
-                                    String var26 = var25.toString();
-                                    if (var17.contains(var26)) {
-                                        var23.addElement(var26);
-                                    }
-                                }
-
-                                if (var18 == 0) {
-                                    var20 = (Vector)var23.clone();
-                                    var43 = var23.size();
-                                }
-
-                                if (var18 > 0) {
-                                    var24 = 0;
-
-                                    while(var24 < var20.size()) {
-                                        String var48 = (String)var20.elementAt(var24);
-                                        if (!var23.contains(var48)) {
-                                            var20.removeElementAt(var24);
-                                        } else {
-                                            ++var24;
-                                        }
-                                    }
-                                }
-
-                                if (var18 > 0 && var43 != var23.size()) {
-                                    var15 = false;
-                                }
-
-                                if (var23.size() == 0) {
-                                    var36 = false;
-                                }
-
-                                if (var23.size() > 0) {
-                                    var39 = false;
-                                }
-
-                                if (var20.isEmpty()) {
-                                    var16 = false;
-                                }
-                            }
-
-                            if (!var36 && !var39 && !var15) {
-                                return 0;
-                            } else {
-                                int var45 = 0;
-                                int var46 = 0;
-                                int var47 = 0;
-                                var24 = 0;
-                                if (var15) {
-                                    var45 = non_entity_list.size();
-                                }
-
-                                if (var36) {
-                                    var46 = non_entity_list.size();
-                                }
-
-                                if (var39) {
-                                    var47 = non_entity_list.size();
-                                }
-
-                                if (var16) {
-                                    var24 = non_entity_list.size();
-                                }
-
-                                for(var18 = 0; var18 < non_entity_list.size(); ++var18) {
-                                    Row var49 = var10.calculateRow(all_concepts, (String) non_entity_list.elementAt(var18));
-                                    Vector var50 = new Vector();
-
-                                    for(int var27 = 0; var27 < var49.tuples.size(); ++var27) {
-                                        Vector var28 = (Vector)var49.tuples.elementAt(var27);
-                                        if (var17.contains(var28.toString())) {
-                                            var50.addElement(var28.toString());
-                                        }
-
-                                        if (var20.contains(var28.toString())) {
-                                            var20.removeElement(var28.toString());
-                                        }
-                                    }
-
-                                    if (var50.isEmpty()) {
-                                        --var47;
-                                    } else {
-                                        --var46;
-                                    }
-
-                                    if (var50.size() == var43) {
-                                        --var45;
-                                    }
-
-                                    if (var20.isEmpty()) {
-                                        var24 = 0;
-                                    }
-                                }
-
-                                var7 = var47;
-                                if (var46 > var47) {
-                                    var7 = var46;
-                                }
-
-                                if (var45 > var7) {
-                                    var7 = var45;
-                                }
-
-                                if (var24 > var7) {
-                                    var7 = var24;
-                                }
-
-                                return var7;
-                            }
-                        }
-                    } else {
-                        return 0;
-                    }
-                } else {
-                    return 0;
+        while ((exists_pattern_holds ||
+                negate_pattern_holds ||
+                number_pattern_holds ||
+                split_pattern_holds) && i<entity_list.size())
+        {
+            String entity = (String)entity_list.elementAt(i);
+            Row row = subobject_concept.calculateRow(all_concepts,entity);
+            Vector this_set = new Vector();
+            for (int j=0; j<row.tuples.size(); j++)
+            {
+                Vector tuple = (Vector)row.tuples.elementAt(j);
+                String tuple_string = tuple.toString();
+                if (object_entities.contains(tuple_string))
+                    this_set.addElement(tuple_string);
+            }
+            if (i==0)
+            {
+                same_set = (Vector)this_set.clone();
+                same_set_size = this_set.size();
+            }
+            if (i>0)
+            {
+                int k=0;
+                while (k<same_set.size())
+                {
+                    String tuple = (String)same_set.elementAt(k);
+                    if (!this_set.contains(tuple))
+                        same_set.removeElementAt(k);
+                    else
+                        k++;
                 }
             }
+            if(i>0 && same_set_size!=this_set.size())
+                number_pattern_holds = false;
+            if (this_set.size()==0)
+                exists_pattern_holds = false;
+            if (this_set.size()>0)
+                negate_pattern_holds = false;
+            if (same_set.isEmpty())
+                split_pattern_holds = false;
+            i++;
         }
+
+        if (!exists_pattern_holds && !negate_pattern_holds && !number_pattern_holds)
+            return 0;
+
+        int number_score = 0;
+        int exists_score = 0;
+        int negate_score = 0;
+        int split_score = 0;
+        if (number_pattern_holds)
+            number_score = non_entity_list.size();
+        if (exists_pattern_holds)
+            exists_score = non_entity_list.size();
+        if (negate_pattern_holds)
+            negate_score = non_entity_list.size();
+        if (split_pattern_holds)
+            split_score = non_entity_list.size();
+
+        for (i=0;i<non_entity_list.size();i++)
+        {
+            Row row = subobject_concept.calculateRow(all_concepts,(String)non_entity_list.elementAt(i));
+            Vector this_set = new Vector();
+            for (int j=0; j<row.tuples.size(); j++)
+            {
+                Vector tuple = (Vector)row.tuples.elementAt(j);
+                if (object_entities.contains(tuple.toString()))
+                    this_set.addElement(tuple.toString());
+                if (same_set.contains(tuple.toString()))
+                    same_set.removeElement(tuple.toString());
+            }
+
+            if (this_set.isEmpty())
+                negate_score--;
+            else
+                exists_score--;
+            if (this_set.size()==same_set_size)
+                number_score--;
+            if (same_set.isEmpty())
+                split_score = 0;
+        }
+
+        score = negate_score;
+        if (exists_score > score)
+            score = exists_score;
+        if (number_score > score)
+            score = number_score;
+        if (split_score > score)
+            score = split_score;
+        return score;
     }
 
-    public Vector composeTuples(Vector var1, Vector var2, Vector var3) {
-        Vector var4 = new Vector();
-
-        for(int var5 = 0; var5 < var3.size(); ++var5) {
-            int var6;
-            if (var5 < var1.size()) {
-                var6 = var5;
-            } else {
-                var6 = -1;
-            }
+    public Vector composeTuples(Vector p_tuple, Vector s_tuple, Vector s_params)
+    {
+        Vector output = new Vector();
+        for(int i=0;i<s_params.size();i++)
+        {
+            int p_pos;
+            if (i<p_tuple.size()) p_pos = i; else p_pos=-1;
 
             try {
-                int var7 = new Integer((String) var3.elementAt(var5)) - 1;
-                if (var6 >= 0) {
-                    var4.addElement(var1.elementAt(var6));
-                } else {
-                    var4.addElement(var2.elementAt(var7));
-                }
+                int s_pos = new Integer((String)s_params.elementAt(i)).intValue()-1;
+                if (p_pos >=0) output.addElement(p_tuple.elementAt(p_pos));
+                else output.addElement(s_tuple.elementAt(s_pos));
             } catch (ArrayIndexOutOfBoundsException ignored) {
             }
         }
-
-        return var4;
+        return output;
     }
 }

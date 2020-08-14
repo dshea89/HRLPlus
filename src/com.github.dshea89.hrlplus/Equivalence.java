@@ -1,218 +1,262 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.Serializable;
 import java.util.Vector;
+import java.util.Hashtable;
+import java.lang.String;
+import java.awt.TextField;
+import java.io.Serializable;
 
-public class Equivalence extends Conjecture implements Serializable {
-    public Double score = new Double(0.0D);
+/** A class representing an equivalence conjecture (if-and-only-if) in the theory.
+ * @author Simon Colton, started 11th December 1999
+ * @version 1.0
+ * @see Conjecture
+ */
+
+public class Equivalence extends Conjecture implements Serializable
+{
+    /** The percentage of entities for which this conjecture is true.
+     */
+
+    public Double score = new Double(0);
+
+    /** The concept on the left hand side of the conjecture.
+     */
+
     public Concept lh_concept = new Concept();
+
+    /** The concept on the right hand side of the conjecture.
+     */
+
     public Concept rh_concept = new Concept();
 
-    public Equivalence() {
+    /** Trivial constructor
+     */
+
+    public Equivalence()
+    {
     }
 
-    public Equivalence(Concept var1, Concept var2, String var3) {
-        this.lh_concept = var1;
-        this.rh_concept = var2;
-        if (this.lh_concept.is_entity_instantiations || this.rh_concept.is_entity_instantiations) {
-            this.involves_instantiation = true;
-        }
+    /** Constructor given the left hand and right hand concepts and the id number.
+     * The left hand concept is the one already in the theory and the right hand one
+     * is the one conjectured to be equivalent.
+     */
 
-        this.id = var3;
-        this.type = "equivalence";
-        this.object_type = this.lh_concept.object_type;
+    public Equivalence(Concept lh, Concept rh, String id_number)
+    {
+        lh_concept = lh;
+        rh_concept = rh;
+        if (lh_concept.is_entity_instantiations || rh_concept.is_entity_instantiations)
+            involves_instantiation = true;
+        id = id_number;
+        type = "equivalence";
+        object_type = lh_concept.object_type;
     }
 
-    public Vector knownCounterexamples() {
-        return this.lh_concept.datatable.getDifference(this.rh_concept.datatable);
+    /** This checks whether there are any (known) counterexamples in the datatables of the
+     * concepts conjectured to be equivalent, and adds them to the counterexamples if they
+     * are not already in there.
+     */
+
+    public Vector knownCounterexamples()
+    {
+        return lh_concept.datatable.getDifference(rh_concept.datatable);
     }
 
-    public Equivalence(Concept var1, Concept var2, String var3, Double var4) {
-        this.lh_concept = var1;
-        this.rh_concept = var2;
-        if (this.lh_concept.is_entity_instantiations || this.rh_concept.is_entity_instantiations) {
-            this.involves_instantiation = true;
-        }
+    /** Constructor given the left hand and right hand concepts, the id number and the
+     * score. The left hand concept is the one already in the theory and the right hand one
+     * is the one conjectured to be equivalent.
+     */
 
-        this.id = var3;
-        this.type = "equivalence";
-        this.score = var4;
-        this.object_type = this.lh_concept.object_type;
+    public Equivalence(Concept lh, Concept rh, String id_number, Double sc)
+    {
+        lh_concept = lh;
+        rh_concept = rh;
+        if (lh_concept.is_entity_instantiations || rh_concept.is_entity_instantiations)
+            involves_instantiation = true;
+        id = id_number;
+        type = "equivalence";
+        score = sc;
+        object_type = lh_concept.object_type;
     }
 
-    public boolean isTrivial() {
-        return this.lh_concept.writeDefinition("ascii").equals(this.rh_concept.writeDefinition("ascii"));
+    /** IF the left hand side has exactly the same definition as the
+     * right hand side, then this returns true.
+     */
+
+    public boolean isTrivial()
+    {
+        if(lh_concept.writeDefinition("ascii").equals(rh_concept.writeDefinition("ascii")))
+            return true;
+        return false;
     }
 
-    public String getDomain() {
-        return this.lh_concept.domain;
+    /** Returns the domain of the left hand concept.
+     */
+
+    public String getDomain()
+    {
+        return lh_concept.domain;
     }
 
-    public String writeConjecture(String var1) {
-        Vector var2 = this.lh_concept.definition_writer.lettersForTypes(this.lh_concept.types, var1, new Vector());
-        String var3 = this.lh_concept.writeDefinition(var1);
-        String var4 = this.rh_concept.writeDefinition(var1);
-        if (var1.equals("ascii")) {
-            return this.writeAsciiConjecture(var2, var3, var4);
-        } else if (var1.equals("otter")) {
-            return this.writeOtterConjecture(var2, var3, var4);
-        } else if (var1.equals("tptp")) {
-            return this.writeTPTPConjecture(var2, var3, var4);
-        } else {
-            return var1.equals("prolog") ? this.writePrologConjecture(var2, var3, var4) : "";
-        }
+    /** Writes the conjecture as a string in the given language.
+     */
+
+    public String writeConjecture(String language)
+    {
+        Vector letters = lh_concept.definition_writer.lettersForTypes(lh_concept.types,language,new Vector());
+        String lh_string = lh_concept.writeDefinition(language);
+        String rh_string = rh_concept.writeDefinition(language);
+
+
+        if (language.equals("ascii"))
+            return writeAsciiConjecture(letters, lh_string, rh_string);
+        if (language.equals("otter"))
+            return writeOtterConjecture(letters, lh_string, rh_string);
+        if (language.equals("tptp"))
+            return writeTPTPConjecture(letters, lh_string, rh_string);
+        if (language.equals("prolog"))
+            return writePrologConjecture(letters, lh_string, rh_string);
+        return "";
     }
 
-    private String writeTPTPConjecture(Vector var1, String var2, String var3) {
-        if (var2.equals("") && var3.equals("")) {
+    private String writeTPTPConjecture(Vector letters, String lh_string, String rh_string)
+    {
+        if (lh_string.equals("") && rh_string.equals(""))
             return "";
-        } else {
-            String var4 = "[";
-
-            for(int var5 = 1; var5 < var1.size() - 1; ++var5) {
-                var4 = var4 + (String)var1.elementAt(var5) + ",";
-            }
-
-            if (var1.size() > 1) {
-                var4 = var4 + (String)var1.elementAt(var1.size() - 1);
-            }
-
-            var4 = var4 + "]";
-            String var7 = "";
-            boolean var6 = false;
-            if (var2.trim().equals("") || var2.trim().equals("()") || var2.trim().equals("(())")) {
-                if (var4.equals("[]")) {
-                    var7 = "input_formula(conjecture" + this.id + ",conjecture,(\n     (" + var3 + "))).";
-                } else {
-                    var7 = "input_formula(conjecture" + this.id + ",conjecture,(\n     ! " + var4 + " : \n      (" + var3 + "))).";
-                }
-
-                var6 = true;
-            }
-
-            if (var3.trim().equals("") || var3.trim().equals("()") || var3.trim().equals("(())")) {
-                if (var4.equals("[]")) {
-                    var7 = "input_formula(conjecture" + this.id + ",conjecture,(\n     (" + var2 + "))).";
-                } else {
-                    var7 = "input_formula(conjecture" + this.id + ",conjecture,(\n     ! " + var4 + " : \n      (" + var2 + "))).";
-                }
-
-                var6 = true;
-            }
-
-            if (!var6) {
-                if (var4.equals("[]")) {
-                    var7 = "input_formula(conjecture" + this.id + ",conjecture,(\n     ((" + var2 + ")) \n       <=> (" + var3 + "))).";
-                } else {
-                    var7 = "input_formula(conjecture" + this.id + ",conjecture,(\n     ! " + var4 + " : \n      ((" + var2 + " )\n       <=> (" + var3 + ")))).";
-                }
-            }
-
-            return var7;
-        }
-    }
-
-    private String writeAsciiConjecture(Vector var1, String var2, String var3) {
-        String var4 = " for all ";
-
-        for(int var5 = 0; var5 < var1.size(); ++var5) {
-            var4 = var4 + (String)var1.elementAt(var5) + " ";
+        String letters_string = "[";
+        for (int i=1; i<letters.size()-1; i++)
+            letters_string=letters_string + (String)letters.elementAt(i)+",";
+        if (letters.size()>1)
+            letters_string=letters_string+(String)letters.elementAt(letters.size()-1);
+        letters_string=letters_string + "]";
+        String output = "";
+        boolean printed_with_an_empty_side = false;
+        if (lh_string.trim().equals("") || lh_string.trim().equals("()") || lh_string.trim().equals("(())"))
+        {
+            if (letters_string.equals("[]"))
+                output = "input_formula(conjecture"+id+",conjecture,(\n     ("+rh_string+"))).";
+            else
+                output = "input_formula(conjecture"+id+",conjecture,(\n     ! "+letters_string+
+                        " : \n      ("+rh_string+"))).";
+            printed_with_an_empty_side = true;
         }
 
-        return var4 + ": " + var2 + " <-> " + var3;
-    }
-
-    private String writePrologConjecture(Vector var1, String var2, String var3) {
-        String var4 = " for all ";
-
-        for(int var5 = 0; var5 < var1.size(); ++var5) {
-            var4 = var4 + (String)var1.elementAt(var5) + " ";
+        if (rh_string.trim().equals("") || rh_string.trim().equals("()") || rh_string.trim().equals("(())"))
+        {
+            if (letters_string.equals("[]"))
+                output = "input_formula(conjecture"+id+",conjecture,(\n     ("+lh_string+"))).";
+            else
+                output = "input_formula(conjecture"+id+",conjecture,(\n     ! "+letters_string+
+                        " : \n      ("+lh_string+"))).";
+            printed_with_an_empty_side = true;
         }
 
-        return var2.trim().equals("") ? var4 + ": " + var3 : var4 + ": " + var2 + " <=> " + var3;
+        if (!printed_with_an_empty_side)
+        {
+            if (letters_string.equals("[]"))
+                output = "input_formula(conjecture"+id+",conjecture,(\n     (("+lh_string+")) \n       <=> ("+rh_string+"))).";
+            else
+                output = "input_formula(conjecture"+id+",conjecture,(\n     ! "+letters_string+
+                        " : \n      (("+lh_string+" )\n       <=> ("+rh_string+")))).";
+        }
+        return output;
     }
 
-    private String writeOtterConjecture(Vector var1, String var2, String var3) {
-        String var4 = "";
-        if (var2.equals("") && var3.equals("")) {
+    private String writeAsciiConjecture(Vector letters, String lh_string, String rh_string)
+    {
+        String output = " for all ";
+        for (int i=0; i<letters.size(); i++)
+            output = output + (String)letters.elementAt(i) + " ";
+        return output + ": " + lh_string + " <-> " + rh_string;
+    }
+
+    private String writePrologConjecture(Vector letters, String lh_string, String rh_string)
+    {
+        String output = " for all ";
+        for (int i=0; i<letters.size(); i++)
+            output = output + (String)letters.elementAt(i) + " ";
+        if (lh_string.trim().equals(""))
+            return output + ": " + rh_string;
+        return output + ": " + lh_string + " <=> " + rh_string;
+    }
+
+    private String writeOtterConjecture(Vector letters, String lh_string, String rh_string)
+    {
+        String output = "";
+        if (lh_string.equals("") && rh_string.equals(""))
             return "";
-        } else if (var3.equals("")) {
-            return this.writeOtterConjecture(var1, var3, var2);
-        } else {
-            if (var1.size() > 1 || this.use_entity_letter) {
-                var4 = var4 + "all ";
-            }
-
-            byte var5 = 1;
-            if (this.use_entity_letter) {
-                var5 = 0;
-            }
-
-            for(int var6 = var5; var6 < var1.size(); ++var6) {
-                var4 = var4 + (String)var1.elementAt(var6) + " ";
-            }
-
-            if (var1.size() > 1 || this.use_entity_letter) {
-                var4 = var4 + "(";
-            }
-
-            if (!var2.equals("") && !var3.equals("")) {
-                var4 = var4 + "((" + var2 + ") <-> (" + var3 + "))";
-            }
-
-            if (var2.equals("")) {
-                var4 = var4 + "(" + var3 + ")";
-            }
-
-            if (var1.size() > 1 || this.use_entity_letter) {
-                var4 = var4 + ")";
-            }
-
-            return var4;
-        }
+        if (rh_string.equals(""))
+            return writeOtterConjecture(letters, rh_string, lh_string);
+        if (letters.size()>1 || use_entity_letter)
+            output = output + "all ";
+        int start_pos = 1;
+        if (use_entity_letter)
+            start_pos = 0;
+        for (int i=start_pos; i<letters.size(); i++)
+            output = output + (String)letters.elementAt(i) + " ";
+        if (letters.size()>1 || use_entity_letter)
+            output = output + "(";
+        if (!lh_string.equals("") && !rh_string.equals(""))
+            output = output + "((" + lh_string + ") <-> (" + rh_string + "))";
+        if (lh_string.equals(""))
+            output = output + "(" + rh_string + ")";
+        if (letters.size()>1 || use_entity_letter)
+            output = output + ")";
+        return output;
     }
 
-    public Vector implicates(SpecificationHandler var1) {
-        Vector var2 = new Vector();
+    /** This returns the vector of implicates extracted from this equivalence conjecture.
+     * It uses the specification handler to check whether the goal specification of each
+     * is not implied (after skolemisation) by the premise concept.
+     */
 
-        int var3;
-        Specification var4;
-        Concept var5;
-        Implicate var6;
-        for(var3 = 0; var3 < this.rh_concept.specifications.size(); ++var3) {
-            var4 = (Specification)this.rh_concept.specifications.elementAt(var3);
-            if (!this.lh_concept.specifications.contains(var4)) {
-                var5 = new Concept();
-                var5.specifications.addElement(var4);
-                var5.setSkolemisedRepresentation();
-                if (!var5.skolemised_representation.variables.isEmpty() && !var1.leftSkolemisedImpliesRight(this.lh_concept, var5, false)) {
-                    var6 = new Implicate(this.lh_concept, var4, this.step);
-                    var6.when_constructed = this.when_constructed;
-                    var6.proof_status = this.proof_status;
-                    if (!var6.writeConjecture("otter").equals(this.writeConjecture("otter"))) {
-                        var2.addElement(var6);
-                    }
+    public Vector implicates(SpecificationHandler specification_handler)
+    {
+        Vector output = new Vector();
+
+        // Get implicates from lhs => rhs
+
+        for (int i=0; i<rh_concept.specifications.size(); i++)
+        {
+            Specification specification = (Specification)rh_concept.specifications.elementAt(i);
+            if (!lh_concept.specifications.contains(specification))
+            {
+                Concept goal_concept = new Concept();
+                goal_concept.specifications.addElement(specification);
+                goal_concept.setSkolemisedRepresentation();
+                if (!goal_concept.skolemised_representation.variables.isEmpty() &&
+                        !specification_handler.leftSkolemisedImpliesRight(lh_concept, goal_concept, false))
+                {
+                    Implicate implicate = new Implicate(lh_concept, specification, step);
+                    implicate.when_constructed = when_constructed;
+                    implicate.proof_status = proof_status;
+                    if (!implicate.writeConjecture("otter").equals(writeConjecture("otter")))
+                        output.addElement(implicate);
                 }
             }
         }
 
-        for(var3 = 0; var3 < this.lh_concept.specifications.size(); ++var3) {
-            var4 = (Specification)this.lh_concept.specifications.elementAt(var3);
-            if (!this.rh_concept.specifications.contains(var4)) {
-                var5 = new Concept();
-                var5.specifications.addElement(var4);
-                var5.setSkolemisedRepresentation();
-                if (!var5.skolemised_representation.variables.isEmpty() && !var1.leftSkolemisedImpliesRight(this.rh_concept, var5, false)) {
-                    var6 = new Implicate(this.rh_concept, var4, this.step);
-                    var6.when_constructed = this.when_constructed;
-                    var6.proof_status = this.proof_status;
-                    if (!var6.writeConjecture("otter").equals(this.writeConjecture("otter"))) {
-                        var2.addElement(var6);
-                    }
+        // Get implicates from rhs => lhs
+
+        for (int i=0; i<lh_concept.specifications.size(); i++)
+        {
+            Specification specification = (Specification)lh_concept.specifications.elementAt(i);
+            if (!rh_concept.specifications.contains(specification))
+            {
+                Concept goal_concept = new Concept();
+                goal_concept.specifications.addElement(specification);
+                goal_concept.setSkolemisedRepresentation();
+                if (!goal_concept.skolemised_representation.variables.isEmpty() &&
+                        !specification_handler.leftSkolemisedImpliesRight(rh_concept, goal_concept, false))
+                {
+                    Implicate implicate = new Implicate(rh_concept, specification, step);
+                    implicate.when_constructed = when_constructed;
+                    implicate.proof_status = proof_status;
+                    if (!implicate.writeConjecture("otter").equals(writeConjecture("otter")))
+                        output.addElement(implicate);
                 }
             }
         }
-
-        return var2;
+        return output;
     }
 }

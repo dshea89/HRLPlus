@@ -1,110 +1,101 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.Serializable;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Hashtable;
+import java.lang.String;
+import java.io.*;
 
-public class ConfigHandler extends PseudoCodeUser implements Serializable {
+/** A class for obtaining the user configuration from a specified file.
+ *
+ * @author Simon Colton, started 30th April 2002
+ * @version 1.0 */
+
+public class ConfigHandler extends PseudoCodeUser implements Serializable
+{
+    /** The hashtable of values read from the config file.
+     */
+
     public Hashtable values_table = new Hashtable();
 
-    public ConfigHandler() {
+    /** The simple constructor.
+     */
+
+    public ConfigHandler()
+    {
     }
 
-    public boolean readUserConfiguration(String var1) {
-        try {
-            BufferedReader var2 = new BufferedReader(new FileReader(var1));
+    /** This reads the file and puts the various keys and values into the
+     * hashtable.
+     */
 
-            for(String var3 = var2.readLine(); var3 != null; var3 = var2.readLine()) {
-                this.pseudo_code_lines.addElement(var3);
+    public boolean readUserConfiguration(String filename)
+    {
+        try
+        {
+            BufferedReader in = new BufferedReader(new FileReader(filename));
+            String s = in.readLine();
+            while (!(s==null))
+            {
+                pseudo_code_lines.addElement(s);
+                s = in.readLine();
             }
-
-            var2.close();
-            return true;
-        } catch (Exception var4) {
+            in.close();
+        }
+        catch (Exception ex)
+        {
             return false;
         }
+        return true;
     }
 
-    public void setValue(String var1, String var2) {
-        this.values_table.put(var1, var2);
+    /** This sets a value in the config hashtable, which will be used
+     * when HR is started.
+     */
+
+    public void setValue(String value_name, String value)
+    {
+        values_table.put(value_name, value);
     }
 
-    public void initialiseHR(HR var1) {
-        this.pseudo_code_interpreter.local_alias_hashtable.put("this", this);
-        this.pseudo_code_interpreter.local_alias_hashtable.put("hr", var1);
-        this.pseudo_code_interpreter.runPseudoCode(this.pseudo_code_lines);
-        int var2 = 1100;
-        int var3 = 800;
-        if (this.values_table.containsKey("width")) {
-            var2 = new Integer((String)this.values_table.get("width"));
-        }
+    /** This initialises the HR object with respect to the user configuration file
+     */
 
-        if (this.values_table.containsKey("height")) {
-            var3 = new Integer((String)this.values_table.get("height"));
-        }
-
-        var1.setSize(var2, var3);
-        var1.setLocation(30, 30);
-        var1.setTitle(var1.my_agent_name + " HR" + var1.version_number);
-        var1.theory.front_end.version_number = var1.version_number;
-        if (this.values_table.containsKey("operating system")) {
-            var1.theory.operating_system = (String)this.values_table.get("operating system");
-        } else {
+    public void initialiseHR(HR hr)
+    {
+        pseudo_code_interpreter.local_alias_hashtable.put("this", this);
+        pseudo_code_interpreter.local_alias_hashtable.put("hr", hr);
+        pseudo_code_interpreter.runPseudoCode(pseudo_code_lines);
+        int width = 1100;
+        int height = 800;
+        if (values_table.containsKey("width"))
+            width = (new Integer((String)values_table.get("width"))).intValue();
+        if (values_table.containsKey("height"))
+            height = (new Integer((String)values_table.get("height"))).intValue();
+        hr.setSize(width, height);
+        hr.setLocation(30,30);
+        hr.setTitle(hr.my_agent_name + " HR" + hr.version_number);
+        hr.theory.front_end.version_number = hr.version_number;
+        if (values_table.containsKey("operating system"))
+            hr.theory.operating_system = (String)values_table.get("operating system");
+        else
             System.out.println("HR> warning: you have not specified the operating system");
+
+        if (values_table.containsKey("input files directory"))
+        {
+            String files_dir = (String)values_table.get("input files directory");
+            if (!files_dir.substring(files_dir.length()-1, files_dir.length()).equals("/"))
+                files_dir = files_dir + "/";
+            hr.theory.input_files_directory = files_dir;
+            hr.theory.front_end.input_files_directory = files_dir;
         }
-
-        String var4;
-        if (this.values_table.containsKey("input files directory")) {
-            var4 = (String)this.values_table.get("input files directory");
-            if (!var4.substring(var4.length() - 1, var4.length()).equals("/")) {
-                var4 = var4 + "/";
-            }
-
-            Path p = Paths.get(var4);
-            if (!p.isAbsolute()) {
-                var4 = attachBasePath(var4);
-            }
-
-            var1.theory.input_files_directory = var4;
-            var1.theory.front_end.input_files_directory = var4;
-        } else {
+        else
             System.out.println("HR> warning: you have not specified a directory for your input files");
-        }
 
-        if (this.values_table.containsKey("storage directory")) {
-            var4 = (String)this.values_table.get("storage directory");
-            if (!var4.substring(var4.length() - 1, var4.length()).equals("/")) {
-                var4 = var4 + "/";
-            }
-
-            Path p = Paths.get(var4);
-            if (!p.isAbsolute()) {
-                var4 = attachBasePath(var4);
-            }
-
-            var1.theory.storage_handler.storage_directory = var4;
+        if (values_table.containsKey("storage directory"))
+        {
+            String store_dir = (String)values_table.get("storage directory");
+            if (!store_dir.substring(store_dir.length()-1, store_dir.length()).equals("/"))
+                store_dir = store_dir + "/";
+            hr.theory.storage_handler.storage_directory = store_dir;
         }
-
-        if (this.values_table.containsKey("default max steps")) {
-            try {
-                var1.theory.front_end.required_text.setText(new Integer((String) this.values_table.get("default max steps")).toString());
-            } catch (Exception ignored) {
-            }
-        }
-    }
-
-    private String attachBasePath(String path) {
-        String base_path = System.getProperty("user.dir");
-        if (!base_path.endsWith(File.separator)) {
-            base_path += File.separator;
-        }
-        if (path.startsWith(File.separator) || path.startsWith("/")) {
-            path = path.substring(1);
-        }
-        return base_path + path;
     }
 }
