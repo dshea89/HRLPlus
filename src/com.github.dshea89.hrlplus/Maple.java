@@ -1,132 +1,149 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.io.Serializable;
 import java.util.Vector;
+import java.lang.String;
+import java.io.*;
 
-public class Maple implements Serializable {
-    public Maple() {
-    }
+/** A class for handling interaction with Maple.
+ *
+ * @author Simon Colton, started 14th November 2001
+ * @version 1.0 */
 
-    public String callFunction(String[] var1, String var2, String[] var3, String[] var4) {
-        String var5 = "";
-        String var6 = "";
+public class Maple implements Serializable
+{
+    public String callFunction(String[] entities, String function_name,
+                               String[] packages_required, String[] files_required){
 
-        int var7;
-        for(var7 = 0; var7 < var3.length; ++var7) {
-            var6 = var6 + "with(" + var3[var7] + "):\n";
+        String output = "";
+        String maple_text = "";
+
+        for (int i=0; i<packages_required.length; i++)
+            maple_text = maple_text + "with(" + packages_required[i] + "):\n";
+        for (int i=0; i<files_required.length; i++)
+            maple_text = maple_text + "read `" + files_required[i] + "`:\n";
+        maple_text = maple_text + "writeto(\"delcalc.out\"):\n";
+        maple_text += "lprint(" + function_name + "(";
+        for (int i=0; i<entities.length; i++){
+            maple_text += entities[i];
+            if (i<entities.length-1)
+                maple_text += ", ";
         }
+        maple_text += ")):\n";
+        maple_text = maple_text + "quit:";
 
-        for(var7 = 0; var7 < var4.length; ++var7) {
-            var6 = var6 + "read `" + var4[var7] + "`:\n";
-        }
+        try
+        {
+            PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("delcalc.in")));
+            out.write(maple_text);
+            out.close();
 
-        var6 = var6 + "writeto(\"delcalc.out\"):\n";
-        var6 = var6 + "lprint(" + var2 + "(";
+            Process maple_process = Runtime.getRuntime().exec("maple2.bat");
+            int exit_value = maple_process.waitFor();
+            maple_process.destroy();
 
-        for(var7 = 0; var7 < var1.length; ++var7) {
-            var6 = var6 + var1[var7];
-            if (var7 < var1.length - 1) {
-                var6 = var6 + ", ";
+            BufferedReader in = new BufferedReader(new FileReader("delcalc.out"));
+            String s = in.readLine();
+            while (s!=null){
+                if (!(s==null) && s.indexOf(">") <0 && s.indexOf("bytes")<0)
+                    output=s;
+                s = in.readLine();
             }
+            in.close();
         }
-
-        var6 = var6 + ")):\n";
-        var6 = var6 + "quit:";
-
-        try {
-            PrintWriter var13 = new PrintWriter(new BufferedWriter(new FileWriter("delcalc.in")));
-            var13.write(var6);
-            var13.close();
-            Process var8 = Runtime.getRuntime().exec("maple2.bat");
-            int var9 = var8.waitFor();
-            var8.destroy();
-            BufferedReader var10 = new BufferedReader(new FileReader("delcalc.out"));
-
-            for(String var11 = var10.readLine(); var11 != null; var11 = var10.readLine()) {
-                if (var11 != null && var11.indexOf(">") < 0 && var11.indexOf("bytes") < 0) {
-                    var5 = var11;
-                }
-            }
-
-            var10.close();
-        } catch (Exception var12) {
-            System.out.println(var12);
+        catch(Exception e)
+        {
+            System.out.println(e);
             System.out.println("here in Maple");
         }
+        return output;
 
-        return var5;
     }
 
-    public String callFunction(String var1, String var2, String[] var3, String[] var4) {
-        String[] var5 = new String[]{var1};
-        return this.callFunction(var5, var2, var3, var4);
+    public String callFunction(String entity, String function_name,
+                               String[] packages_required, String[] files_required)
+    {
+        String[] entities = {entity};
+        return callFunction(entities, function_name, packages_required, files_required);
     }
 
-    public Tuples getOutput(int var1, String var2, String var3, String[] var4, String[] var5) {
-        Tuples var6 = new Tuples();
-        String var7 = this.callFunction(var2, var3, var4, var5);
-        Vector var8;
-        if (var1 == 1 && var7.equals("true")) {
-            var8 = new Vector();
-            var6.addElement(var8);
+    public Tuples getOutput(int arity, String entity, String function_name, String[] packages, String[] files)
+    {
+        Tuples output = new Tuples();
+        String function_output = callFunction(entity, function_name, packages, files);
+        if (arity==1)
+        {
+            if (function_output.equals("true"))
+            {
+                Vector tuple = new Vector();
+                output.addElement(tuple);
+            }
         }
 
-        if (var1 == 2) {
-            if (var7.indexOf("{") < 0) {
-                var8 = new Vector();
-                var8.addElement(var7);
-                var6.addElement(var8);
-            } else {
-                for(var7 = var7.substring(1, var7.length() - 1); var7.indexOf(",") >= 0; var7 = var7.substring(var7.indexOf(",") + 2, var7.length())) {
-                    var8 = new Vector();
-                    String var9 = var7.substring(0, var7.indexOf(","));
-                    var8.addElement(var9);
-                    var6.addElement(var8);
+        if (arity==2)
+        {
+            if (function_output.indexOf("{")<0)
+            {
+                Vector tuple = new Vector();
+                tuple.addElement(function_output);
+                output.addElement(tuple);
+            }
+            else
+            {
+                function_output = function_output.substring(1,function_output.length()-1);
+                while (function_output.indexOf(",")>=0)
+                {
+                    Vector tuple = new Vector();
+                    String val = function_output.substring(0,function_output.indexOf(","));
+                    tuple.addElement(val);
+                    output.addElement(tuple);
+                    function_output = function_output.substring(function_output.indexOf(",")+2, function_output.length());
                 }
-
-                var8 = new Vector();
-                var8.addElement(var7);
-                var6.addElement(var8);
+                Vector tuple = new Vector();
+                tuple.addElement(function_output);
+                output.addElement(tuple);
             }
         }
-
-        var6.sort();
-        return var6;
+        output.sort();
+        return output;
     }
 
-    public Tuples getOutput(int var1, String var2, String var3, String[] var4) {
-        String[] var5 = new String[0];
-        return this.getOutput(var1, var2, var3, var4, var5);
+    public Tuples getOutput(int arity, String entity, String function_name, String[] packages)
+    {
+        String[] files = {};
+        return getOutput(arity, entity, function_name, packages, files);
     }
 
-    public String writeGraphForMaple(String var1) {
-        String var2 = "abcdefghijklmnopqrstuvwxzy";
-        String var3 = "graph({";
 
-        int var4;
-        for(var4 = 0; var4 < var1.indexOf("["); ++var4) {
-            var3 = var3 + Integer.toString(var2.indexOf(var1.charAt(var4)));
-            if (var4 < var1.indexOf("[") - 1) {
-                var3 = var3 + ",";
-            }
+    /** Given an HR string representation of a graph, outputs a string
+     * in Maple's representation. */
+    public String writeGraphForMaple(String hr_string)
+    {
+        //System.out.println("hr_string is " + hr_string);
+
+        String letters = "abcdefghijklmnopqrstuvwxzy";
+
+        String output = "graph({";;
+        int i;
+
+        for(i=0;i<hr_string.indexOf("[");i++)
+        {
+            output = output + Integer.toString(letters.indexOf(hr_string.charAt(i)));;
+            if(i<hr_string.indexOf("[")-1)
+                output = output + ",";
+        }
+        output = output + "},{";
+        i++;
+        for(;i<hr_string.indexOf("]");)
+        {
+
+            output = output + "{" + Integer.toString(letters.indexOf(hr_string.charAt(i))) + "," +
+                    Integer.toString(letters.indexOf(hr_string.charAt(i+1))) + "}";
+            i = i+3;
+            if(i<hr_string.indexOf("]")-1)
+                output = output + ",";
         }
 
-        var3 = var3 + "},{";
-        ++var4;
-
-        while(var4 < var1.indexOf("]")) {
-            var3 = var3 + "{" + Integer.toString(var2.indexOf(var1.charAt(var4))) + "," + Integer.toString(var2.indexOf(var1.charAt(var4 + 1))) + "}";
-            var4 += 3;
-            if (var4 < var1.indexOf("]") - 1) {
-                var3 = var3 + ",";
-            }
-        }
-
-        return var3 + "})";
+        //System.out.println("returning output " + output + "})\").");
+        return output + "})";
     }
 }

@@ -1,373 +1,361 @@
 package com.github.dshea89.hrlplus;
 
-import java.awt.TextArea;
-import java.io.Serializable;
 import java.util.Vector;
+import java.awt.*;
+import java.io.Serializable;
 
-public class PuzzleGenerator implements Serializable {
+public class PuzzleGenerator implements Serializable
+{
     int number_of_puzzles = 0;
 
-    public PuzzleGenerator() {
-    }
+    private Vector sortPuzzles(Vector puzzles)
+    {
+        Vector ordered_puzzles = new Vector();
+        for (int i=0; i<puzzles.size();i++)
+        {
+            Puzzle puzzle = (Puzzle)puzzles.elementAt(i);
+            int j=0;
+            boolean placed = false;
 
-    private Vector sortPuzzles(Vector puzzles) {
-        Vector var2 = new Vector();
-
-        for(int var3 = 0; var3 < puzzles.size(); ++var3) {
-            Puzzle var4 = (Puzzle)puzzles.elementAt(var3);
-            int var5 = 0;
-
-            boolean var6;
-            for(var6 = false; var5 < var2.size() && !var6; ++var5) {
-                Puzzle var7 = (Puzzle)var2.elementAt(var5);
-                if (var4.interestingness > var7.interestingness) {
-                    var6 = true;
-                    var2.insertElementAt(var4, var5);
+            while (j<ordered_puzzles.size() && !placed)
+            {
+                Puzzle other_puzzle = (Puzzle)ordered_puzzles.elementAt(j);
+                if (puzzle.interestingness > other_puzzle.interestingness)
+                {
+                    placed = true;
+                    ordered_puzzles.insertElementAt(puzzle, j);
                 }
+                j++;
             }
-
-            if (!var6) {
-                var2.addElement(var4);
-            }
+            if (!placed)
+                ordered_puzzles.addElement(puzzle);
         }
-
-        return var2;
+        return ordered_puzzles;
     }
 
-    public void generatePuzzles(TextArea output_text, int ooo_choices_size, int nis_choices_size, int analogy_choices_size, Vector concepts) {
+    public void generatePuzzles(TextArea output_text, int ooo_choices_size,
+                                int nis_choices_size, int analogy_choices_size,
+                                Vector concepts)
+    {
         output_text.setText("");
-        Timer var6 = new Timer();
-        var6.startStopWatch("puzzle_timer");
-        this.number_of_puzzles = 0;
-
-        for(int var7 = 0; var7 < concepts.size(); ++var7) {
-            Concept var8 = (Concept)concepts.elementAt(var7);
-            var8.ooo_puzzles = new Vector();
-            var8.nis_puzzles = new Vector();
-            var8.analogy_puzzles = new Vector();
-            if (ooo_choices_size > 0) {
-                this.makeOddOneOutPuzzles(ooo_choices_size, var8, concepts);
-            }
-
-            if (nis_choices_size > 0) {
-                this.makeNextInSequencePuzzles(nis_choices_size, var8, concepts);
-            }
-
-            if (analogy_choices_size > 0) {
-                this.makeAnalogyPuzzles(analogy_choices_size, var8, concepts);
-            }
+        Timer timer = new Timer();
+        timer.startStopWatch("puzzle_timer");
+        number_of_puzzles = 0;
+        for (int i=0; i<concepts.size(); i++)
+        {
+            Concept concept = (Concept)concepts.elementAt(i);
+            concept.ooo_puzzles = new Vector();
+            concept.nis_puzzles = new Vector();
+            concept.analogy_puzzles = new Vector();
+            if (ooo_choices_size>0)
+                makeOddOneOutPuzzles(ooo_choices_size, concept, concepts);
+            if (nis_choices_size>0)
+                makeNextInSequencePuzzles(nis_choices_size, concept, concepts);
+            if (analogy_choices_size>0)
+                makeAnalogyPuzzles(analogy_choices_size, concept, concepts);
         }
-
-        String var10 = "";
-
-        for(int var11 = 0; var11 < concepts.size(); ++var11) {
-            Concept var9 = (Concept)concepts.elementAt(var11);
-            var9.ooo_puzzles = this.sortPuzzles(var9.ooo_puzzles);
-            var9.nis_puzzles = this.sortPuzzles(var9.nis_puzzles);
-            var9.analogy_puzzles = this.sortPuzzles(var9.analogy_puzzles);
-            var10 = var10 + this.writePuzzles(var9.ooo_puzzles);
-            var10 = var10 + this.writePuzzles(var9.nis_puzzles);
-            var10 = var10 + this.writePuzzles(var9.analogy_puzzles);
+        String for_box = "";
+        for (int i=0; i<concepts.size(); i++)
+        {
+            Concept concept = (Concept)concepts.elementAt(i);
+            concept.ooo_puzzles = sortPuzzles(concept.ooo_puzzles);
+            concept.nis_puzzles = sortPuzzles(concept.nis_puzzles);
+            concept.analogy_puzzles = sortPuzzles(concept.analogy_puzzles);
+            for_box = for_box + writePuzzles(concept.ooo_puzzles);
+            for_box = for_box + writePuzzles(concept.nis_puzzles);
+            for_box = for_box + writePuzzles(concept.analogy_puzzles);
         }
-
-        String var12 = "time=" + Long.toString(var6.millisecondsPassed("puzzle_timer")) + " milliseconds\n" + "number=" + this.number_of_puzzles + "\n" + "\n------------------------\n";
-        output_text.setText(var12 + var10);
-        var6.stopStopWatch("puzzle_timer");
+        String top_text =
+                "time="+Long.toString(timer.millisecondsPassed("puzzle_timer"))+" milliseconds\n" +
+                        "number="+number_of_puzzles+"\n"+
+                        "\n------------------------\n";
+        output_text.setText(top_text + for_box);
+        timer.stopStopWatch("puzzle_timer");
     }
 
-    public String writePuzzles(Vector puzzles) {
-        String var2 = "";
-        if (!puzzles.isEmpty()) {
-            Puzzle var3 = (Puzzle)puzzles.elementAt(0);
-            ++this.number_of_puzzles;
-            var2 = var2 + "interestingness=" + Double.toString(var3.interestingness) + ", disguise=" + Double.toString(var3.disguise) + ", complexity=" + Integer.toString(var3.embedded_concept.complexity) + "\n";
-            var2 = var2 + var3.writePuzzle();
-            var2 = var2 + "answer: " + var3.writeAnswer();
-            if (!var3.disguising_concepts.isEmpty()) {
-                var2 = var2 + "\nDisguising Concepts:";
-
-                for(int var4 = 0; var4 < var3.disguising_concepts.size(); ++var4) {
-                    Concept var5 = (Concept)var3.disguising_concepts.elementAt(var4);
-                    var2 = var2 + "\n" + var5.id + ". " + var5.writeDefinition("ascii");
+    public String writePuzzles(Vector puzzles)
+    {
+        String output = "";
+        if (!puzzles.isEmpty())
+        {
+            Puzzle top_puzzle = (Puzzle)puzzles.elementAt(0);
+            number_of_puzzles++;
+            output = output +  "interestingness="+Double.toString(top_puzzle.interestingness)+
+                    ", disguise="+Double.toString(top_puzzle.disguise)+
+                    ", complexity="+Integer.toString(top_puzzle.embedded_concept.complexity)+"\n";
+            output = output + top_puzzle.writePuzzle();
+            output = output + "answer: "+top_puzzle.writeAnswer();
+            if (!top_puzzle.disguising_concepts.isEmpty())
+            {
+                output = output + "\nDisguising Concepts:";
+                for (int i=0; i<top_puzzle.disguising_concepts.size(); i++)
+                {
+                    Concept disguiser = (Concept)top_puzzle.disguising_concepts.elementAt(i);
+                    output = output + "\n"+disguiser.id+". "+disguiser.writeDefinition("ascii");
                 }
             }
-
-            var2 = var2 + "\n------------------------\n";
+            output = output + "\n------------------------\n";
         }
-
-        return var2;
+        return output;
     }
 
-    public Vector makeAnalogyPuzzles(int choices_size, Concept concept, Vector concepts) {
-        Vector var4 = new Vector();
-        Vector var5 = new Vector();
-
-        for(int var6 = 0; var6 < concept.datatable.size(); ++var6) {
-            var5.addElement(((Row)concept.datatable.elementAt(var6)).entity);
-        }
-
-        if (concept.arity != 1) {
-            return var4;
-        } else {
-            Vector var19 = (Vector)concept.categorisation.clone();
-
-            for(int var7 = 0; var7 < var19.size(); ++var7) {
-                Vector var8 = (Vector)var19.elementAt(var7);
-                if (var8.size() >= 4 && var8.size() <= var5.size() - choices_size + 1) {
-                    Vector var9 = new Vector();
-
-                    String var11;
-                    for(int var10 = 0; var10 < var5.size(); ++var10) {
-                        var11 = (String)var5.elementAt(var10);
-                        if (!var8.contains(var11)) {
-                            var9.addElement(var11);
-                        }
-                    }
-
-                    Vector var20 = this.allTuples(choices_size - 1, var9);
-                    var11 = (String)var8.elementAt(var7);
-                    Row var12 = concept.datatable.rowWithEntity(var11);
-                    if (!var12.tuples.isEmpty()) {
-                        Vector var13 = this.allTuples(4, var8);
-                        boolean var14 = false;
-
-                        while(!var13.isEmpty() && !var20.isEmpty() && !var14) {
-                            Vector var15 = (Vector)this.chooseRandom(var13);
-                            Vector var16 = (Vector)this.chooseRandom(var20);
-                            String var17 = (String)var15.elementAt(3);
-                            var16.addElement(var17);
-                            var15.removeElementAt(3);
-                            Puzzle var18 = new Puzzle(var16, var17, concept, "analogy");
-                            var18.randomizeOrder();
-                            var18.analogy_triple = var15;
-                            if (!var18.hasAlternativeSolution(concepts)) {
-                                var4.addElement(var18);
-                                concept.analogy_puzzles.addElement(var18);
-                                var14 = true;
-                            }
+    public Vector makeAnalogyPuzzles(int choices_size, Concept concept, Vector concepts)
+    {
+        Vector output = new Vector();
+        Vector entities = new Vector();
+        for (int i=0; i<concept.datatable.size(); i++)
+            entities.addElement(((Row)concept.datatable.elementAt(i)).entity);
+        if (concept.arity!=1)
+            return output;
+        Vector categorisation = (Vector)concept.categorisation.clone();
+        for (int i=0; i<categorisation.size(); i++)
+        {
+            Vector analogy_category = (Vector)categorisation.elementAt(i);
+            if (analogy_category.size()>=4 &&
+                    analogy_category.size()<=entities.size()-choices_size+1)
+            {
+                Vector other_entities = new Vector();
+                for (int j=0; j<entities.size(); j++)
+                {
+                    String entity = (String)entities.elementAt(j);
+                    if (!analogy_category.contains(entity))
+                        other_entities.addElement(entity);
+                }
+                Vector other_choices = allTuples(choices_size-1, other_entities);
+                String first_entity = (String)analogy_category.elementAt(i);
+                Row first_entity_row = concept.datatable.rowWithEntity(first_entity);
+                if (!first_entity_row.tuples.isEmpty())
+                {
+                    Vector all_fours = allTuples(4, analogy_category);
+                    boolean found_one = false;
+                    while (!all_fours.isEmpty() && !other_choices.isEmpty() && !found_one)
+                    {
+                        Vector four = (Vector)chooseRandom(all_fours);
+                        Vector choices = (Vector)chooseRandom(other_choices);
+                        String answer = (String)four.elementAt(3);
+                        choices.addElement(answer);
+                        four.removeElementAt(3);
+                        Puzzle puzzle = new Puzzle(choices, answer, concept, "analogy");
+                        puzzle.randomizeOrder();
+                        puzzle.analogy_triple = four;
+                        if (!puzzle.hasAlternativeSolution(concepts))
+                        {
+                            output.addElement(puzzle);
+                            concept.analogy_puzzles.addElement(puzzle);
+                            found_one = true;
                         }
                     }
                 }
             }
-
-            return var4;
         }
+        return output;
     }
 
-    public Vector makeNextInSequencePuzzles(int choices_size, Concept concept, Vector concepts) {
-        Vector var4 = new Vector();
-        String var5 = concept.types.toString();
-        if (concept.complexity < 3) {
-            choices_size = choices_size / 2 + 1;
-        }
-
-        Vector var6 = new Vector();
-        Vector var7 = new Vector();
-        int var8;
-        if (var5.equals("[integer]")) {
-            for(var8 = 0; var8 < concept.datatable.size(); ++var8) {
-                Row var9 = (Row)concept.datatable.elementAt(var8);
-                String var10 = var9.entity;
-                if (!var9.tuples.isEmpty()) {
-                    var6.addElement(var10);
+    public Vector makeNextInSequencePuzzles(int choices_size, Concept concept, Vector concepts)
+    {
+        Vector output = new Vector();
+        String types_string = concept.types.toString();
+        if (concept.complexity < 3)
+            choices_size = choices_size/2 + 1;
+        Vector positives = new Vector();
+        Vector starting_numbers = new Vector();
+        if (types_string.equals("[integer]"))
+        {
+            for (int i=0; i<concept.datatable.size(); i++)
+            {
+                {
+                    Row row = (Row)concept.datatable.elementAt(i);
+                    String e = row.entity;
+                    if (!row.tuples.isEmpty())
+                        positives.addElement(e);
                 }
             }
         }
-
-        Vector var12;
-        int var13;
-        if (var5.equals("[integer, integer]")) {
-            boolean var15 = false;
-
-            int var16;
-            for(var16 = 0; var16 < concept.functions.size() && !var15; ++var16) {
-                Function var17 = (Function)concept.functions.elementAt(var16);
-                if (var17.input_columns.toString().equals("[0]") && var17.output_columns.toString().equals("[1]")) {
-                    var15 = true;
-                }
+        if (types_string.equals("[integer, integer]"))
+        {
+            boolean concept_is_function = false;
+            for (int i=0; i<concept.functions.size() && !concept_is_function; i++)
+            {
+                Function function = (Function)concept.functions.elementAt(i);
+                if (function.input_columns.toString().equals("[0]") &&
+                        function.output_columns.toString().equals("[1]"))
+                    concept_is_function = true;
             }
-
-            if (var15) {
-                for(var16 = 0; var16 < concept.datatable.size(); ++var16) {
-                    Row var19 = (Row)concept.datatable.elementAt(var16);
-
-                    for(int var11 = 0; var11 < var19.tuples.size(); ++var11) {
-                        var12 = (Vector)var19.tuples.elementAt(var11);
-
-                        for(var13 = 0; var13 < var12.size(); ++var13) {
-                            var6.addElement(var12.elementAt(var13));
+            if (concept_is_function)
+            {
+                for (int i=0; i<concept.datatable.size(); i++)
+                {
+                    {
+                        Row row = (Row)concept.datatable.elementAt(i);
+                        for (int j=0; j<row.tuples.size(); j++)
+                        {
+                            Vector tuple = (Vector)row.tuples.elementAt(j);
+                            for (int k=0; k<tuple.size(); k++)
+                                positives.addElement(tuple.elementAt(k));
                         }
+                        starting_numbers.addElement(row.entity);
                     }
-
-                    var7.addElement(var19.entity);
                 }
             }
         }
-
-        if ((var5.equals("[integer]") || var5.equals("[integer, integer]")) && var6.size() >= choices_size) {
-            var8 = var6.size() - choices_size;
-            boolean var18 = false;
-
-            for(int var20 = var8; var20 > 0 && !var18; --var20) {
-                Vector var21 = new Vector();
-                var12 = new Vector();
-
-                for(var13 = 0; var13 < choices_size; ++var13) {
-                    String var14 = (String)var6.elementAt(var20 + var13);
-                    var21.addElement(var14);
-                    if (!var12.contains(var14)) {
-                        var12.addElement(var14);
-                    }
+        if ((types_string.equals("[integer]") || types_string.equals("[integer, integer]")) &&
+                positives.size()>=choices_size)
+        {
+            int start_pos = positives.size()-choices_size;
+            boolean found_one = false;
+            for (int i=start_pos; i>0 && !found_one; i--)
+            {
+                Vector integer_sequence = new Vector();
+                Vector different_numbers = new Vector();
+                for (int j=0; j<choices_size; j++)
+                {
+                    String number = (String)positives.elementAt(i+j);
+                    integer_sequence.addElement(number);
+                    if (!different_numbers.contains(number))
+                        different_numbers.addElement(number);
                 }
-
-                String var22 = (String)var21.lastElement();
-                var21.removeElementAt(var21.size() - 1);
-                Puzzle var23 = new Puzzle(new Vector(), var22, concept, "nis");
-                var23.integer_sequence = var21;
-                if (var7.size() > var8) {
-                    var23.starting_number = (String)var7.elementAt(var8);
-                }
-
-                if (var12.size() > 2 && !var23.hasAlternativeSolution(concepts)) {
-                    var18 = true;
-                    concept.nis_puzzles.addElement(var23);
-                    if (concept.complexity < 3) {
-                        this.addDisguisingSequence(var23, concepts);
-                    }
-
-                    var4.addElement(var23);
+                String answer = (String)integer_sequence.lastElement();
+                integer_sequence.removeElementAt(integer_sequence.size()-1);
+                Puzzle puzzle = new Puzzle(new Vector(), answer, concept, "nis");
+                puzzle.integer_sequence = integer_sequence;
+                if (starting_numbers.size()>start_pos)
+                    puzzle.starting_number = (String)starting_numbers.elementAt(start_pos);
+                if (different_numbers.size()>2 && !puzzle.hasAlternativeSolution(concepts))
+                {
+                    found_one = true;
+                    concept.nis_puzzles.addElement(puzzle);
+                    if (concept.complexity<3)
+                        addDisguisingSequence(puzzle, concepts);
+                    output.addElement(puzzle);
                 }
             }
         }
-
-        return var4;
+        return output;
     }
 
-    public void addDisguisingSequence(Puzzle nis_puzzle, Vector concepts) {
-        Vector var3 = new Vector();
-
-        Vector var13;
-        for(int var4 = 0; var4 < concepts.size(); ++var4) {
-            Concept var5 = (Concept)concepts.elementAt(var4);
-            if (var5.arity == 1 && var5.complexity < 3) {
-                Vector var6 = new Vector();
-
-                for(int var7 = 0; var7 < var5.datatable.size(); ++var7) {
-                    Row var8 = (Row)var5.datatable.elementAt(var7);
-                    String var9 = var8.entity;
-                    if (!var8.tuples.isEmpty()) {
-                        var6.addElement(var9);
+    public void addDisguisingSequence(Puzzle nis_puzzle, Vector concepts)
+    {
+        Vector possibilities = new Vector();
+        for (int i=0; i<concepts.size(); i++)
+        {
+            Concept concept = (Concept)concepts.elementAt(i);
+            if (concept.arity==1 && concept.complexity<3)
+            {
+                Vector positives = new Vector();
+                for (int j=0; j<concept.datatable.size(); j++)
+                {
+                    {
+                        Row row = (Row)concept.datatable.elementAt(j);
+                        String e = row.entity;
+                        if (!row.tuples.isEmpty())
+                            positives.addElement(e);
                     }
                 }
-
-                if (var6.size() >= nis_puzzle.integer_sequence.size()) {
-                    var13 = new Vector();
-                    var13.addElement(var5);
-                    var13.addElement(var6);
-                    var3.addElement(var13);
+                if (positives.size()>=nis_puzzle.integer_sequence.size())
+                {
+                    Vector possibility = new Vector();
+                    possibility.addElement(concept);
+                    possibility.addElement(positives);
+                    possibilities.addElement(possibility);
                 }
             }
         }
-
-        boolean var10 = false;
-
-        while(!var10 && !var3.isEmpty()) {
-            Vector var11 = (Vector)this.chooseRandom(var3);
-            Concept var12 = (Concept)var11.elementAt(0);
-            var13 = (Vector)var11.elementAt(1);
-            Vector var14 = new Vector();
-
-            for(int var15 = 0; var15 < nis_puzzle.integer_sequence.size(); ++var15) {
-                var14.addElement(nis_puzzle.integer_sequence.elementAt(var15));
-                var14.addElement(var13.elementAt(var15));
+        boolean found_one = false;
+        while (!found_one && !possibilities.isEmpty())
+        {
+            Vector possibility = (Vector)chooseRandom(possibilities);
+            Concept concept = (Concept)possibility.elementAt(0);
+            Vector positives = (Vector)possibility.elementAt(1);
+            Vector new_integer_sequence = new Vector();
+            for (int i=0; i<nis_puzzle.integer_sequence.size(); i++)
+            {
+                new_integer_sequence.addElement(nis_puzzle.integer_sequence.elementAt(i));
+                new_integer_sequence.addElement(positives.elementAt(i));
             }
-
-            Puzzle var16 = new Puzzle(new Vector(), "", new Concept(), "nis");
-            var16.integer_sequence = var14;
-            if (!var16.hasAlternativeSolution(concepts)) {
-                nis_puzzle.integer_sequence = var14;
-                var10 = true;
-                nis_puzzle.disguising_concepts.addElement(var12);
-                nis_puzzle.disguise = 1.0D;
+            Puzzle try_puzzle = new Puzzle(new Vector(), "", new Concept(), "nis");
+            try_puzzle.integer_sequence = new_integer_sequence;
+            if (!try_puzzle.hasAlternativeSolution(concepts))
+            {
+                nis_puzzle.integer_sequence = new_integer_sequence;
+                found_one = true;
+                nis_puzzle.disguising_concepts.addElement(concept);
+                nis_puzzle.disguise=1;
             }
-        }
-
-    }
-
-    public Vector makeOddOneOutPuzzles(int choices_size, Concept concept, Vector concepts) {
-        Vector var4 = new Vector();
-        if (concept.arity != 1) {
-            return var4;
-        } else {
-            Vector var5 = new Vector();
-            Vector var6 = new Vector();
-
-            for(int var7 = 0; var7 < concept.datatable.size(); ++var7) {
-                Row var8 = (Row)concept.datatable.elementAt(var7);
-                String var9 = var8.entity;
-                if (var8.tuples.isEmpty()) {
-                    var6.addElement(var9);
-                } else {
-                    var5.addElement(var9);
-                }
-            }
-
-            Vector var14 = this.allTuples(choices_size - 1, var5);
-
-            for(int var15 = 0; var15 < var14.size(); ++var15) {
-                Vector var16 = (Vector)this.chooseRandom(var14);
-
-                for(int var10 = 0; var10 < var6.size(); ++var10) {
-                    String var11 = (String)var6.elementAt(var10);
-                    Vector var12 = (Vector)var16.clone();
-                    var12.addElement(var11);
-                    Puzzle var13 = new Puzzle(var12, var11, concept, "ooo");
-                    if (!var13.hasAlternativeSolution(concepts)) {
-                        var13.randomizeOrder();
-                        var13.calculateDisguiseMeasure(concepts);
-                        var13.interestingness = new Double(var13.disguise + (double)var13.embedded_concept.complexity) / 2.0D;
-                        var4.addElement(var13);
-                        concept.ooo_puzzles.addElement(var13);
-                    }
-                }
-            }
-
-            return var4;
         }
     }
 
-    public Vector allTuples(int arity, Vector elements) {
-        Vector var3 = new Vector();
-        var3.addElement(new Vector());
-
-        for(int var4 = 0; var4 < arity; ++var4) {
-            int var5 = var3.size();
-
-            for(int var6 = 0; var6 < var5; ++var6) {
-                Vector var7 = (Vector)var3.elementAt(0);
-                int var8 = -1;
-                if (!var7.isEmpty()) {
-                    var8 = elements.indexOf(var7.lastElement());
-                }
-
-                for(int var9 = var8 + 1; var9 < elements.size(); ++var9) {
-                    Vector var10 = (Vector)var7.clone();
-                    var10.addElement(elements.elementAt(var9));
-                    var3.addElement(var10);
-                }
-
-                var3.removeElementAt(0);
-            }
+    public Vector makeOddOneOutPuzzles(int choices_size, Concept concept, Vector concepts)
+    {
+        Vector output = new Vector();
+        if (concept.arity!=1)
+            return output;
+        Vector all_positives = new Vector();
+        Vector all_negatives = new Vector();
+        for (int i=0; i<concept.datatable.size(); i++)
+        {
+            Row row = (Row)concept.datatable.elementAt(i);
+            String e = row.entity;
+            if (row.tuples.isEmpty())
+                all_negatives.addElement(e);
+            else
+                all_positives.addElement(e);
         }
 
-        return var3;
+        Vector all_triples = allTuples(choices_size-1,all_positives);
+        for (int i=0; i<all_triples.size(); i++)
+        {
+            Vector positives = (Vector)chooseRandom(all_triples);
+            for (int j=0; j<all_negatives.size(); j++)
+            {
+                String odd_entity = (String)all_negatives.elementAt(j);
+                Vector choices = (Vector)positives.clone();
+                choices.addElement(odd_entity);
+                Puzzle ooo = new Puzzle(choices, odd_entity, concept, "ooo");
+                if (!ooo.hasAlternativeSolution(concepts))
+                {
+                    ooo.randomizeOrder();
+                    ooo.calculateDisguiseMeasure(concepts);
+                    ooo.interestingness = (new Double(ooo.disguise + ooo.embedded_concept.complexity)).doubleValue()/2;
+                    output.addElement(ooo);
+                    concept.ooo_puzzles.addElement(ooo);
+                }
+            }
+        }
+        return output;
     }
 
-    public Object chooseRandom(Vector choices) {
-        long var2 = Math.round(Math.random() * (double)(choices.size() - 1));
-        int var4 = new Integer(Long.toString(var2));
-        Object var5 = choices.elementAt(var4);
-        choices.removeElementAt(var4);
-        return var5;
+    public Vector allTuples(int arity, Vector elements)
+    {
+        Vector output = new Vector();
+        output.addElement(new Vector());
+
+        for (int i=0; i<arity; i++)
+        {
+            int os = output.size();
+            for (int j=0; j<os; j++)
+            {
+                Vector v = (Vector)output.elementAt(0);
+                int pos = -1;
+                if (!v.isEmpty())
+                    pos = elements.indexOf(v.lastElement());
+                for (int k=pos+1; k<elements.size(); k++)
+                {
+                    Vector new_v = (Vector)v.clone();
+                    new_v.addElement(elements.elementAt(k));
+                    output.addElement(new_v);
+                }
+                output.removeElementAt(0);
+            }
+        }
+        return output;
+    }
+
+    public Object chooseRandom(Vector choices)
+    {
+        long pos = Math.round((Math.random()*(choices.size()-1)));
+        int posint = (new Integer(Long.toString(pos))).intValue();
+        Object output = choices.elementAt(posint);
+        choices.removeElementAt(posint);
+        return output;
     }
 }

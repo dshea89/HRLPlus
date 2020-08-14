@@ -1,330 +1,364 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.Serializable;
 import java.util.Vector;
+import java.lang.String;
+import java.io.Serializable;
 
-/**
- * A super class for all the production rules. It has methods which need to be available to all production rules.
+/** A super class for all the production rules. It has methods which need to be available
+ * to all production rules.
+ * @author Simon Colton, started 12th December 1999
+ * @version 1.0
  */
-public class ProductionRule implements Serializable {
+
+public class ProductionRule implements Serializable
+{
+
+    /** How many new functions have been invented. //friday
+     */
+
     public int number_of_new_functions = 0;
 
-    /**
-     * A string which displays a reason why the PR returned an empty set of parameterisations.
+    /** A string which displays a reason why the PR returned an empty set of
+     * parameterizations.
      */
+
     public String parameter_failure_reason = "";
 
-    /**
-     * The arity limit for this production rule (i.e. the maximum arity of the concepts it is allowed to produce).
+    /** The arity limit for this production rule (i.e. the maximum arity of the concepts
+     * it is allowed to produce).
      */
+
     public int arity_limit = 3;
 
-    /**
-     * The tier (in terms of the agenda) of this production rule
+    /** The tier (in terms of the agenda) of this production rule
      */
+
     public int tier = 0;
 
-    /**
-     * The time when the stopwatch was started.
+    /** The time when the stopwatch was started.
      */
-    public long stopwatch_starting_time = 0L;
 
-    public ProductionRule() {
-    }
+    public long stopwatch_starting_time = 0;
 
-    /**
-     * Returns true if the production rule requires two concepts as input.
+    /** Returns true if the production rule requires two concepts as input.
      */
-    public boolean isBinary() {
+
+    public boolean isBinary()
+    {
         return false;
     }
 
-    /**
-     * Whether or not this produces cumulative concepts.
+    /** Whether or not this produces cumulative concepts.
+     * @see Concept
      */
-    public boolean isCumulative() {
+
+    public boolean isCumulative()
+    {
         return false;
     }
 
-    /**
-     * Returns the name of the production rule.
+    /** Returns the name of the production rule.
      */
-    public String getName() {
-        return "";
+
+    public String getName()
+    {
+        return("");
     }
 
-    /**
-     * Transforms the datatables given to it into a new datatable.
+    /** Transforms the datatables given to it into a new datatable.
      */
-    public Datatable transformTable(Vector old_datatables, Vector old_concepts, Vector parameters, Vector all_concepts) {
-        return null;
+
+    public Datatable transformTable(Vector old_datatables, Vector old_concepts,
+                                    Vector parameters, Vector all_concepts)
+    {
+        return(null);
     }
 
-    /**
-     * Produces the object types for the columns of the new datatable produced.
+    /** Produces the object types for the columns of the new datatable produced.
      */
-    public Vector transformTypes(Vector old_concepts, Vector parameters) {
-        return null;
+
+    public Vector transformTypes(Vector old_concepts, Vector parameters)
+    {
+        return(null);
     }
 
-    public Vector allParameters(Vector concept_list, Theory theory) {
-        Vector var3 = new Vector();
-        Vector var4 = new Vector();
-        var4.addElement("not yet");
-        var3.addElement(var4);
-        return var3;
+    public Vector allParameters(Vector concept_list, Theory theory)
+    {
+        Vector output = new Vector();
+        Vector parameter = new Vector();
+        parameter.addElement("not yet");
+        output.addElement(parameter);
+        return output;
     }
 
-    /**
-     * This checks whether the given permutation is the identity permutation.
+
+    /** This checks whether the given permutation is the identity permutation.
      */
-    public boolean isIdentityPermutation(Vector parameters) {
-        int var2;
-        for(var2 = 0; var2 < parameters.size(); ++var2) {
-            int var3 = new Integer((String)parameters.elementAt(var2));
-            if (var3 != var2) {
-                break;
-            }
+
+    public boolean isIdentityPermutation(Vector parameters)
+    {
+        int i=0;
+        while(i<parameters.size())
+        {
+            int entry = new Integer((String)parameters.elementAt(i)).intValue();
+            if (entry!=i) break;
+            i++;
         }
-
-        return var2 == parameters.size();
+        if (i==parameters.size()) return true;
+        else return false;
     }
 
-    /**
-     * This produces new specifications for a new concept.
+    /** This produces new specifications for a new concept.
      */
-    public Vector newSpecifications(Vector concept_list, Vector parameters, Theory theory, Vector new_functions) {
-        return new Vector();
+
+    public Vector newSpecifications(Vector concept_list, Vector parameters, Theory theory, Vector new_functions)
+    {
+        return (new Vector());
     }
 
-    /**
-     * This removes any permutations which are the identity permutation from a list of permutations.
+    /** This removes any permutations which are the identity permutation from a list of
+     * permutations.
      */
-    public void removeIdentityPermutations(Vector parameters) {
-        int var2 = 0;
 
-        while(var2 < parameters.size()) {
-            if (this.isIdentityPermutation((Vector)parameters.elementAt(var2))) {
-                parameters.removeElementAt(var2);
-            } else {
-                ++var2;
-            }
+    public void removeIdentityPermutations(Vector parameters)
+    {
+        int i=0;
+        while (i<parameters.size())
+        {
+            if (isIdentityPermutation((Vector)parameters.elementAt(i)))
+                parameters.removeElementAt(i);
+            else i++;
         }
-
     }
 
-    /**
-     * This removes the given columns from a datatable.
+    /** This removes the given columns from a datatable.
      */
-    public Datatable removeColumns(Datatable old_datatable, Vector parameters) {
-        Datatable var3 = new Datatable();
 
-        for(int var4 = 0; var4 < old_datatable.size(); ++var4) {
-            Row var5 = (Row)old_datatable.elementAt(var4);
-            String var6 = var5.entity;
-            Tuples var7 = var5.tuples;
-            Tuples var8 = new Tuples();
-
-            for(int var9 = 0; var9 < var7.size(); ++var9) {
-                Vector var10 = (Vector)((Vector)var7.elementAt(var9)).clone();
-                var10.insertElementAt(var6, 0);
-                Vector var11 = this.removeColumns(var10, parameters);
-                var11.removeElementAt(0);
-                var8.addElement(var11);
+    public Datatable removeColumns(Datatable old_datatable, Vector parameters)
+    {
+        Datatable output = new Datatable();
+        for (int i=0;i<old_datatable.size();i++)
+        {
+            Row row = (Row)old_datatable.elementAt(i);
+            String entity = row.entity;
+            Vector tuples = row.tuples;
+            Tuples new_tuples = new Tuples();
+            for (int j=0;j<tuples.size();j++)
+            {
+                Vector tuple=(Vector)((Vector)tuples.elementAt(j)).clone();
+                tuple.insertElementAt(entity,0);
+                Vector new_tuple = removeColumns(tuple,parameters);
+                new_tuple.removeElementAt(0);
+                new_tuples.addElement(new_tuple);
             }
-
-            var8.removeDuplicates();
-            Row var12 = new Row(var6, var8);
-            if (var8.size() > 0) {
-                var3.addElement(var12);
-            }
+            new_tuples.removeDuplicates();
+            Row new_row = new Row(entity,new_tuples);
+            if(new_tuples.size()>0) output.addElement(new_row);
         }
-
-        return var3;
+        return output;
     }
 
-    /**
-     * This interchanges the elements of a vector with two elements.
+    /** This interchanges the elements of a vector with two elements.
      */
-    public Vector swap(Vector concepts) {
-        Vector var2 = new Vector();
-        var2.addElement(concepts.elementAt(1));
-        var2.addElement(concepts.elementAt(0));
-        return var2;
+
+    public Vector swap(Vector concepts)
+    {
+        Vector output = new Vector();
+        output.addElement(concepts.elementAt(1));
+        output.addElement(concepts.elementAt(0));
+        return output;
     }
 
-    /**
-     * This returns a new vector with the repeated elements removed.
+    /** This returns a new vector with the repeated elements removed.
      */
-    public Vector removeRepeatedElements(Vector input) {
-        Vector var2 = new Vector();
 
-        for(int var3 = 0; var3 < input.size(); ++var3) {
-            if (!var2.contains(input.elementAt(var3))) {
-                var2.addElement(input.elementAt(var3));
-            }
+    public Vector removeRepeatedElements(Vector input)
+    {
+        Vector output = new Vector();
+        for (int i=0;i<input.size();i++)
+        {
+            if (!output.contains(input.elementAt(i)))
+                output.addElement(input.elementAt(i));
         }
-
-        return var2;
+        return output;
     }
 
-    /**
-     * This returns all possible tuples of columns which do not include column, given the arity of the original concept.
+    /** This returns all possible tuples of columns which do not include
+     * column, given the arity of the original concept.
      */
-    public Vector allColumnTuples(int arity) {
-        Vector var2 = new Vector();
-        var2.addElement(new Vector());
-        int var3 = 0;
 
-        for(int var4 = 1; var4 < arity; ++var4) {
-            int var5 = var2.size();
-
-            for(int var6 = var3; var6 < var5; ++var6) {
-                var3 = var5;
-                Vector var7 = (Vector)var2.elementAt(var6);
-                int var8 = 1;
-                if (!var7.isEmpty()) {
-                    var8 = new Integer((String)var7.lastElement());
-                }
-
-                for(int var9 = var8 + 1; var9 <= arity; ++var9) {
-                    new Vector();
-                    if (!var7.contains(Integer.toString(var9 - 1))) {
-                        Vector var10 = (Vector)var7.clone();
-                        var10.addElement(Integer.toString(var9 - 1));
-                        var2.addElement(var10);
+    public Vector allColumnTuples(int arity)
+    {
+        Vector output = new Vector();
+        output.addElement(new Vector());
+        int old_output_size = 0;
+        for (int i=1;i<arity;i++)
+        {
+            int l = output.size();
+            for (int j=old_output_size;j<l;j++)
+            {
+                old_output_size = l;
+                Vector old_tuple = (Vector)output.elementAt(j);
+                int start_int = 1;
+                if (!old_tuple.isEmpty())
+                    start_int = new Integer((String)old_tuple.lastElement()).intValue();
+                for (int k=start_int+1;k<=arity;k++)
+                {
+                    Vector new_tuple = new Vector();
+                    if (!old_tuple.contains(Integer.toString(k-1)))
+                    {
+                        new_tuple = (Vector)old_tuple.clone();
+                        new_tuple.addElement(Integer.toString(k-1));
+                        output.addElement(new_tuple);
                     }
                 }
             }
         }
-
-        var2.removeElementAt(0);
-        return var2;
+        output.removeElementAt(0);
+        return output;
     }
 
-    /**
-     * This removes the given columns from the given tuple.
+    /** This removes the given columns from the given tuple.
      */
-    public Vector removeColumns(Vector tuple, Vector parameters) {
-        for(int var3 = 0; var3 < parameters.size(); ++var3) {
+
+    public Vector removeColumns(Vector tuple, Vector parameters)
+    {
+        for(int i=0;i<parameters.size();i++)
+        {
             try {
-                int var4 = new Integer((String) parameters.elementAt(var3));
-                tuple.removeElementAt(var4 - var3);
+                int j=new Integer((String)parameters.elementAt(i)).intValue();
+                tuple.removeElementAt(j-i);
             } catch (ArrayIndexOutOfBoundsException ignored) {
             }
         }
-
         return tuple;
     }
 
-    /**
-     * This keeps only the given columns from the given tuple. Columns are assumed to be in the correct order.
+    /** This keeps only the given columns from the given tuple.
+     * Columns are assumed to be in the correct order.
      */
-    public Vector keepColumns(Vector tuple, Vector parameters) {
-        Vector var3 = new Vector();
 
-        for(int var4 = 0; var4 < parameters.size(); ++var4) {
-            int var5 = new Integer((String)parameters.elementAt(var4));
-            var3.addElement(tuple.elementAt(var5));
+    public Vector keepColumns(Vector tuple, Vector parameters)
+    {
+        Vector output = new Vector();
+        for(int i=0;i<parameters.size();i++)
+        {
+            int pos=(new Integer((String)parameters.elementAt(i))).intValue();
+            output.addElement(tuple.elementAt(pos));
         }
-
-        return var3;
+        return output;
     }
 
-    /**
-     * This assigns a score to a concept depending on whether the production rule can see any likelihood of a pattern.
+    /** This assigns a score to  a concept depending on whether the
+     * production rule can see any likelihood of a pattern.
      */
-    public int patternScore(Vector concept_list, Vector all_concepts, Vector entity_list, Vector non_entity_list, String object_types) {
-        return !this.object_type_after_step(concept_list).equals(object_types) ? 0 : this.patternScore(concept_list, all_concepts, entity_list, non_entity_list);
+
+    public int patternScore(Vector concept_list, Vector all_concepts,
+                            Vector entity_list, Vector non_entity_list,
+                            String object_types)
+    {
+        if (!((object_type_after_step(concept_list)).equals(object_types)))
+            return 0;
+        return patternScore(concept_list, all_concepts, entity_list, non_entity_list);
     }
 
-    /**
-     * Returns the type of objects of interest which will be involved in the resulting concept.
+    /** Returns the type of objects of interest which will be involved in the
+     * resulting concept.
      */
-    public String object_type_after_step(Vector concept_list) {
-        Concept var2 = (Concept)concept_list.elementAt(0);
-        return var2.object_type;
+
+    public String object_type_after_step(Vector concept_list)
+    {
+        Concept concept = (Concept)concept_list.elementAt(0);
+        return concept.object_type;
     }
 
-    public int patternScore(Vector concept_list, Vector all_concepts, Vector entity_list, Vector non_entity_list) {
+    public int patternScore(Vector concept_list, Vector all_concepts,
+                            Vector entity_list, Vector non_entity_list)
+    {
         return 0;
     }
 
-    /**
-     * This starts a stopwatch (to be used to stop datatable constructions which are taking too long).
+    /** This starts a stopwatch (to be used to stop datatable constructions
+     * which are taking too long).
      */
-    public void startStopWatch() {
-        this.stopwatch_starting_time = new Long(System.currentTimeMillis());
+
+    public void startStopWatch()
+    {
+        stopwatch_starting_time = (new Long(System.currentTimeMillis())).longValue();
     }
 
-    /**
-     * This tells how long (in milliseconds) that the stopwatch has been running.
+    /** This tells how long (in milliseconds) that the stopwatch has been
+     * running.
      */
-    public long stopWatchTime() {
-        long var1 = new Long(System.currentTimeMillis());
-        return var1 - this.stopwatch_starting_time;
+
+    public long stopWatchTime()
+    {
+        long current_time = (new Long(System.currentTimeMillis())).longValue();
+        return current_time - stopwatch_starting_time;
     }
 
-    /**
-     * Finds a concept in the given concept with matching specifications
+    /** Finds a concept in the given concept with matching specifications
      */
-    public Concept getConceptFromSpecs(Vector specs, Vector concepts, String types) {
-        Concept var4 = null;
-        Vector var5 = this.sortSpecs(specs);
-        boolean var6 = false;
 
-        for(int var7 = 0; var7 < concepts.size() && !var6; ++var7) {
-            var4 = (Concept)concepts.elementAt(var7);
-            if (types.equals(var4.types.toString()) && var4.specifications.size() == specs.size()) {
-                int var8;
-                for(var8 = 0; var8 < var5.size(); ++var8) {
-                    Specification var9 = (Specification)var5.elementAt(var8);
-
-                    int var10;
-                    for(var10 = 0; var10 < var4.specifications.size(); ++var10) {
-                        Specification var11 = (Specification)var4.specifications.elementAt(var10);
-                        if (var11.equals(var9)) {
-                            break;
-                        }
+    public Concept getConceptFromSpecs(Vector specs, Vector concepts, String types)
+    {
+        Concept concept = null;
+        Vector sorted_specs = sortSpecs(specs);
+        boolean found = false;
+        for (int i=0; i<concepts.size() && !found; i++)
+        {
+            concept = (Concept)concepts.elementAt(i);
+            if (types.equals(concept.types.toString()) &&
+                    concept.specifications.size()==specs.size())
+            {
+                int j=0;
+                while (j<sorted_specs.size())
+                {
+                    Specification spec = (Specification)sorted_specs.elementAt(j);
+                    int k=0;
+                    while (k<concept.specifications.size())
+                    {
+                        Specification check_spec =
+                                (Specification)concept.specifications.elementAt(k);
+                        if (check_spec.equals(spec)) break;
+                        k++;
                     }
-
-                    if (var10 == var4.specifications.size()) {
+                    if (k==concept.specifications.size())
                         break;
-                    }
+                    j++;
                 }
-
-                if (var8 == specs.size()) {
-                    var6 = true;
-                }
+                if (j==specs.size())
+                    found=true;
             }
         }
-
-        return var4;
+        return concept;
     }
 
-    public Vector sortSpecs(Vector specs) {
-        Vector var2 = new Vector();
-
-        for(int var3 = 0; var3 < specs.size(); ++var3) {
-            Specification var4 = (Specification)specs.elementAt(var3);
-            if (!var2.contains(var4)) {
-                int var5 = 0;
-
-                boolean var6;
-                for(var6 = false; var5 < var2.size() && !var6; ++var5) {
-                    Specification var7 = (Specification)var2.elementAt(var5);
-                    if (var4.id_number < var7.id_number) {
-                        var2.insertElementAt(var4, var5);
-                        var6 = true;
+    public Vector sortSpecs(Vector specs)
+    {
+        Vector output = new Vector();
+        for (int i=0;i<specs.size();i++)
+        {
+            Specification spec = (Specification)specs.elementAt(i);
+            if (!output.contains(spec))
+            {
+                int j=0;
+                boolean placed = false;
+                while (j<output.size() && !placed)
+                {
+                    Specification previous_spec = (Specification)output.elementAt(j);
+                    if (spec.id_number < previous_spec.id_number)
+                    {
+                        output.insertElementAt(spec, j);
+                        placed = true;
                     }
+                    j++;
                 }
-
-                if (!var6) {
-                    var2.addElement(var4);
-                }
+                if (!placed)
+                    output.addElement(spec);
             }
         }
+        return output;
 
-        return var2;
     }
 }

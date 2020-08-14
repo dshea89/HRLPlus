@@ -1,377 +1,370 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.io.Serializable;
 import java.util.Hashtable;
 import java.util.Vector;
+import java.lang.String;
+import java.io.*;
+import java.lang.Runtime.*;
 
-/**
- * A super class for the otter theorem prover.
- */
+/** A super class for the otter theorem prover.
+ *
+ * @author Simon Colton, started 7th December 2000
+ * @version 1.0 */
+
 // Despite Java warnings that this class is unused, it is invoked via Java Reflection from the Other Provers table
 @SuppressWarnings("unused")
-public class Otter extends Prover implements Serializable {
-    /**
-     * The vector of demodulators for the axioms in the theory.
+public class Otter extends Prover implements Serializable
+{
+    /** The vector of demodulators for the axioms in the theory.
      */
+
     public Vector demodulators = new Vector();
 
-    /**
-     * The standard constructor.
+    /** The standard constructor.
      */
-    public Otter() {
+
+    public Otter()
+    {
     }
 
-    /**
-     * Returns a string for the conjecture statement (in Otter's format).
+    /** Returns a string for the conjecture statement (in Otter's format).
      */
-    public String conjectureStatement(Conjecture conjecture) {
-        String var2 = this.executionParameter("time_limit");
-        String var3 = this.executionParameter("memory_limit");
-        String var4 = conjecture.writeConjecture("otter");
-        if (var4.equals("")) {
+
+    public String conjectureStatement(Conjecture conjecture)
+    {
+        String time_limit = executionParameter("time_limit");
+        String memory_limit = executionParameter("memory_limit");
+        String conjecture_text = conjecture.writeConjecture("otter");
+        if (conjecture_text.equals(""))
             return "";
-        } else {
-            var4 = "-(" + var4 + ").";
-            String var5 = "set(auto).\n";
-            var5 = var5 + "assign(max_seconds, " + var2 + ").\n";
-            var5 = var5 + "assign(max_mem, " + var3 + ").\n";
-            var5 = var5 + this.writeOperators();
-            var5 = var5 + "formula_list(usable).\n";
-            var5 = var5 + this.writeAxioms();
-
-            for(int var6 = 0; var6 < this.axiom_conjectures.size(); ++var6) {
-                Conjecture var7 = (Conjecture)this.axiom_conjectures.elementAt(var6);
-                var5 = var5 + var7.writeConjecture("otter") + ".\n";
-            }
-
-            if (this.use_ground_instances) {
-                var5 = var5 + this.ground_instances_as_axioms + "\n";
-            }
-
-            var5 = var5 + var4;
-            var5 = var5 + "\nend_of_list.\n";
-            return var5;
+        conjecture_text = "-(" + conjecture_text + ").";
+        String otter_text = "set(auto).\n";
+        otter_text = otter_text + "assign(max_seconds, " + time_limit + ").\n";
+        otter_text = otter_text + "assign(max_mem, " + memory_limit + ").\n";
+        otter_text = otter_text + writeOperators();
+        otter_text = otter_text + "formula_list(usable).\n";
+        otter_text = otter_text + writeAxioms();
+        for (int i=0; i<axiom_conjectures.size(); i++)
+        {
+            Conjecture ax_conj = (Conjecture)axiom_conjectures.elementAt(i);
+            otter_text = otter_text + ax_conj.writeConjecture("otter") + ".\n";
         }
+        if (use_ground_instances)
+            otter_text = otter_text + ground_instances_as_axioms + "\n";
+        otter_text = otter_text + conjecture_text;
+        otter_text = otter_text + "\nend_of_list.\n";
+        return otter_text;
     }
 
-    /**
-     * The method for attempting to prove the given conjecture.
+    /** The method for attempting to prove the given conjecture.
      */
-    public boolean prove(Conjecture conjecture, Theory theory) {
-        conjecture.use_entity_letter = this.use_entity_letter;
-        boolean var3 = false;
-        String var4 = this.conjectureStatement(conjecture);
-        boolean var5 = false;
-        if (conjecture instanceof NonExists) {
-            NonExists var6 = (NonExists)conjecture;
-            if (var6.concept.is_object_of_interest_concept) {
-                var5 = true;
-            }
+
+    public boolean prove(Conjecture conjecture, Theory theory)
+    {
+        conjecture.use_entity_letter = use_entity_letter;
+        boolean is_proved = false;
+        String otter_text = conjectureStatement(conjecture);
+        boolean checking_for_existence = false;
+        if (conjecture instanceof NonExists)
+        {
+            NonExists ne = (NonExists)conjecture;
+            if (ne.concept.is_object_of_interest_concept)
+                checking_for_existence = true;
         }
 
-        if (var4.trim().equals("") && !var5) {
+        // If the otter statement is blank, then the conjecture is returned true.
+
+        if (otter_text.trim().equals("") && !checking_for_existence)
+        {
             conjecture.is_trivially_true = true;
             return true;
-        } else if (this.use_mathweb) {
-            try {
-                String var23 = "prove(\"" + var4 + "\" replyWith: atp_result(state: unit time: time(sys: unit)))";
-                Object var26 = this.mathweb_handler.applyMethod(this.mathweb_service_name, var23, (String)null, (Integer)null);
-                if (var26 == null) {
+        }
+
+        if (use_mathweb==true)
+        {
+            try
+            {
+                String mathweb_otter_conjecture = "prove(\""+otter_text+
+                        "\" replyWith: atp_result(state: unit time: time(sys: unit)))";
+                Object result = mathweb_handler.applyMethod(mathweb_service_name, mathweb_otter_conjecture, null, null);
+                if (result==null)
                     return false;
-                }
 
-                try {
-                    Hashtable var25 = (Hashtable)var26;
-                    conjecture.proof_status = (String)var25.get("state");
-                    if (conjecture.proof_status.equals("proof")) {
+                try
+                {
+                    Hashtable results_hashtable = (Hashtable)result;
+                    conjecture.proof_status=(String)results_hashtable.get("state");
+                    if (conjecture.proof_status.equals("proof"))
                         conjecture.proof_status = "proved";
-                    }
-
-                    if (conjecture.proof_status.equals("timeout")) {
+                    if (conjecture.proof_status.equals("timeout"))
                         conjecture.proof_status = "time";
-                    }
-
-                    if (conjecture.proof_status.equals("search-exhausted")) {
+                    if (conjecture.proof_status.equals("search-exhausted"))
                         conjecture.proof_status = "sos";
-                    }
-
-                    conjecture.proof_time = new Double((String)var25.get("time"));
-                } catch (Exception var12) {
-                    conjecture.proof_status = var26.toString();
-                    System.out.println(var12);
+                    conjecture.proof_time = (new Double((String)results_hashtable.get("time"))).doubleValue();
                 }
-            } catch (Exception var13) {
-                System.out.println(var13);
+                catch(Exception e)
+                {
+                    conjecture.proof_status=result.toString();
+                    System.out.println(e);
+                }
             }
-
+            catch(Exception e)
+            {
+                System.out.println(e);
+            }
             return false;
-        } else {
-            if (!this.use_mathweb) {
-                PrintWriter var17;
-                try {
-                    var4 = var4 + "\n";
-                    var17 = new PrintWriter(new BufferedWriter(new FileWriter("delconj.in")));
-                    var17.write(var4);
-                    var17.close();
-                } catch (Exception var14) {
-                    System.out.println("Having trouble opening file delconj.in");
+        }
+
+        if (use_mathweb==false)
+        {
+            try
+            {
+                otter_text = otter_text + "\n";
+                PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("delconj.in")));
+                out.write(otter_text);
+                out.close();
+            }
+            catch(Exception e)
+            {
+                System.out.println("Having trouble opening file delconj.in");
+            }
+            try
+            {
+                if (operating_system.equals("york_unix_old"))
+                {
+                    PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("otter1.bat")));
+                    out.write("#! /bin/csh\n");
+                    out.write("otter < delconj.in > delconj.out &\n");
+                    out.write("sleep 1\n");
+                    out.write("set C=1\n");
+                    out.write("set MP=`ps | grep otter | grep -v \"1.b\" | nawk '{print $1}'`\n");
+                    out.write("while ($C != \""+Integer.toString(time_limit)+"\" & $MP != \"\")\n");
+                    out.write("set MP=`ps | grep otter | grep -v \"1.b\" | nawk '{print $1}'`\n");
+                    out.write("@ C=$C + 1\n");
+                    out.write("echo $C\n");
+                    out.write("sleep 1\n");
+                    out.write("end\n");
+                    out.write("set MP=`ps | grep otter | grep -v \"1.b\" | nawk '{print $1}'`\n");
+                    out.write("kill $MP\n");
+                    out.write("set MP=`ps | grep otter | nawk '{print $1}'`\n");
+                    out.write("kill $MP\n");
+                    out.close();
+                }
+                if (operating_system.equals("jcu_unix"))
+                {
+                    String[] inputs = new String[3];
+                    inputs[0] = "/bin/sh";
+                    inputs[1] = "-c";
+                    inputs[2] = "/home/guest/hr/devel/otter1.bat";
+                    Process otter_process = Runtime.getRuntime().exec(inputs);
+                    int exit_value = otter_process.waitFor();
+                    otter_process.destroy();
+                }
+                if (operating_system.equals("windows"))
+                {
+                    Process otter_process = Runtime.getRuntime().exec("otter1.bat");
+                    int exit_value = otter_process.waitFor();
+                    otter_process.destroy();
+                }
+                if (operating_system.equals("york_unix"))
+                {
+                    Process otter_process = Runtime.getRuntime().exec("otter1.bat");
+                    int exit_value = otter_process.waitFor();
+                    otter_process.destroy();
                 }
 
-                try {
-                    if (this.operating_system.equals("york_unix_old")) {
-                        var17 = new PrintWriter(new BufferedWriter(new FileWriter("otter1.bat")));
-                        var17.write("#! /bin/csh\n");
-                        var17.write("otter < delconj.in > delconj.out &\n");
-                        var17.write("sleep 1\n");
-                        var17.write("set C=1\n");
-                        var17.write("set MP=`ps | grep otter | grep -v \"1.b\" | nawk '{print $1}'`\n");
-                        var17.write("while ($C != \"" + Integer.toString(this.time_limit) + "\" & $MP != \"\")\n");
-                        var17.write("set MP=`ps | grep otter | grep -v \"1.b\" | nawk '{print $1}'`\n");
-                        var17.write("@ C=$C + 1\n");
-                        var17.write("echo $C\n");
-                        var17.write("sleep 1\n");
-                        var17.write("end\n");
-                        var17.write("set MP=`ps | grep otter | grep -v \"1.b\" | nawk '{print $1}'`\n");
-                        var17.write("kill $MP\n");
-                        var17.write("set MP=`ps | grep otter | nawk '{print $1}'`\n");
-                        var17.write("kill $MP\n");
-                        var17.close();
-                    }
-
-                    if (this.operating_system.equals("jcu_unix")) {
-                        String[] var18 = new String[]{"/bin/sh", "-c", "/home/guest/hr/devel/otter1.bat"};
-                        Process var7 = Runtime.getRuntime().exec(var18);
-                        int var8 = var7.waitFor();
-                        var7.destroy();
-                    }
-
-                    Process var19;
-                    int var20;
-                    if (this.operating_system.equals("windows")) {
-                        var19 = Runtime.getRuntime().exec("otter1.bat");
-                        var20 = var19.waitFor();
-                        var19.destroy();
-                    }
-
-                    if (this.operating_system.equals("york_unix")) {
-                        var19 = Runtime.getRuntime().exec("otter1.bat");
-                        var20 = var19.waitFor();
-                        var19.destroy();
-                    }
-
-                    BufferedReader var21 = new BufferedReader(new FileReader("delconj.out"));
-                    String var22 = "";
-                    String var24 = "";
-                    String var9 = "";
-                    boolean var10 = false;
-
-                    while(!var22.equals((Object)null)) {
-                        try {
-                            if (var22.indexOf("end of proof") > -1) {
-                                var10 = false;
-                            }
-
-                            if (var10) {
-                                conjecture.proof = conjecture.proof + "\n" + var22;
-                            }
-
-                            if (var22.indexOf("PROOF") > -1) {
-                                var10 = true;
-                                var22 = var21.readLine();
-                            }
-
-                            if (var22.indexOf("Length of proof is ") > -1) {
-                                var3 = true;
-                                conjecture.proof_status = "proved";
-                                conjecture.proof_length = new Double(var22.substring(19, var22.indexOf(".")));
-                                conjecture.proof_level = new Double(var22.substring(var22.lastIndexOf(" "), var22.length() - 1));
-                            }
-
-                            if (var22.indexOf("user CPU time") > -1) {
-                                conjecture.proof_time = new Double(var22.substring(23, var22.indexOf(" ", 23)));
-                            }
-
-                            if (var22.indexOf("wall-clock time") > -1) {
-                                conjecture.wc_proof_time = new Double(var22.substring(23, var22.indexOf(" ", 23)));
-                                break;
-                            }
-
-                            if (var22.indexOf("Search stopped because sos empty") > -1) {
-                                var3 = false;
-                                conjecture.proof_status = "sos";
-                                break;
-                            }
-
-                            if (var22.indexOf("ERROR") > -1) {
-                                var3 = false;
-                                conjecture.proof_status = "syntax error";
-                                break;
-                            }
-
-                            var22 = var21.readLine();
-                        } catch (Exception var15) {
-                            ;
+                BufferedReader file = new BufferedReader(new FileReader("delconj.out"));
+                String line = "";
+                String proof_length = "";
+                String proof_level = "";
+                boolean get_proof = false;
+                while (!line.equals(null))
+                {
+                    try
+                    {
+                        if (line.indexOf("end of proof")>-1)
+                            get_proof = false;
+                        if (get_proof)
+                            conjecture.proof = conjecture.proof+"\n"+line;
+                        if (line.indexOf("PROOF")>-1)
+                        {
+                            get_proof = true;
+                            line = file.readLine();
                         }
+                        if (line.indexOf("Length of proof is ")>-1)
+                        {
+                            is_proved = true;
+                            conjecture.proof_status = "proved";
+                            conjecture.proof_length =
+                                    (new Double(line.substring(19,line.indexOf(".")))).doubleValue();
+                            conjecture.proof_level =
+                                    (new Double(line.substring(line.lastIndexOf(" "), line.length()-1))).doubleValue();
+                        }
+                        if (line.indexOf("user CPU time")>-1)
+                            conjecture.proof_time = (new Double(line.substring(23,line.indexOf(" ",23)))).doubleValue();
+                        if (line.indexOf("wall-clock time")>-1)
+                        {
+                            conjecture.wc_proof_time = (new Double(line.substring(23,line.indexOf(" ",23)))).doubleValue();
+                            break;
+                        }
+                        if (line.indexOf("Search stopped because sos empty")>-1)
+                        {
+                            is_proved = false;
+                            conjecture.proof_status = "sos";
+                            break;
+                        }
+                        if (line.indexOf("ERROR")>-1)
+                        {
+                            is_proved = false;
+                            conjecture.proof_status = "syntax error";
+                            break;
+                        }
+                        line = file.readLine();
                     }
-                } catch (Exception var16) {
-                    ;
+                    catch(Exception e)
+                    {}
                 }
             }
-
-            conjecture.proof_attempts_information.addElement(this.name + "(" + this.setup_name + "): " + Double.toString(conjecture.proof_time * 1000.0D) + ":" + conjecture.proof_status);
-            if (conjecture.proof_status.equals("open")) {
-                conjecture.proof_status = "time";
+            catch(Exception e)
+            {
             }
-
-            return var3;
         }
+        conjecture.proof_attempts_information.addElement
+                (name + "(" + setup_name + "): " + Double.toString(conjecture.proof_time*1000)+":"+conjecture.proof_status);
+        if (conjecture.proof_status.equals("open"))
+            conjecture.proof_status="time";
+        return is_proved;
     }
 
-    /**
-     * This uses otter to generate the demodulators for the axioms of the theory.
+    /** This uses otter to generate the demodulators for the axioms of the theory.
      */
-    public void getDemodulators() {
-        String var1 = "set(knuth_bendix).\n";
-        var1 = var1 + "set(print_lists_at_end).\n";
-        var1 = var1 + "list(sos).\n";
 
-        String var3;
-        for(int var2 = 0; var2 < this.axiom_strings.size(); ++var2) {
-            var3 = (String)this.axiom_strings.elementAt(var2);
-            var1 = var1 + var3.substring(var3.indexOf("(") + 1, var3.length() - 2) + ".\n";
+    public void getDemodulators()
+    {
+        String otter_text = "set(knuth_bendix).\n";
+        otter_text = otter_text + "set(print_lists_at_end).\n";
+        otter_text = otter_text + "list(sos).\n";
+        for (int i=0; i<axiom_strings.size(); i++)
+        {
+            String axiom_string = (String)axiom_strings.elementAt(i);
+            otter_text = otter_text +
+                    axiom_string.substring(axiom_string.indexOf("(")+1, axiom_string.length()-2) + ".\n";
         }
-
-        var1 = var1 + "end_of_list.\n";
-
-        try {
-            PrintWriter var8 = new PrintWriter(new BufferedWriter(new FileWriter("delconj.in")));
-            var8.write(var1);
-            var8.close();
-        } catch (Exception var6) {
-            ;
+        otter_text = otter_text + "end_of_list.\n";
+        try
+        {
+            PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("delconj.in")));
+            out.write(otter_text);
+            out.close();
         }
-
-        if (this.operating_system.equals("windows")) {
-            try {
-                Process var9 = Runtime.getRuntime().exec("otter1.bat");
-                int var10 = var9.waitFor();
-                var9.destroy();
-            } catch (Exception var5) {
-                ;
+        catch(Exception e){}
+        if (operating_system.equals("windows"))
+        {
+            try
+            {
+                Process otter_process = Runtime.getRuntime().exec("otter1.bat");
+                int exit_value = otter_process.waitFor();
+                otter_process.destroy();
             }
+            catch(Exception e){}
         }
-
-        try {
-            BufferedReader var11 = new BufferedReader(new FileReader("delconj.out"));
-            var3 = "";
-            boolean var4 = false;
-
-            while(!var3.equals((Object)null)) {
-                var3 = var11.readLine();
-                if (var4 && var3.equals("end_of_list.")) {
-                    var4 = false;
-                }
-
-                if (var4) {
-                    this.demodulators.addElement(var3.substring(var3.indexOf("]") + 2, var3.length()));
-                }
-
-                if (var3.equals("list(demodulators).")) {
-                    var4 = true;
-                }
+        try
+        {
+            BufferedReader file = new BufferedReader(new FileReader("delconj.out"));
+            String line = "";
+            boolean log_demods = false;
+            while (!line.equals(null))
+            {
+                line = file.readLine();
+                if (log_demods && line.equals("end_of_list."))
+                    log_demods = false;
+                if (log_demods)
+                    demodulators.addElement(line.substring(line.indexOf("]")+2, line.length()));
+                if (line.equals("list(demodulators)."))
+                    log_demods = true;
             }
-
-            var11.close();
-        } catch (Exception var7) {
-            ;
+            file.close();
         }
-
+        catch(Exception e){}
     }
 
-    /**
-     * This attempts to prove the conjecture using only Knuth-Bendix completion.
+    /** This attempts to prove the conjecture using only Knuth-Bendix completion.
      */
-    public boolean proveUsingKnuthBendix(Implicate implicate) {
-        if (this.demodulators.isEmpty()) {
-            this.getDemodulators();
-        }
 
-        if (implicate.premise_concept.specification_strings_from_knuth_bendix.isEmpty()) {
-            this.getSpecificationStringsFromKnuthBendix(implicate.premise_concept);
-        }
-
-        String var2 = implicate.writeConjecture("otter");
-        String var3 = var2.substring(var2.indexOf("->") + 4, var2.length() - 3);
-        return implicate.premise_concept.specification_strings_from_knuth_bendix.contains(var3);
+    public boolean proveUsingKnuthBendix(Implicate implicate)
+    {
+        if (demodulators.isEmpty())
+            getDemodulators();
+        if (implicate.premise_concept.specification_strings_from_knuth_bendix.isEmpty())
+            getSpecificationStringsFromKnuthBendix(implicate.premise_concept);
+        String implicate_string2 =
+                implicate.writeConjecture("otter");
+        String goal_spec_string =
+                implicate_string2.substring(implicate_string2.indexOf("->")+4,
+                        implicate_string2.length()-3);
+        if (implicate.premise_concept.specification_strings_from_knuth_bendix.contains(goal_spec_string))
+            return true;
+        return false;
     }
 
-    /**
-     * This uses otter to get the additional specifications (as strings) using otter's paramodulation rules.
+    /** This uses otter to get the additional specifications (as strings) using
+     * otter's paramodulation rules.
      */
-    public void getSpecificationStringsFromKnuthBendix(Concept concept) {
-        Vector var2 = new Vector();
 
-        try {
-            PrintWriter var3 = new PrintWriter(new BufferedWriter(new FileWriter("delconj.in")));
-            var3.write("assign(max_seconds, 1).\n");
-            var3.write("set(demod_inf).\n");
-            var3.write("set(order_eq).\n");
-            var3.write("set(para_from).\n");
-            var3.write("set(para_into).\n");
-            var3.write("list(demodulators).\n");
+    public void getSpecificationStringsFromKnuthBendix(Concept concept)
+    {
+        Vector output = new Vector();
+        try
+        {
+            PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("delconj.in")));
+            out.write("assign(max_seconds, 1).\n");
+            out.write("set(demod_inf).\n");
+            out.write("set(order_eq).\n");
+            out.write("set(para_from).\n");
+            out.write("set(para_into).\n");
+            out.write("list(demodulators).\n");
+            for (int i=0; i<demodulators.size(); i++)
+                out.write((String)demodulators.elementAt(i));
+            out.write("end_of_list.\n");
+            out.write("list(sos).\n");
+            out.write(concept.writeDefinition("otter_demod"));
+            out.write("\nend_of_list.\n");
+            out.close();
 
-            for(int var4 = 0; var4 < this.demodulators.size(); ++var4) {
-                var3.write((String)this.demodulators.elementAt(var4));
+            if (operating_system.equals("windows"))
+            {
+                Process otter_process = Runtime.getRuntime().exec("otter1.bat");
+                int exit_value = otter_process.waitFor();
+                otter_process.destroy();
             }
-
-            var3.write("end_of_list.\n");
-            var3.write("list(sos).\n");
-            var3.write(concept.writeDefinition("otter_demod"));
-            var3.write("\nend_of_list.\n");
-            var3.close();
-            if (this.operating_system.equals("windows")) {
-                Process var8 = Runtime.getRuntime().exec("otter1.bat");
-                int var5 = var8.waitFor();
-                var8.destroy();
-            }
-
-            BufferedReader var9 = new BufferedReader(new FileReader("delconj.out"));
-            String var10 = "";
-
-            while(!var10.equals((Object)null)) {
-                var10 = var9.readLine();
-                if (var10.indexOf("** KEPT") == 0) {
-                    String var6 = var10.substring(var10.indexOf("]") + 2, var10.length() - 1);
-                    var6 = this.removeSpaces(var6);
-                    if (!var2.contains(var6)) {
-                        var2.addElement(var6);
-                    }
+            BufferedReader file = new BufferedReader(new FileReader("delconj.out"));
+            String line = "";
+            while (!line.equals(null))
+            {
+                line = file.readLine();
+                if (line.indexOf("** KEPT")==0)
+                {
+                    String new_spec_string = line.substring(line.indexOf("]")+2, line.length()-1);
+                    new_spec_string = removeSpaces(new_spec_string);
+                    if (!output.contains(new_spec_string))
+                        output.addElement(new_spec_string);
                 }
             }
-
-            var9.close();
-        } catch (Exception var7) {
-            ;
+            file.close();
         }
-
-        concept.specification_strings_from_knuth_bendix = var2;
+        catch(Exception e){}
+        concept.specification_strings_from_knuth_bendix = output;
     }
 
-    private String removeSpaces(String var1) {
-        String var2 = "";
-
-        for(int var3 = 0; var3 < var1.length(); ++var3) {
-            String var4 = var1.substring(var3, var3 + 1);
-            if (!var4.equals(" ")) {
-                var2 = var2 + var4;
-            }
+    private String removeSpaces(String in)
+    {
+        String output = "";
+        for (int i=0; i<in.length(); i++)
+        {
+            String s = in.substring(i,i+1);
+            if (!s.equals(" "))
+                output = output + s;
         }
-
-        return var2;
+        return output;
     }
 }

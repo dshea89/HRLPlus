@@ -1,254 +1,242 @@
 package com.github.dshea89.hrlplus;
 
-import java.awt.BorderLayout;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.io.Serializable;
-import java.util.Enumeration;
-import java.util.Hashtable;
 import java.util.Vector;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
+import java.util.Hashtable;
+import java.lang.String;
+import java.util.Enumeration;
+import java.io.*;
+import java.lang.Runtime.*;
+import java.awt.*;
+import javax.swing.*;
 
-public class TextHandler implements Serializable {
+/** A class for text handling.
+ *
+ * @author Simon Colton, started 10th January 2002.
+ * @version 1.0 */
+
+public class TextHandler implements Serializable
+{
+    /** This finds the starting and endpoints of a string within another string.
+     * It is able to use wildcards, and deposits the two positions as string in
+     * the given vector. It returns true if the string can be found, false otherwise.
+     */
+
+    public boolean getGrepPositions(String grep_string, String s, Vector positions, int start_pos)
+    {
+        int wild_pos = grep_string.indexOf("@");
+        if (wild_pos >= 0)
+        {
+            String lh_grep_string = grep_string.substring(0, wild_pos);
+            String rh_grep_string = grep_string.substring(wild_pos + 1, grep_string.length());
+            Vector lh_positions = new Vector();
+            boolean lh_here = getGrepPositions(lh_grep_string, s, lh_positions, start_pos);
+            if (lh_here)
+            {
+                int new_start_pos = (new Integer((String)lh_positions.elementAt(1))).intValue();
+                Vector rh_positions = new Vector();
+                boolean rh_here = getGrepPositions(rh_grep_string, s, rh_positions, new_start_pos);
+                if (rh_here)
+                {
+                    positions.addElement(lh_positions.elementAt(0));
+                    positions.addElement(rh_positions.elementAt(1));
+                    return true;
+                }
+            }
+        }
+        int lh = s.indexOf(grep_string, start_pos);
+        int rh = lh + grep_string.length();
+        if (lh > 0)
+        {
+            positions.addElement(Integer.toString(lh));
+            positions.addElement(Integer.toString(rh));
+            return true;
+        }
+        return false;
+    }
+
+
     JTable statistics_output_table = new JTable();
     JPanel statistics_output_panel = new JPanel();
     JScrollPane statistics_output_pane = new JScrollPane();
     Vector column_names = new Vector();
     Reflection reflect = new Reflection();
 
-    public TextHandler() {
+    /** This adds choices for plots into the given list.
+     */
+
+    public void addChoices(String statistics_type, SortableList statistics_choice_list,
+                           SortableList statistics_subchoice_list, SortableList statistics_methods_list)
+    {
+        statistics_choice_list.clear();
+        statistics_subchoice_list.clear();
+        statistics_methods_list.clear();
+        Object obj = new Object();
+        if (statistics_type.equals("concept versus"))
+            obj = new Concept();
+        if (statistics_type.equals("equivalence versus"))
+            obj = new Equivalence();
+        if (statistics_type.equals("nonexists versus"))
+            obj = new NonExists();
+        if (statistics_type.equals("implicate versus"))
+            obj = new Implicate();
+        if (statistics_type.equals("near_equiv versus"))
+            obj = new NearEquivalence();
+        if (statistics_type.equals("step versus"))
+            obj = new Step();
+        if (statistics_type.equals("entity versus"))
+            obj = new Entity();
+        String[] types = {"int", "double", "float", "long", "boolean", "String", "Vector"};
+        Vector field_names = reflect.getFieldNames(obj, types, true);
+        for (int i=0; i<field_names.size(); i++)
+        {
+            String field_name = (String)field_names.elementAt(i);
+            if (field_name.indexOf(".")<0)
+                statistics_choice_list.addItem((String)field_names.elementAt(i));
+            else
+                statistics_subchoice_list.addItem((String)field_names.elementAt(i));
+        }
+        Vector method_names = reflect.getMethodDetails(obj);
+        for (int i=0; i<method_names.size(); i++)
+            statistics_methods_list.addItem((String)method_names.elementAt(i));
     }
 
-    public boolean getGrepPositions(String var1, String var2, Vector var3, int var4) {
-        int var5 = var1.indexOf("@");
-        if (var5 >= 0) {
-            String var6 = var1.substring(0, var5);
-            String var7 = var1.substring(var5 + 1, var1.length());
-            Vector var8 = new Vector();
-            boolean var9 = this.getGrepPositions(var6, var2, var8, var4);
-            if (var9) {
-                int var10 = new Integer((String)var8.elementAt(1));
-                Vector var11 = new Vector();
-                boolean var12 = this.getGrepPositions(var7, var2, var11, var10);
-                if (var12) {
-                    var3.addElement(var8.elementAt(0));
-                    var3.addElement(var11.elementAt(1));
-                    return true;
-                }
+    /** This plots a graph given the theory (it gets values from the front end)
+     */
+
+    public void compileData(String plot_type, Vector plot_choices,
+                            boolean average_values, boolean count_values,
+                            Theory theory, String prune_string, String calculation_string,
+                            String sort_string, String file_name)
+    {
+        double total = 0;
+        if (!calculation_string.equals(""))
+        {
+            calculation_string = calculation_string + " &&  ";
+            while (calculation_string.indexOf(" && ") >= 0)
+            {
+                plot_choices.addElement(calculation_string.substring(0, calculation_string.indexOf(" && ")));
+                calculation_string =
+                        calculation_string.substring(calculation_string.indexOf(" && ") + 4, calculation_string.length());
             }
         }
 
-        int var13 = var2.indexOf(var1, var4);
-        int var14 = var13 + var1.length();
-        if (var13 > 0) {
-            var3.addElement(Integer.toString(var13));
-            var3.addElement(Integer.toString(var14));
-            return true;
-        } else {
-            return false;
-        }
-    }
+        String x_axis = plot_type.substring(0, plot_type.indexOf(" "));
+        Vector v = new Vector();
 
-    public void addChoices(String var1, SortableList var2, SortableList var3, SortableList var4) {
-        var2.clear();
-        var3.clear();
-        var4.clear();
-        Object var5 = new Object();
-        if (var1.equals("concept versus")) {
-            var5 = new Concept();
-        }
+        if (x_axis.equals("concept")) v = theory.concepts;
+        if (x_axis.equals("equivalence")) v = theory.equivalences;
+        if (x_axis.equals("nonexists")) v = theory.non_existences;
+        if (x_axis.equals("implicate")) v = theory.implicates;
+        if (x_axis.equals("near_equiv")) v = theory.near_equivalences;
+        if (x_axis.equals("step")) v = theory.previous_steps;
+        if (x_axis.equals("entity")) v = theory.entities;
 
-        if (var1.equals("equivalence versus")) {
-            var5 = new Equivalence();
-        }
+        SortableVector objects_passing_pruning = new SortableVector();
 
-        if (var1.equals("nonexists versus")) {
-            var5 = new NonExists();
-        }
-
-        if (var1.equals("implicate versus")) {
-            var5 = new Implicate();
-        }
-
-        if (var1.equals("near_equiv versus")) {
-            var5 = new NearEquivalence();
-        }
-
-        if (var1.equals("step versus")) {
-            var5 = new Step();
-        }
-
-        if (var1.equals("entity versus")) {
-            var5 = new Entity();
-        }
-
-        String[] var6 = new String[]{"int", "double", "float", "long", "boolean", "String", "Vector"};
-        Vector var7 = this.reflect.getFieldNames(var5, var6, true);
-
-        for(int var8 = 0; var8 < var7.size(); ++var8) {
-            String var9 = (String)var7.elementAt(var8);
-            if (var9.indexOf(".") < 0) {
-                var2.addItem((String)var7.elementAt(var8));
-            } else {
-                var3.addItem((String)var7.elementAt(var8));
+        int counter=0;
+        Vector row_data = new Vector();
+        for (int i=0; i<v.size(); i++)
+        {
+            Object obj = v.elementAt(i);
+            if (reflect.checkCondition(obj, prune_string))
+            {
+                objects_passing_pruning.addElement(obj, sort_string);
+                row_data.addElement(new Vector());
             }
         }
 
-        Vector var10 = this.reflect.getMethodDetails(var5);
-
-        for(int var11 = 0; var11 < var10.size(); ++var11) {
-            var4.addItem((String)var10.elementAt(var11));
-        }
-
-    }
-
-    public void compileData(String var1, Vector var2, boolean var3, boolean var4, Theory var5, String var6, String var7, String var8, String var9) {
-        double var10 = 0.0D;
-        if (!var7.equals("")) {
-            for(var7 = var7 + " &&  "; var7.indexOf(" && ") >= 0; var7 = var7.substring(var7.indexOf(" && ") + 4, var7.length())) {
-                var2.addElement(var7.substring(0, var7.indexOf(" && ")));
-            }
-        }
-
-        String var12 = var1.substring(0, var1.indexOf(" "));
-        Vector var13 = new Vector();
-        if (var12.equals("concept")) {
-            var13 = var5.concepts;
-        }
-
-        if (var12.equals("equivalence")) {
-            var13 = var5.equivalences;
-        }
-
-        if (var12.equals("nonexists")) {
-            var13 = var5.non_existences;
-        }
-
-        if (var12.equals("implicate")) {
-            var13 = var5.implicates;
-        }
-
-        if (var12.equals("near_equiv")) {
-            var13 = var5.near_equivalences;
-        }
-
-        if (var12.equals("step")) {
-            var13 = var5.previous_steps;
-        }
-
-        if (var12.equals("entity")) {
-            var13 = var5.entities;
-        }
-
-        SortableVector var14 = new SortableVector();
-        boolean var15 = false;
-        Vector var16 = new Vector();
-
-        int var17;
-        for(var17 = 0; var17 < var13.size(); ++var17) {
-            Object var18 = var13.elementAt(var17);
-            if (this.reflect.checkCondition(var18, var6)) {
-                var14.addElement(var18, var8);
-                var16.addElement(new Vector());
-            }
-        }
-
-        Enumeration var19;
-        for(var17 = 0; var17 < var2.size(); ++var17) {
-            var10 = 0.0D;
-            int var25 = 0;
-
-            for(var19 = var14.elements(); var19.hasMoreElements(); ++var25) {
-                Object var20 = var19.nextElement();
-                String var21 = this.reflect.getValue(var20, (String)var2.elementAt(var17)).toString();
-                if (var3) {
-                    try {
-                        double var22 = new Double((double)var25);
-                        var10 += new Double(var21);
-                        var21 = Double.toString(var10 / (var22 + 1.0D));
-                    } catch (Exception var24) {
-                        ;
+        for (int i=0; i<plot_choices.size(); i++)
+        {
+            total = 0;
+            int x_value = 0;
+            Enumeration en = objects_passing_pruning.elements();
+            while (en.hasMoreElements())
+            {
+                Object obj = en.nextElement();
+                String value =
+                        (reflect.getValue(obj, (String)plot_choices.elementAt(i))).toString();
+                if (average_values)
+                {
+                    try
+                    {
+                        double lhd = (new Double(x_value)).doubleValue();
+                        total = total + (new Double(value)).doubleValue();
+                        value = Double.toString(total/(lhd+1));
+                    }
+                    catch(Exception e)
+                    {
                     }
                 }
-
-                Vector var31 = (Vector)var16.elementAt(var25);
-                var31.addElement(var21);
+                Vector row = (Vector)row_data.elementAt(x_value);
+                row.addElement(value);
+                x_value++;
             }
         }
 
-        this.column_names = new Vector();
-
-        for(var17 = 0; var17 < var2.size(); ++var17) {
-            if (var3) {
-                this.column_names.addElement("av." + (String)var2.elementAt(var17));
-            } else {
-                this.column_names.addElement((String)var2.elementAt(var17));
-            }
+        column_names = new Vector();
+        for (int i=0; i<plot_choices.size(); i++)
+        {
+            if (average_values)
+                column_names.addElement("av." + (String)plot_choices.elementAt(i));
+            else
+                column_names.addElement((String)plot_choices.elementAt(i));
         }
 
-        if (var4) {
-            Vector var26 = new Vector();
-            Hashtable var27 = new Hashtable();
-
-            Vector var29;
-            for(int var28 = 0; var28 < var16.size(); ++var28) {
-                var29 = (Vector)var16.elementAt(var28);
-                Integer var30 = (Integer)var27.get(var29);
-                if (var30 == null) {
-                    var27.put(var29, new Integer(1));
-                } else {
-                    var27.put(var29, new Integer(var30 + 1));
-                }
+        if (count_values)
+        {
+            Vector new_row_data = new Vector();
+            Hashtable row_string_hashtable = new Hashtable();
+            for (int i=0; i<row_data.size(); i++)
+            {
+                Vector row_vector = (Vector)row_data.elementAt(i);
+                Integer num = (Integer)row_string_hashtable.get(row_vector);
+                if (num==null)
+                    row_string_hashtable.put(row_vector, new Integer(1));
+                else
+                    row_string_hashtable.put(row_vector, new Integer(num.intValue()+1));
             }
-
-            var19 = var27.keys();
-
-            while(var19.hasMoreElements()) {
-                var29 = (Vector)var19.nextElement();
-                var29.addElement(((Integer)var27.get(var29)).toString());
-                var26.addElement(var29);
+            Enumeration enum1 = row_string_hashtable.keys();
+            while (enum1.hasMoreElements())
+            {
+                Vector new_row = (Vector)enum1.nextElement();
+                new_row.addElement(((Integer)row_string_hashtable.get(new_row)).toString());
+                new_row_data.addElement(new_row);
             }
-
-            this.column_names.addElement("count");
-            this.statistics_output_table = new JTable(var26, this.column_names);
-            this.outputToFile(var9, var26);
-        } else {
-            this.statistics_output_table = new JTable(var16, this.column_names);
-            this.outputToFile(var9, var16);
+            column_names.addElement("count");
+            statistics_output_table = new JTable(new_row_data, column_names);
+            outputToFile(file_name, new_row_data);
         }
-
-        this.statistics_output_panel.remove(this.statistics_output_pane);
-        this.statistics_output_pane = new JScrollPane(this.statistics_output_table);
-        this.statistics_output_panel.setLayout(new BorderLayout());
-        this.statistics_output_panel.add("Center", this.statistics_output_pane);
-        this.statistics_output_panel.doLayout();
-        this.statistics_output_pane.doLayout();
+        else
+        {
+            statistics_output_table = new JTable(row_data, column_names);
+            outputToFile(file_name, row_data);
+        }
+        statistics_output_panel.remove(statistics_output_pane);
+        statistics_output_pane = new JScrollPane(statistics_output_table);
+        statistics_output_panel.setLayout(new BorderLayout());
+        statistics_output_panel.add("Center", statistics_output_pane);
+        statistics_output_panel.doLayout();
+        statistics_output_pane.doLayout();
     }
 
-    private void outputToFile(String var1, Vector var2) {
-        if (!var1.trim().equals("")) {
-            try {
-                PrintWriter var3 = new PrintWriter(new BufferedWriter(new FileWriter(var1.trim())));
-
-                for(int var4 = 0; var4 < var2.size(); ++var4) {
-                    Vector var5 = (Vector)var2.elementAt(var4);
-
-                    for(int var6 = 0; var6 < var5.size(); ++var6) {
-                        String var7 = (String)var5.elementAt(var6);
-                        var3.write(var7 + " ");
+    private void outputToFile(String file_name, Vector row_data)
+    {
+        if (!file_name.trim().equals(""))
+            try
+            {
+                PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(file_name.trim())));
+                for (int i=0; i<row_data.size(); i++)
+                {
+                    Vector row = (Vector)row_data.elementAt(i);
+                    for (int j=0; j<row.size(); j++)
+                    {
+                        String field = (String)row.elementAt(j);
+                        out.write(field + " ");
                     }
-
-                    var3.write("\n");
+                    out.write("\n");
                 }
-
-                var3.close();
-            } catch (Exception var8) {
-                ;
+                out.close();
             }
-        }
-
+            catch(Exception e){}
     }
 }

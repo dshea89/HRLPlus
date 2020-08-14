@@ -1,29 +1,45 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.Serializable;
 import java.util.Hashtable;
+import java.lang.String;
+import java.io.Serializable;
 
-public class Reaction extends PseudoCodeUser implements Serializable {
+/** A class for individual reactions to certain events in the theory.
+ *
+ * @author Simon Colton, started 24th April 2002
+ * @version 1.0 */
+
+public class Reaction extends PseudoCodeUser implements Serializable
+{
     String situation = "all_purpose";
 
-    public Reaction(String var1, String var2, Hashtable var3) {
-        this.getCodeLines(var2 + "\n");
-        this.original_alias_hashtable = var3;
-        this.original_alias_hashtable.put("this", this);
-        this.id = var1;
+    public Reaction(String given_id, String pseudo_code, Hashtable hashtable)
+    {
+        getCodeLines(pseudo_code+"\n");
+        original_alias_hashtable = hashtable;
+        original_alias_hashtable.put("this",this);
+        id = given_id;
     }
 
-    public void react(String var1, Object var2) {
-        System.out.println("situation is " + var1);
-        System.out.println("object_to_react_to is " + var2);
-        this.original_alias_hashtable.put("object_to_react_to", var2);
-        this.original_alias_hashtable.put("situation", var1);
-        this.pseudo_code_interpreter.local_alias_hashtable = (Hashtable)this.original_alias_hashtable.clone();
-        System.out.println("pseudo_code_lines are " + this.pseudo_code_lines);
-        this.pseudo_code_interpreter.runPseudoCode(this.pseudo_code_lines);
+    /** This reacts to the given object.
+     */
+
+    public void react(String situation, Object object_to_react_to)
+    {
+        System.out.println("situation is " + situation);
+        System.out.println("object_to_react_to is " + object_to_react_to);
+        original_alias_hashtable.put("object_to_react_to", object_to_react_to);
+        original_alias_hashtable.put("situation", situation);
+        pseudo_code_interpreter.local_alias_hashtable = (Hashtable)original_alias_hashtable.clone();
+        System.out.println("pseudo_code_lines are " + pseudo_code_lines);
+        pseudo_code_interpreter.runPseudoCode(pseudo_code_lines);
     }
 
-    public void setSituation(String var1) {
-        this.situation = var1;
+    /** This sets the situation of this reaction.
+     */
+
+    public void setSituation(String given_situation)
+    {
+        situation = given_situation;
     }
 }

@@ -1,113 +1,136 @@
 package com.github.dshea89.hrlplus;
 
+import java.lang.String;
+import java.net.*;
+import java.io.*;
 import java.awt.TextArea;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.io.Serializable;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLEncoder;
 
-public class SOTHandler extends Prover implements Serializable {
+/** A class for calling Geoff Sutcliffe's SystemOnTPTP program remotely.
+ *
+ * @author Simon Colton, started 10th January 2002.
+ * @version 1.0 */
+
+public class SOTHandler extends Prover implements Serializable
+{
+    /** The printwriter which writes to SystemOnTPTP.
+     */
+
     public PrintWriter pw = null;
 
-    public SOTHandler() {
-    }
+    /** This sends the conjecture to SystemOnTPTP, waits for the reply and
+     * returns the output from SOT.
+     */
 
-    public String submit(Conjecture var1, TextArea var2) {
-        String var3 = this.writeAxioms();
-        String var4 = var1.writeConjecture("tptp");
-        if (var4.equals("")) {
-            var1.proof_status = "trivial";
+    public String submit(Conjecture conjecture, TextArea text_box)
+    {
+        String tptp_input = writeAxioms();
+        String conjecture_string = conjecture.writeConjecture("tptp");
+
+        if (conjecture_string.equals(""))
+        {
+            conjecture.proof_status = "trivial";
             return "Conjecture is trivial";
-        } else {
-            var3 = var3 + var4;
-            String var5 = "";
+        }
 
-            try {
-                URL var6 = new URL("http://www.tptp.org/cgi-bin/SystemOnTPTPFormReply");
-                URLConnection var7 = var6.openConnection();
-                var7.setDoOutput(true);
-                this.pw = new PrintWriter(var7.getOutputStream());
-                var5 = var5 + this.sendLineToSOT("NoHTML", "1");
-                var5 = var5 + this.sendLineToSOT("QuietFlag", "-q0");
-                var5 = var5 + this.sendLineToSOT("SubmitButton", "RunParallel");
-                var5 = var5 + this.sendLineToSOT("ProblemSource", "UPLOAD");
-                var5 = var5 + this.sendLineToSOT("AutoModeTimeLimit", "300");
-                var5 = var5 + this.sendLineToSOT("AutoMode", "-cE");
-                var5 = var5 + this.sendLineToSOT("AutoModeSystemsLimit", "3");
-                var5 = var5 + this.sendLastLineToSOT("UPLOADProblem", var3);
-                var2.append("Sent: \n" + var5);
-                this.pw.close();
-                BufferedReader var8 = new BufferedReader(new InputStreamReader(var7.getInputStream()));
-                StringBuffer var10 = new StringBuffer();
+        tptp_input = tptp_input + conjecture_string;
 
-                String var9;
-                while((var9 = var8.readLine()) != null) {
-                    var10.append(var9 + "\n");
-                    var2.append(var9 + "\n");
-                }
+        String output = "";
+        try
+        {
+            URL url = new URL("http://www.tptp.org/cgi-bin/SystemOnTPTPFormReply");
+            URLConnection connection = url.openConnection();
+            connection.setDoOutput(true);
+            pw = new PrintWriter(connection.getOutputStream());
 
-                var8.close();
-                var5 = var5 + "\nThe reply was:\n\n" + var10.toString();
-                return var5;
-            } catch (Exception var11) {
-                return "Failed because:\n" + var11.toString();
+            output = output + sendLineToSOT("NoHTML","1");
+            output = output + sendLineToSOT("QuietFlag","-q0");
+            output = output + sendLineToSOT("SubmitButton","RunParallel");
+            output = output + sendLineToSOT("ProblemSource","UPLOAD");
+            output = output + sendLineToSOT("AutoModeTimeLimit","300");
+            output = output + sendLineToSOT("AutoMode","-cE");
+            output = output + sendLineToSOT("AutoModeSystemsLimit","3");
+            output = output + sendLastLineToSOT("UPLOADProblem",tptp_input);
+
+            text_box.append("Sent: \n"+output);
+
+            pw.close();
+
+            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String line;
+            StringBuffer response = new StringBuffer();
+            while((line=in.readLine()) != null)
+            {
+                response.append(line + "\n");
+                text_box.append(line + "\n");
             }
+            in.close();
+            output = output + "\nThe reply was:\n\n" + response.toString();
         }
+        catch(Exception e)
+        {
+            return "Failed because:\n"+e.toString();
+        }
+        return output;
     }
 
-    public String submitTPTP(String var1, TextArea var2) {
-        String var3 = "";
+    /** This sends a TPTP problem to SystemOnTPTP
+     */
 
-        try {
-            URL var4 = new URL("http://www.tptp.org/cgi-bin/SystemOnTPTPFormReply");
-            URLConnection var5 = var4.openConnection();
-            var5.setDoOutput(true);
-            this.pw = new PrintWriter(var5.getOutputStream());
-            this.sendLineToSOT("NoHTML", "1");
-            this.sendLineToSOT("QuietFlag", "-q2");
-            this.sendLineToSOT("SubmitButton", "RunParallel");
-            this.sendLineToSOT("ProblemSource", "TPTP");
-            this.sendLineToSOT("AutoModeTimeLimit", "300");
-            this.sendLineToSOT("AutoMode", "-cE");
-            this.sendLineToSOT("AutoModeSystemsLimit", "3");
-            this.sendLineToSOT("TPTPProblem", var1);
-            this.pw.close();
-            BufferedReader var6 = new BufferedReader(new InputStreamReader(var5.getInputStream()));
-            StringBuffer var8 = new StringBuffer();
+    public String submitTPTP(String tptp_number, TextArea text_box)
+    {
+        String output = "";
+        try
+        {
+            URL url = new URL("http://www.tptp.org/cgi-bin/SystemOnTPTPFormReply");
+            URLConnection connection = url.openConnection();
+            connection.setDoOutput(true);
+            pw = new PrintWriter(connection.getOutputStream());
 
-            String var7;
-            while((var7 = var6.readLine()) != null) {
-                var8.append(var7 + "\n");
-                var2.append(var7 + "\n");
+            sendLineToSOT("NoHTML","1");
+            sendLineToSOT("QuietFlag","-q2");
+            sendLineToSOT("SubmitButton","RunParallel");
+            sendLineToSOT("ProblemSource","TPTP");
+            sendLineToSOT("AutoModeTimeLimit","300");
+            sendLineToSOT("AutoMode","-cE");
+            sendLineToSOT("AutoModeSystemsLimit","3");
+            sendLineToSOT("TPTPProblem",tptp_number);
+
+            pw.close();
+
+            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String line;
+            StringBuffer response = new StringBuffer();
+            while((line=in.readLine()) != null)
+            {
+                response.append(line + "\n");
+                text_box.append(line + "\n");
             }
-
-            var6.close();
-            var3 = var3 + "\nThe reply was:\n\n" + var8.toString();
-            return var3;
-        } catch (Exception var9) {
-            return "Failed because:\n" + var9.toString();
+            in.close();
+            output = output + "\nThe reply was:\n\n" + response.toString();
         }
-    }
-
-    private String sendLineToSOT(String var1, String var2) {
-        return this.sendLineToSOT(var1, var2, false);
-    }
-
-    private String sendLastLineToSOT(String var1, String var2) {
-        return this.sendLineToSOT(var1, var2, true);
-    }
-
-    private String sendLineToSOT(String var1, String var2, boolean var3) {
-        char var4 = '&';
-        if (var3) {
-            var4 = '\n';
+        catch(Exception e)
+        {
+            return "Failed because:\n"+e.toString();
         }
+        return output;
+    }
 
-        String var5 = var1 + "=" + URLEncoder.encode(var2) + var4;
-        this.pw.print(var5);
-        return var5;
+    private String sendLineToSOT(String name, String value)
+    {
+        return sendLineToSOT(name, value, false);
+    }
+
+    private String sendLastLineToSOT(String name, String value)
+    {
+        return sendLineToSOT(name, value, true);
+    }
+
+    private String sendLineToSOT(String name, String value, boolean is_final)
+    {
+        char final_char = '&';
+        if (is_final) final_char = '\n';
+        String to_pw = name + "=" + URLEncoder.encode(value) + final_char;
+        pw.print(to_pw);
+        return to_pw;
     }
 }

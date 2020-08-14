@@ -1,939 +1,1263 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.Serializable;
-import java.util.Hashtable;
 import java.util.Vector;
+import java.util.Hashtable;
+import java.lang.String;
+import java.io.Serializable;
 
-public class MeasureConcept extends Measure implements Serializable {
+/** A class for measuring concepts.
+ *
+ * @author Simon Colton, started 23rd November 2000
+ * @version 1.0 */
+
+public class MeasureConcept extends Measure implements Serializable
+{
+    /** The list of positives for the positive applicabilities.
+     */
+
     public Vector positives = new Vector();
+
+    /** The list of negatives for the negative applicabilities.
+     */
+
     public Vector negatives = new Vector();
+
+    /** Whether or not to calculate the overall interestingness use a weighted sum.
+     */
+
     public boolean use_weighted_sum = false;
+
+    /** Whether or not to calculate the overall interestingness by keeping the
+     * largest of the normalised values for each measure in the weighted sum.
+     */
+
     public boolean keep_best = false;
+
+    /** Whether or not to calculate the overall interestingness by keeping the
+     * smallest of the normalised values for each measure in the weighted sum.
+     */
+
     public boolean keep_worst = false;
+
+    /** Whether or not to measure them at all
+     */
+
     public boolean measure_concepts = true;
+
+    /** The type of objects of interest in the categorisation to be learned.
+     */
+
     public String object_types_to_learn = "";
-    public double invariance_weight = 0.5D;
-    public double discrimination_weight = 0.5D;
-    public double applicability_weight = 0.5D;
-    public double coverage_weight = 0.5D;
-    public double equiv_conj_score_weight = 0.5D;
-    public double ne_conj_score_weight = 0.5D;
-    public double pi_conj_score_weight = 0.5D;
-    public double imp_conj_score_weight = 0.5D;
-    public double equiv_conj_num_weight = 0.5D;
-    public double ne_conj_num_weight = 0.5D;
-    public double positive_applicability_weight = 0.5D;
-    public double negative_applicability_weight = 0.5D;
-    public double pi_conj_num_weight = 0.5D;
-    public double imp_conj_num_weight = 0.5D;
-    public double children_score_weight = 0.5D;
-    public double comprehensibility_weight = 0.5D;
-    public double cross_domain_weight = 0.5D;
-    public double highlight_weight = 0.5D;
-    public double novelty_weight = 0.5D;
-    public double parent_weight = 0.5D;
-    public double parsimony_weight = 0.5D;
-    public double predictive_power_weight = 0.5D;
-    public double productivity_weight = 0.5D;
-    public double development_steps_num_weight = 0.5D;
-    public double variety_weight = 0.5D;
+
+    /** The weight for the invariance measure in the weighted sum.
+     */
+
+    public double invariance_weight = 0.5;
+
+    /** The weight for the invariance measure in the weighted sum.
+     */
+
+    public double discrimination_weight = 0.5;
+
+    /** The weight for the applicability measure in the weighted sum.
+     */
+
+    public double applicability_weight = 0.5;
+
+    /** The weight for the coverage measure in the weighted sum.
+     */
+
+    public double coverage_weight = 0.5;
+
+    /** The weight for the equivalence conjecture score in the weighted sum.
+     */
+
+    public double equiv_conj_score_weight = 0.5;
+
+    /** The weight for the non-existence conjecture score in the weighted sum.
+     */
+
+    public double ne_conj_score_weight = 0.5;
+
+    /** The weight for the prime implicate conjecture score in the weighted sum.
+     */
+
+    public double pi_conj_score_weight = 0.5;
+
+    /** The weight for the implicate conjecture score in the weighted sum.
+     */
+
+    public double imp_conj_score_weight = 0.5;
+
+    /** The weight for the children measure in the weighted sum.
+     */
+
+    /** The weight for the equivalence conjecture number in the weighted sum.
+     */
+
+    public double equiv_conj_num_weight = 0.5;
+
+    /** The weight for the non-existence conjecture number in the weighted sum.
+     */
+
+    public double ne_conj_num_weight = 0.5;
+
+    /** The weight for the positive applicability in the weighted sum.
+     */
+
+    public double positive_applicability_weight = 0.5;
+
+    /** The weight for the positive applicability in the weighted sum.
+     */
+
+    public double negative_applicability_weight = 0.5;
+
+    /** The weight for the prime implicate conjecture number in the weighted sum.
+     */
+
+    public double pi_conj_num_weight = 0.5;
+
+    /** The weight for the implicate conjecture number in the weighted sum.
+     */
+
+    public double imp_conj_num_weight = 0.5;
+
+    /** The weight for the children measure in the weighted sum.
+     */
+
+    public double children_score_weight = 0.5;
+
+    /** The weight for the comprehensibility measure in the weighted sum.
+     */
+
+    public double comprehensibility_weight = 0.5;
+
+    /** The weight for the comprehensibility measure in the weighted sum.
+     */
+
+    public double cross_domain_weight = 0.5;
+
+    /** The weight for the highlight measure in the weighted sum.
+     */
+
+    public double highlight_weight = 0.5;
+
+    /** The weight for the novelty measure in the weighted sum.
+     */
+
+    public double novelty_weight = 0.5;
+
+    /** The weight for the parent measure in the weighted sum.
+     */
+
+    public double parent_weight = 0.5;
+
+    /** The weight for the parsimony measure in the weighted sum.
+     */
+
+    public double parsimony_weight = 0.5;
+
+    /** The weight for the predictive_power measure in the weighted sum.
+     */
+
+    public double predictive_power_weight = 0.5;
+
+    /** The weight for the productivity measure in the weighted sum.
+     */
+
+    public double productivity_weight = 0.5;
+
+    /** The weight for the steps involved measure in the weighted sum.
+     */
+
+    public double development_steps_num_weight = 0.5;
+
+    /** The weight for the variety measure in the weighted sum.
+     */
+
+    public double variety_weight = 0.5;
+
+    /** All the different equiv_conj scores so far.
+     */
+
     public Vector all_equiv_conj_scores = new Vector();
+
+    /** All the different ne_conj scores so far.
+     */
+
     public Vector all_ne_conj_scores = new Vector();
+
+    /** All the different invariance scores so far.
+     */
+
     public Vector all_invariance_scores = new Vector();
+
+    /** All the different discrimination scores so far.
+     */
+
     public Vector all_discrimination_scores = new Vector();
+
+    /** All the different imp_conj scores so far.
+     */
+
     public Vector all_imp_conj_scores = new Vector();
+
+    /** All the different pi_conj scores so far.
+     */
+
     public Vector all_pi_conj_scores = new Vector();
+
+    /** All the different applicabilities so far.
+     */
+
     public Vector all_applicabilities = new Vector();
+
+    /** All the different positive applicabilities so far.
+     */
+
     public Vector all_positive_applicabilities = new Vector();
+
+    /** All the different negative applicabilities so far.
+     */
+
     public Vector all_negative_applicabilities = new Vector();
+
+    /** All the different coverages so far.
+     */
+
     public Vector all_coverages = new Vector();
+
+    /** All the different comprehensibilities so far.
+     */
+
     public Vector all_comprehensibilities = new Vector();
+
+    /** All the different novelties so far.
+     */
+
     public Vector all_novelties = new Vector();
+
+    /** All the different parsimonies so far.
+     */
+
     public Vector all_parsimonies = new Vector();
+
+    /** All the different predictive_powers so far.
+     */
+
     public Vector all_predictive_powers = new Vector();
+
+    /** The equivalence conj scores so far (sorted).
+     */
+
     public Vector sorted_equiv_conj_scores = new Vector();
+
+    /** The equivalence conj numbers so far (sorted).
+     */
+
     public Vector sorted_equiv_conj_nums = new Vector();
+
+    /** A hashtable for the equiv_conj scores
+     */
+
     public Hashtable equiv_conj_scores_hashtable = new Hashtable();
+
+    /** A hashtable for the equiv_conj numbers scores
+     */
+
     public Hashtable equiv_conj_nums_hashtable = new Hashtable();
+
+    /** The non-existence conj scores so far (sorted).
+     */
+
     public Vector sorted_ne_conj_scores = new Vector();
+
+    /** A hashtable for the ne_conj scores
+     */
+
     public Hashtable ne_conj_scores_hashtable = new Hashtable();
+
+    /** The non-existence conj numbers scores so far (sorted).
+     */
+
     public Vector sorted_ne_conj_nums = new Vector();
+
+    /** A hashtable for the ne_conj numbers scores
+     */
+
     public Hashtable ne_conj_nums_hashtable = new Hashtable();
+
+    /** The implicate conj scores so far (sorted).
+     */
+
     public Vector sorted_imp_conj_scores = new Vector();
+
+    /** A hashtable for the equiv_conj scores
+     */
+
     public Hashtable imp_conj_scores_hashtable = new Hashtable();
+
+    /** The implicate conj scores so far (sorted).
+     */
+
     public Vector sorted_imp_conj_nums = new Vector();
+
+    /** A hashtable for the equiv_conj numbers scores
+     */
+
     public Hashtable imp_conj_nums_hashtable = new Hashtable();
+
+    /** The prime implicate conj scores so far (sorted).
+     */
+
     public Vector sorted_pi_conj_scores = new Vector();
+
+    /** A hashtable for the pi_conj scores
+     */
+
     public Hashtable pi_conj_scores_hashtable = new Hashtable();
+
+    /** The prime implicate conj scores so far (sorted).
+     */
+
     public Vector sorted_pi_conj_nums = new Vector();
+
+    /** A hashtable for the pi_conj number scores
+     */
+
     public Hashtable pi_conj_nums_hashtable = new Hashtable();
+
+    /** All the different productivities so far (sorted).
+     */
+
     public Vector sorted_productivities = new Vector();
+
+    /** All the different developments so far (sorted).
+     */
+
     public Vector sorted_developments = new Vector();
+
+    /** A hashtable for the productivities
+     */
+
     public Hashtable productivities_hashtable = new Hashtable();
+
+    /** A hashtable for the development numbers
+     */
+
     public Hashtable developments_hashtable = new Hashtable();
+
+    /** All the different varieties so far.
+     */
+
     public Vector all_varieties = new Vector();
-    public double default_productivity = 0.0D;
+
+    /** The default for the productivity measure.
+     */
+
+    public double default_productivity = 0.0;
+
+    /** The user specified coverage categorisation for use in the coverage measure.
+     */
+
     public Categorisation coverage_categorisation = new Categorisation();
+
+    /** The user specified gold standard categorisation for use in
+     * the invariance and discrimination measures.
+     */
+
     public Categorisation gold_standard_categorisation = new Categorisation();
+
+    /** The set of pairs of entities which are categorised the same by the
+     * gold standard categorisations.
+     */
+
     public Vector gold_standard_same_pairs = new Vector();
+
+    /** The set of pairs of entities which are categorised the same by the
+     * gold standard categorisations.
+     */
+
     public Vector gold_standard_different_pairs = new Vector();
+
+    /** The set of entity names which appear in the gold standard categorisation.
+     */
+
     public Vector gold_standard_entity_names = new Vector();
 
-    public MeasureConcept() {
-    }
+    /** This calculates all the measures for each concept. It also
+     * updates the measures for all the other concepts if needed.
+     */
 
-    public void measureConcept(Concept var1, Vector var2, boolean var3) {
-        if (this.measure_concepts) {
-            this.old_measures_have_been_updated = true;
-            this.measures_need_updating = false;
-            var1.applicability = var1.datatable.applicability();
-            var1.normalised_applicability = super.normalisedValue(var1.applicability, this.all_applicabilities);
-            int var4;
-            Concept var5;
-            int var6;
-            if (this.measures_need_updating) {
-                this.old_measures_have_been_updated = true;
+    public void measureConcept(Concept concept, Vector concepts, boolean concept_is_new)
+    {
+        if (!measure_concepts)
+            return;
 
-                for(var4 = 0; var4 < var2.size(); ++var4) {
-                    var5 = (Concept)var2.elementAt(var4);
-                    var6 = this.all_applicabilities.indexOf(Double.toString(var5.applicability));
-                    var5.normalised_applicability = new Double((double)var6) / (new Double((double)this.all_applicabilities.size()) - 1.0D);
+        old_measures_have_been_updated = true;
+        measures_need_updating = false;
+
+        // Applicability //
+
+        concept.applicability = concept.datatable.applicability();
+        concept.normalised_applicability =
+                super.normalisedValue(concept.applicability, all_applicabilities);
+        if (measures_need_updating)
+        {
+            old_measures_have_been_updated = true;
+            for (int i=0; i<concepts.size(); i++)
+            {
+                Concept old_concept = (Concept)concepts.elementAt(i);
+                int pos = all_applicabilities.indexOf(Double.toString(old_concept.applicability));
+                old_concept.normalised_applicability =
+                        (new Double(pos)).doubleValue()/((new Double(all_applicabilities.size())).doubleValue() - 1);
+            }
+        }
+
+        // Positive Applicability //
+
+        if (!positives.isEmpty())
+            concept.positive_applicability = concept.datatable.applicability(positives);
+        else
+            concept.positive_applicability = 0;
+        concept.normalised_positive_applicability =
+                super.normalisedValue(concept.positive_applicability, all_positive_applicabilities);
+        if (measures_need_updating)
+        {
+            old_measures_have_been_updated = true;
+            for (int i=0; i<concepts.size(); i++)
+            {
+                Concept old_concept = (Concept)concepts.elementAt(i);
+                int pos = all_positive_applicabilities.indexOf(Double.toString(old_concept.positive_applicability));
+                old_concept.normalised_positive_applicability =
+                        (new Double(pos)).doubleValue()/((new Double(all_positive_applicabilities.size())).doubleValue() - 1);
+            }
+        }
+
+        // Negative Applicability //
+
+        if (!negatives.isEmpty())
+            concept.negative_applicability = concept.datatable.applicability(negatives);
+        else
+            concept.negative_applicability = 0;
+        concept.normalised_negative_applicability =
+                super.normalisedValue(concept.negative_applicability, all_negative_applicabilities);
+        if (measures_need_updating)
+        {
+            old_measures_have_been_updated = true;
+            for (int i=0; i<concepts.size(); i++)
+            {
+                Concept old_concept = (Concept)concepts.elementAt(i);
+                int pos = all_negative_applicabilities.indexOf(Double.toString(old_concept.negative_applicability));
+                old_concept.normalised_negative_applicability =
+                        (new Double(pos)).doubleValue()/((new Double(all_negative_applicabilities.size())).doubleValue() - 1);
+            }
+        }
+
+        // Predictive Power (for boolean predictions) //
+
+        if (!concept.domain.equals(object_types_to_learn))
+            concept.predictive_power = 0;
+        else
+            concept.predictive_power =
+                    (concept.positive_applicability * positives.size() + (1-concept.negative_applicability) * negatives.size())/
+                            (positives.size() + negatives.size());
+        concept.normalised_predictive_power =
+                super.normalisedValue(concept.predictive_power, all_predictive_powers);
+        if (measures_need_updating)
+        {
+            old_measures_have_been_updated = true;
+            for (int i=0; i<concepts.size(); i++)
+            {
+                Concept old_concept = (Concept)concepts.elementAt(i);
+                int pos = all_predictive_powers.indexOf(Double.toString(old_concept.predictive_power));
+                old_concept.predictive_power =
+                        (new Double(pos)).doubleValue()/((new Double(all_predictive_powers.size())).doubleValue() - 1);
+            }
+        }
+
+        // Coverage //
+
+        concept.coverage = 0;
+        concept.normalised_coverage = 0;
+
+        if (!coverage_categorisation.isEmpty())
+        {
+            concept.coverage = concept.datatable.coverage(coverage_categorisation);
+            concept.normalised_coverage =
+                    super.normalisedValue(concept.coverage, all_coverages);
+            if (measures_need_updating)
+            {
+                old_measures_have_been_updated = true;
+                for (int i=0; i<concepts.size(); i++)
+                {
+                    Concept old_concept = (Concept)concepts.elementAt(i);
+                    int pos = all_coverages.indexOf(Double.toString(old_concept.coverage));
+                    old_concept.normalised_coverage =
+                            (new Double(pos)).doubleValue()/((new Double(all_coverages.size())).doubleValue() - 1);
                 }
             }
+        }
 
-            if (!this.positives.isEmpty()) {
-                var1.positive_applicability = var1.datatable.applicability(this.positives);
-            } else {
-                var1.positive_applicability = 0.0D;
+        // Children //
+
+        double children_score = 0.0;
+        for (int i=0; i<concept.children.size(); i++)
+            children_score = children_score + ((Concept)concept.children.elementAt(i)).interestingness;
+        if (concept.children.size()==0)
+            concept.children_score = 0;
+        else
+            concept.children_score = children_score/concept.children.size();
+
+        // Comprehensibility //
+
+        concept.comprehensibility = 1/(new Double(concept.complexity)).doubleValue();
+        concept.normalised_comprehensibility =
+                super.normalisedValue(concept.comprehensibility, all_comprehensibilities);
+        if (measures_need_updating)
+        {
+            old_measures_have_been_updated = true;
+            for (int i=0; i<concepts.size(); i++)
+            {
+                Concept old_concept = (Concept)concepts.elementAt(i);
+                int pos = all_comprehensibilities.indexOf(Double.toString(old_concept.comprehensibility));
+                old_concept.normalised_comprehensibility =
+                        (new Double(pos)).doubleValue()/((new Double(all_comprehensibilities.size())).doubleValue() - 1);
             }
+        }
 
-            var1.normalised_positive_applicability = super.normalisedValue(var1.positive_applicability, this.all_positive_applicabilities);
-            if (this.measures_need_updating) {
-                this.old_measures_have_been_updated = true;
+        // Conjecture scores and numbers //
 
-                for(var4 = 0; var4 < var2.size(); ++var4) {
-                    var5 = (Concept)var2.elementAt(var4);
-                    var6 = this.all_positive_applicabilities.indexOf(Double.toString(var5.positive_applicability));
-                    var5.normalised_positive_applicability = new Double((double)var6) / (new Double((double)this.all_positive_applicabilities.size()) - 1.0D);
-                }
+        // These are all set to 0 by default, which is fine. However, we need to make
+        // sure that 0 is in the hashtables for the conjecture scores and numbers.
+
+        addConceptToHashtable(new Double(0), equiv_conj_scores_hashtable,
+                sorted_equiv_conj_scores, concept, "equiv_conj_score");
+        addConceptToHashtable(new Double(0), ne_conj_scores_hashtable,
+                sorted_ne_conj_scores, concept, "ne_conj_score");
+        addConceptToHashtable(new Double(0), imp_conj_scores_hashtable,
+                sorted_imp_conj_scores, concept, "imp_conj_score");
+        addConceptToHashtable(new Double(0), pi_conj_scores_hashtable,
+                sorted_pi_conj_scores, concept, "pi_conj_score");
+        addConceptToHashtable(new Double(0), equiv_conj_nums_hashtable,
+                sorted_equiv_conj_nums, concept, "equiv_conj_num");
+        addConceptToHashtable(new Double(0), ne_conj_nums_hashtable,
+                sorted_ne_conj_nums, concept, "ne_conj_num");
+        addConceptToHashtable(new Double(0), imp_conj_nums_hashtable,
+                sorted_imp_conj_nums, concept, "imp_conj_num");
+        addConceptToHashtable(new Double(0), pi_conj_nums_hashtable,
+                sorted_pi_conj_nums, concept, "pi_conj_num");
+
+        // Cross Domain //
+
+        if (concept.is_cross_domain)
+            concept.cross_domain_score = 1;
+        else
+            concept.cross_domain_score = 0;
+
+        // Development steps - note that these are also updated after every step.
+
+        if (concept_is_new)
+            updateNormalisedDevelopments(concept, true);
+
+        // Novelty //
+
+        concept.novelty = concept.categorisation.novelty;
+        concept.normalised_novelty =
+                super.normalisedValue(concept.novelty, all_novelties);
+        if (measures_need_updating)
+        {
+            old_measures_have_been_updated = true;
+            for (int i=0; i<concepts.size(); i++)
+            {
+                Concept old_concept = (Concept)concepts.elementAt(i);
+                int pos = all_novelties.indexOf(Double.toString(old_concept.novelty));
+                old_concept.normalised_novelty =
+                        (new Double(pos)).doubleValue()/((new Double(all_novelties.size())).doubleValue() - 1);
             }
+        }
 
-            if (!this.negatives.isEmpty()) {
-                var1.negative_applicability = var1.datatable.applicability(this.negatives);
-            } else {
-                var1.negative_applicability = 0.0D;
+        // Invariance //
+
+        if (concept.domain.equals(object_types_to_learn))
+            concept.invariance =
+                    concept.categorisation.invarianceWith(gold_standard_entity_names, gold_standard_same_pairs);
+        else
+            concept.invariance = 0;
+        concept.normalised_invariance_score =
+                super.normalisedValue(concept.invariance, all_invariance_scores);
+        if (measures_need_updating)
+        {
+            old_measures_have_been_updated = true;
+            for (int i=0; i<concepts.size(); i++)
+            {
+                Concept old_concept = (Concept)concepts.elementAt(i);
+                int pos = all_invariance_scores.indexOf(Double.toString(old_concept.invariance));
+                old_concept.normalised_invariance_score =
+                        (new Double(pos)).doubleValue()/((new Double(all_invariance_scores.size())).doubleValue() - 1);
             }
+        }
 
-            var1.normalised_negative_applicability = super.normalisedValue(var1.negative_applicability, this.all_negative_applicabilities);
-            if (this.measures_need_updating) {
-                this.old_measures_have_been_updated = true;
+        // Discrimination //
 
-                for(var4 = 0; var4 < var2.size(); ++var4) {
-                    var5 = (Concept)var2.elementAt(var4);
-                    var6 = this.all_negative_applicabilities.indexOf(Double.toString(var5.negative_applicability));
-                    var5.normalised_negative_applicability = new Double((double)var6) / (new Double((double)this.all_negative_applicabilities.size()) - 1.0D);
-                }
+        if (concept.domain.equals(object_types_to_learn))
+            concept.discrimination =
+                    concept.categorisation.discriminationWith(gold_standard_entity_names, gold_standard_different_pairs);
+        else
+            concept.discrimination = 0;
+        concept.normalised_discrimination_score =
+                super.normalisedValue(concept.discrimination, all_discrimination_scores);
+        if (measures_need_updating)
+        {
+            old_measures_have_been_updated = true;
+            for (int i=0; i<concepts.size(); i++)
+            {
+                Concept old_concept = (Concept)concepts.elementAt(i);
+                int pos = all_discrimination_scores.indexOf(Double.toString(old_concept.discrimination));
+                old_concept.normalised_discrimination_score =
+                        (new Double(pos)).doubleValue()/((new Double(all_discrimination_scores.size())).doubleValue() - 1);
             }
+        }
 
-            if (!var1.domain.equals(this.object_types_to_learn)) {
-                var1.predictive_power = 0.0D;
-            } else {
-                var1.predictive_power = (var1.positive_applicability * (double)this.positives.size() + (1.0D - var1.negative_applicability) * (double)this.negatives.size()) / (double)(this.positives.size() + this.negatives.size());
+        // Parents //
+
+        double parent_score = 0.0;
+        for (int i=0; i<concept.parents.size(); i++)
+            parent_score = parent_score + ((Concept)concept.parents.elementAt(i)).interestingness;
+        if (concept.parents.size()==0)
+            concept.parent_score = 0;
+        else
+            concept.parent_score = parent_score/concept.parents.size();
+
+        // Parsimony //
+
+        double datatable_size = concept.datatable.fullSize();
+        if (datatable_size==0)
+            concept.parsimony = 1;
+        else
+            concept.parsimony = 1/datatable_size;
+        concept.normalised_parsimony =
+                super.normalisedValue(concept.parsimony, all_parsimonies);
+        if (measures_need_updating)
+        {
+            old_measures_have_been_updated = true;
+            for (int i=0; i<concepts.size(); i++)
+            {
+                Concept old_concept = (Concept)concepts.elementAt(i);
+                int pos = all_parsimonies.indexOf(Double.toString(old_concept.parsimony));
+                old_concept.normalised_parsimony =
+                        (new Double(pos)).doubleValue()/((new Double(all_parsimonies.size())).doubleValue() - 1);
             }
+        }
 
-            var1.normalised_predictive_power = super.normalisedValue(var1.predictive_power, this.all_predictive_powers);
-            if (this.measures_need_updating) {
-                this.old_measures_have_been_updated = true;
+        // Productivity - note that these are also updated after every step.
 
-                for(var4 = 0; var4 < var2.size(); ++var4) {
-                    var5 = (Concept)var2.elementAt(var4);
-                    var6 = this.all_predictive_powers.indexOf(Double.toString(var5.predictive_power));
-                    var5.predictive_power = new Double((double)var6) / (new Double((double)this.all_predictive_powers.size()) - 1.0D);
-                }
+        if (concept_is_new)
+            updateNormalisedProductivities(concept, true);
+
+        // Variety //
+
+        concept.variety = (new Double(concept.categorisation.size())).doubleValue();
+        concept.normalised_variety =
+                super.normalisedValue(concept.variety, all_varieties);
+        if (measures_need_updating)
+        {
+            old_measures_have_been_updated = true;
+            for (int i=0; i<concepts.size(); i++)
+            {
+                Concept old_concept = (Concept)concepts.elementAt(i);
+                int pos = all_varieties.indexOf(Double.toString(old_concept.variety));
+                old_concept.normalised_variety =
+                        (new Double(pos)).doubleValue()/((new Double(all_varieties.size())).doubleValue() - 1);
             }
+        }
 
-            var1.coverage = 0.0D;
-            var1.normalised_coverage = 0.0D;
-            if (!this.coverage_categorisation.isEmpty()) {
-                var1.coverage = var1.datatable.coverage(this.coverage_categorisation);
-                var1.normalised_coverage = super.normalisedValue(var1.coverage, this.all_coverages);
-                if (this.measures_need_updating) {
-                    this.old_measures_have_been_updated = true;
+        calculateOverallValue(concept);
 
-                    for(var4 = 0; var4 < var2.size(); ++var4) {
-                        var5 = (Concept)var2.elementAt(var4);
-                        var6 = this.all_coverages.indexOf(Double.toString(var5.coverage));
-                        var5.normalised_coverage = new Double((double)var6) / (new Double((double)this.all_coverages.size()) - 1.0D);
-                    }
-                }
-            }
+        // If any measures have changed for any old concept, we need to calculate the
+        // overall scores for every concept.
 
-            double var13 = 0.0D;
-
-            for(var6 = 0; var6 < var1.children.size(); ++var6) {
-                var13 += ((Concept)var1.children.elementAt(var6)).interestingness;
-            }
-
-            if (var1.children.size() == 0) {
-                var1.children_score = 0.0D;
-            } else {
-                var1.children_score = var13 / (double)var1.children.size();
-            }
-
-            var1.comprehensibility = 1.0D / new Double((double)var1.complexity);
-            var1.normalised_comprehensibility = super.normalisedValue(var1.comprehensibility, this.all_comprehensibilities);
-            Concept var7;
-            int var8;
-            if (this.measures_need_updating) {
-                this.old_measures_have_been_updated = true;
-
-                for(var6 = 0; var6 < var2.size(); ++var6) {
-                    var7 = (Concept)var2.elementAt(var6);
-                    var8 = this.all_comprehensibilities.indexOf(Double.toString(var7.comprehensibility));
-                    var7.normalised_comprehensibility = new Double((double)var8) / (new Double((double)this.all_comprehensibilities.size()) - 1.0D);
-                }
-            }
-
-            this.addConceptToHashtable(new Double(0.0D), this.equiv_conj_scores_hashtable, this.sorted_equiv_conj_scores, var1, "equiv_conj_score");
-            this.addConceptToHashtable(new Double(0.0D), this.ne_conj_scores_hashtable, this.sorted_ne_conj_scores, var1, "ne_conj_score");
-            this.addConceptToHashtable(new Double(0.0D), this.imp_conj_scores_hashtable, this.sorted_imp_conj_scores, var1, "imp_conj_score");
-            this.addConceptToHashtable(new Double(0.0D), this.pi_conj_scores_hashtable, this.sorted_pi_conj_scores, var1, "pi_conj_score");
-            this.addConceptToHashtable(new Double(0.0D), this.equiv_conj_nums_hashtable, this.sorted_equiv_conj_nums, var1, "equiv_conj_num");
-            this.addConceptToHashtable(new Double(0.0D), this.ne_conj_nums_hashtable, this.sorted_ne_conj_nums, var1, "ne_conj_num");
-            this.addConceptToHashtable(new Double(0.0D), this.imp_conj_nums_hashtable, this.sorted_imp_conj_nums, var1, "imp_conj_num");
-            this.addConceptToHashtable(new Double(0.0D), this.pi_conj_nums_hashtable, this.sorted_pi_conj_nums, var1, "pi_conj_num");
-            if (var1.is_cross_domain) {
-                var1.cross_domain_score = 1.0D;
-            } else {
-                var1.cross_domain_score = 0.0D;
-            }
-
-            if (var3) {
-                this.updateNormalisedDevelopments(var1, true);
-            }
-
-            var1.novelty = var1.categorisation.novelty;
-            var1.normalised_novelty = super.normalisedValue(var1.novelty, this.all_novelties);
-            if (this.measures_need_updating) {
-                this.old_measures_have_been_updated = true;
-
-                for(var6 = 0; var6 < var2.size(); ++var6) {
-                    var7 = (Concept)var2.elementAt(var6);
-                    var8 = this.all_novelties.indexOf(Double.toString(var7.novelty));
-                    var7.normalised_novelty = new Double((double)var8) / (new Double((double)this.all_novelties.size()) - 1.0D);
-                }
-            }
-
-            if (var1.domain.equals(this.object_types_to_learn)) {
-                var1.invariance = var1.categorisation.invarianceWith(this.gold_standard_entity_names, this.gold_standard_same_pairs);
-            } else {
-                var1.invariance = 0.0D;
-            }
-
-            var1.normalised_invariance_score = super.normalisedValue(var1.invariance, this.all_invariance_scores);
-            if (this.measures_need_updating) {
-                this.old_measures_have_been_updated = true;
-
-                for(var6 = 0; var6 < var2.size(); ++var6) {
-                    var7 = (Concept)var2.elementAt(var6);
-                    var8 = this.all_invariance_scores.indexOf(Double.toString(var7.invariance));
-                    var7.normalised_invariance_score = new Double((double)var8) / (new Double((double)this.all_invariance_scores.size()) - 1.0D);
-                }
-            }
-
-            if (var1.domain.equals(this.object_types_to_learn)) {
-                var1.discrimination = var1.categorisation.discriminationWith(this.gold_standard_entity_names, this.gold_standard_different_pairs);
-            } else {
-                var1.discrimination = 0.0D;
-            }
-
-            var1.normalised_discrimination_score = super.normalisedValue(var1.discrimination, this.all_discrimination_scores);
-            if (this.measures_need_updating) {
-                this.old_measures_have_been_updated = true;
-
-                for(var6 = 0; var6 < var2.size(); ++var6) {
-                    var7 = (Concept)var2.elementAt(var6);
-                    var8 = this.all_discrimination_scores.indexOf(Double.toString(var7.discrimination));
-                    var7.normalised_discrimination_score = new Double((double)var8) / (new Double((double)this.all_discrimination_scores.size()) - 1.0D);
-                }
-            }
-
-            double var15 = 0.0D;
-
-            for(var8 = 0; var8 < var1.parents.size(); ++var8) {
-                var15 += ((Concept)var1.parents.elementAt(var8)).interestingness;
-            }
-
-            if (var1.parents.size() == 0) {
-                var1.parent_score = 0.0D;
-            } else {
-                var1.parent_score = var15 / (double)var1.parents.size();
-            }
-
-            double var14 = var1.datatable.fullSize();
-            if (var14 == 0.0D) {
-                var1.parsimony = 1.0D;
-            } else {
-                var1.parsimony = 1.0D / var14;
-            }
-
-            var1.normalised_parsimony = super.normalisedValue(var1.parsimony, this.all_parsimonies);
-            int var10;
-            Concept var11;
-            int var12;
-            if (this.measures_need_updating) {
-                this.old_measures_have_been_updated = true;
-
-                for(var10 = 0; var10 < var2.size(); ++var10) {
-                    var11 = (Concept)var2.elementAt(var10);
-                    var12 = this.all_parsimonies.indexOf(Double.toString(var11.parsimony));
-                    var11.normalised_parsimony = new Double((double)var12) / (new Double((double)this.all_parsimonies.size()) - 1.0D);
-                }
-            }
-
-            if (var3) {
-                this.updateNormalisedProductivities(var1, true);
-            }
-
-            var1.variety = new Double((double)var1.categorisation.size());
-            var1.normalised_variety = super.normalisedValue(var1.variety, this.all_varieties);
-            if (this.measures_need_updating) {
-                this.old_measures_have_been_updated = true;
-
-                for(var10 = 0; var10 < var2.size(); ++var10) {
-                    var11 = (Concept)var2.elementAt(var10);
-                    var12 = this.all_varieties.indexOf(Double.toString(var11.variety));
-                    var11.normalised_variety = new Double((double)var12) / (new Double((double)this.all_varieties.size()) - 1.0D);
-                }
-            }
-
-            this.calculateOverallValue(var1);
-            if (this.old_measures_have_been_updated) {
-                for(var10 = 0; var10 < var2.size(); ++var10) {
-                    this.calculateOverallValue((Concept)var2.elementAt(var10));
-                }
-            }
-
+        if (old_measures_have_been_updated)
+        {
+            for (int i=0; i<concepts.size(); i++)
+                calculateOverallValue((Concept)concepts.elementAt(i));
         }
     }
 
-    public void calculateOverallValue(Concept var1) {
-        if (this.use_weighted_sum) {
-            var1.interestingness = var1.normalised_applicability * this.applicability_weight + var1.coverage * this.coverage_weight + var1.normalised_comprehensibility * this.comprehensibility_weight + var1.children_score * this.children_score_weight + var1.normalised_equiv_conj_score * this.equiv_conj_score_weight + var1.normalised_ne_conj_score * this.ne_conj_score_weight + var1.normalised_invariance_score * this.invariance_weight + var1.normalised_discrimination_score * this.discrimination_weight + var1.normalised_imp_conj_score * this.imp_conj_score_weight + var1.normalised_pi_conj_score * this.pi_conj_score_weight + var1.normalised_equiv_conj_num * this.equiv_conj_num_weight + var1.normalised_ne_conj_num * this.ne_conj_num_weight + var1.normalised_negative_applicability * this.negative_applicability_weight + var1.normalised_positive_applicability * this.positive_applicability_weight + var1.normalised_imp_conj_num * this.imp_conj_num_weight + var1.normalised_pi_conj_num * this.pi_conj_num_weight + var1.cross_domain_score * this.cross_domain_weight + var1.normalised_development_steps_num * this.development_steps_num_weight + var1.highlight_score * this.highlight_weight + var1.parent_score * this.parent_weight + var1.normalised_predictive_power * this.predictive_power_weight + var1.normalised_parsimony * this.parsimony_weight + var1.normalised_productivity * this.productivity_weight + var1.normalised_novelty * this.novelty_weight + var1.normalised_variety * this.variety_weight;
+    /** This calcualtes the overall worth of the concept, a number which should be between
+     * 0 and 1 (if the weights have been set to numbers between 0 and 1).
+     */
+
+    public void calculateOverallValue(Concept concept)
+    {
+        if (use_weighted_sum)
+        {
+            concept.interestingness =
+                    (concept.normalised_applicability * applicability_weight) +
+                            (concept.coverage * coverage_weight) +
+                            (concept.normalised_comprehensibility * comprehensibility_weight) +
+                            (concept.children_score * children_score_weight) +
+                            (concept.normalised_equiv_conj_score * equiv_conj_score_weight) +
+                            (concept.normalised_ne_conj_score * ne_conj_score_weight) +
+                            (concept.normalised_invariance_score * invariance_weight) +
+                            (concept.normalised_discrimination_score * discrimination_weight) +
+                            (concept.normalised_imp_conj_score * imp_conj_score_weight) +
+                            (concept.normalised_pi_conj_score * pi_conj_score_weight) +
+                            (concept.normalised_equiv_conj_num * equiv_conj_num_weight) +
+                            (concept.normalised_ne_conj_num * ne_conj_num_weight) +
+                            (concept.normalised_negative_applicability * negative_applicability_weight) +
+                            (concept.normalised_positive_applicability * positive_applicability_weight) +
+                            (concept.normalised_imp_conj_num * imp_conj_num_weight) +
+                            (concept.normalised_pi_conj_num * pi_conj_num_weight) +
+                            (concept.cross_domain_score * cross_domain_weight) +
+                            (concept.normalised_development_steps_num * development_steps_num_weight) +
+                            (concept.highlight_score * highlight_weight) +
+                            (concept.parent_score * parent_weight) +
+                            (concept.normalised_predictive_power * predictive_power_weight) +
+                            (concept.normalised_parsimony * parsimony_weight) +
+                            (concept.normalised_productivity * productivity_weight) +
+                            (concept.normalised_novelty * novelty_weight) +
+                            (concept.normalised_variety * variety_weight);
         }
 
-        if (this.keep_best) {
-            var1.interestingness = 0.0D;
-            if (var1.normalised_applicability > var1.interestingness && this.applicability_weight > 0.0D) {
-                var1.interestingness = var1.normalised_applicability;
-            }
-
-            if (var1.normalised_positive_applicability > var1.interestingness && this.positive_applicability_weight > 0.0D) {
-                var1.interestingness = var1.normalised_positive_applicability;
-            }
-
-            if (var1.normalised_negative_applicability > var1.interestingness && this.negative_applicability_weight > 0.0D) {
-                var1.interestingness = var1.normalised_negative_applicability;
-            }
-
-            if (var1.coverage > var1.interestingness && this.coverage_weight > 0.0D) {
-                var1.interestingness = var1.coverage;
-            }
-
-            if (var1.normalised_comprehensibility > var1.interestingness && this.comprehensibility_weight > 0.0D) {
-                var1.interestingness = var1.normalised_comprehensibility;
-            }
-
-            if (var1.children_score > var1.interestingness && this.children_score_weight > 0.0D) {
-                var1.interestingness = var1.children_score;
-            }
-
-            if (var1.normalised_equiv_conj_score > var1.interestingness && this.equiv_conj_score_weight > 0.0D) {
-                var1.interestingness = var1.normalised_equiv_conj_score;
-            }
-
-            if (var1.normalised_ne_conj_score > var1.interestingness && this.ne_conj_score_weight > 0.0D) {
-                var1.interestingness = var1.normalised_ne_conj_score;
-            }
-
-            if (var1.normalised_invariance_score > var1.interestingness && this.invariance_weight > 0.0D) {
-                var1.interestingness = var1.normalised_invariance_score;
-            }
-
-            if (var1.normalised_discrimination_score > var1.interestingness && this.discrimination_weight > 0.0D) {
-                var1.interestingness = var1.normalised_discrimination_score;
-            }
-
-            if (var1.normalised_imp_conj_score > var1.interestingness && this.imp_conj_score_weight > 0.0D) {
-                var1.interestingness = var1.normalised_imp_conj_score;
-            }
-
-            if (var1.normalised_pi_conj_score > var1.interestingness && this.pi_conj_score_weight > 0.0D) {
-                var1.interestingness = var1.normalised_pi_conj_score;
-            }
-
-            if (var1.normalised_equiv_conj_num > var1.interestingness && this.equiv_conj_num_weight > 0.0D) {
-                var1.interestingness = var1.normalised_equiv_conj_num;
-            }
-
-            if (var1.normalised_ne_conj_num > var1.interestingness && this.ne_conj_num_weight > 0.0D) {
-                var1.interestingness = var1.normalised_ne_conj_num;
-            }
-
-            if (var1.normalised_imp_conj_num > var1.interestingness && this.imp_conj_num_weight > 0.0D) {
-                var1.interestingness = var1.normalised_imp_conj_num;
-            }
-
-            if (var1.normalised_pi_conj_num > var1.interestingness && this.pi_conj_num_weight > 0.0D) {
-                var1.interestingness = var1.normalised_pi_conj_num;
-            }
-
-            if (var1.cross_domain_score > var1.interestingness && this.cross_domain_weight > 0.0D) {
-                var1.interestingness = var1.cross_domain_score;
-            }
-
-            if (var1.normalised_development_steps_num > var1.interestingness && this.development_steps_num_weight > 0.0D) {
-                var1.interestingness = var1.normalised_development_steps_num;
-            }
-
-            if (var1.highlight_score > var1.interestingness && this.highlight_weight > 0.0D) {
-                var1.interestingness = var1.highlight_score;
-            }
-
-            if (var1.parent_score > var1.interestingness && this.parent_weight > 0.0D) {
-                var1.interestingness = var1.parent_score;
-            }
-
-            if (var1.normalised_parsimony > var1.interestingness && this.parsimony_weight > 0.0D) {
-                var1.interestingness = var1.normalised_parsimony;
-            }
-
-            if (var1.normalised_predictive_power > var1.interestingness && this.predictive_power_weight > 0.0D) {
-                var1.interestingness = var1.normalised_predictive_power;
-            }
-
-            if (var1.normalised_productivity > var1.interestingness && this.productivity_weight > 0.0D) {
-                var1.interestingness = var1.normalised_productivity;
-            }
-
-            if (var1.normalised_novelty > var1.interestingness && this.novelty_weight > 0.0D) {
-                var1.interestingness = var1.normalised_novelty;
-            }
-
-            if (var1.normalised_variety > var1.interestingness && this.variety_weight > 0.0D) {
-                var1.interestingness = var1.normalised_variety;
-            }
+        if (keep_best)
+        {
+            concept.interestingness = 0;
+            if (concept.normalised_applicability > concept.interestingness && applicability_weight > 0)
+                concept.interestingness = concept.normalised_applicability;
+            if (concept.normalised_positive_applicability > concept.interestingness && positive_applicability_weight > 0)
+                concept.interestingness = concept.normalised_positive_applicability;
+            if (concept.normalised_negative_applicability > concept.interestingness && negative_applicability_weight > 0)
+                concept.interestingness = concept.normalised_negative_applicability;
+            if (concept.coverage > concept.interestingness && coverage_weight > 0)
+                concept.interestingness = concept.coverage;
+            if (concept.normalised_comprehensibility > concept.interestingness && comprehensibility_weight > 0)
+                concept.interestingness = concept.normalised_comprehensibility;
+            if (concept.children_score > concept.interestingness && children_score_weight > 0)
+                concept.interestingness = concept.children_score;
+            if (concept.normalised_equiv_conj_score > concept.interestingness && equiv_conj_score_weight > 0)
+                concept.interestingness = concept.normalised_equiv_conj_score;
+            if (concept.normalised_ne_conj_score > concept.interestingness && ne_conj_score_weight > 0)
+                concept.interestingness = concept.normalised_ne_conj_score;
+            if (concept.normalised_invariance_score > concept.interestingness && invariance_weight > 0)
+                concept.interestingness = concept.normalised_invariance_score;
+            if (concept.normalised_discrimination_score > concept.interestingness && discrimination_weight > 0)
+                concept.interestingness = concept.normalised_discrimination_score;
+            if (concept.normalised_imp_conj_score > concept.interestingness && imp_conj_score_weight > 0)
+                concept.interestingness = concept.normalised_imp_conj_score;
+            if (concept.normalised_pi_conj_score > concept.interestingness && pi_conj_score_weight > 0)
+                concept.interestingness = concept.normalised_pi_conj_score;
+            if (concept.normalised_equiv_conj_num > concept.interestingness && equiv_conj_num_weight > 0)
+                concept.interestingness = concept.normalised_equiv_conj_num;
+            if (concept.normalised_ne_conj_num > concept.interestingness && ne_conj_num_weight > 0)
+                concept.interestingness = concept.normalised_ne_conj_num;
+            if (concept.normalised_imp_conj_num > concept.interestingness && imp_conj_num_weight > 0)
+                concept.interestingness = concept.normalised_imp_conj_num;
+            if (concept.normalised_pi_conj_num > concept.interestingness && pi_conj_num_weight > 0)
+                concept.interestingness = concept.normalised_pi_conj_num;
+            if (concept.cross_domain_score > concept.interestingness && cross_domain_weight > 0)
+                concept.interestingness = concept.cross_domain_score;
+            if (concept.normalised_development_steps_num > concept.interestingness && development_steps_num_weight > 0)
+                concept.interestingness = concept.normalised_development_steps_num;
+            if (concept.highlight_score > concept.interestingness && highlight_weight > 0)
+                concept.interestingness = concept.highlight_score;
+            if (concept.parent_score > concept.interestingness && parent_weight > 0)
+                concept.interestingness = concept.parent_score;
+            if (concept.normalised_parsimony > concept.interestingness && parsimony_weight > 0)
+                concept.interestingness = concept.normalised_parsimony;
+            if (concept.normalised_predictive_power > concept.interestingness && predictive_power_weight > 0)
+                concept.interestingness = concept.normalised_predictive_power;
+            if (concept.normalised_productivity > concept.interestingness && productivity_weight > 0)
+                concept.interestingness = concept.normalised_productivity;
+            if (concept.normalised_novelty > concept.interestingness && novelty_weight > 0)
+                concept.interestingness = concept.normalised_novelty;
+            if (concept.normalised_variety > concept.interestingness && variety_weight > 0)
+                concept.interestingness = concept.normalised_variety;
         }
 
-        if (this.keep_worst) {
-            var1.interestingness = 1.0D;
-            if (var1.normalised_applicability < var1.interestingness && this.applicability_weight > 0.0D) {
-                var1.interestingness = var1.normalised_applicability;
-            }
-
-            if (var1.coverage < var1.interestingness && this.coverage_weight > 0.0D) {
-                var1.interestingness = var1.coverage;
-            }
-
-            if (var1.normalised_comprehensibility < var1.interestingness && this.comprehensibility_weight > 0.0D) {
-                var1.interestingness = var1.normalised_comprehensibility;
-            }
-
-            if (var1.children_score < var1.interestingness && this.children_score_weight > 0.0D) {
-                var1.interestingness = var1.children_score;
-            }
-
-            if (var1.normalised_equiv_conj_score < var1.interestingness && this.equiv_conj_score_weight > 0.0D) {
-                var1.interestingness = var1.normalised_equiv_conj_score;
-            }
-
-            if (var1.normalised_ne_conj_score < var1.interestingness && this.ne_conj_score_weight > 0.0D) {
-                var1.interestingness = var1.normalised_ne_conj_score;
-            }
-
-            if (var1.normalised_invariance_score < var1.interestingness && this.invariance_weight > 0.0D) {
-                var1.interestingness = var1.normalised_invariance_score;
-            }
-
-            if (var1.normalised_discrimination_score < var1.interestingness && this.discrimination_weight > 0.0D) {
-                var1.interestingness = var1.normalised_discrimination_score;
-            }
-
-            if (var1.normalised_imp_conj_score < var1.interestingness && this.imp_conj_score_weight > 0.0D) {
-                var1.interestingness = var1.normalised_imp_conj_score;
-            }
-
-            if (var1.normalised_pi_conj_score < var1.interestingness && this.pi_conj_score_weight > 0.0D) {
-                var1.interestingness = var1.normalised_pi_conj_score;
-            }
-
-            if (var1.normalised_equiv_conj_num < var1.interestingness && this.equiv_conj_num_weight > 0.0D) {
-                var1.interestingness = var1.normalised_equiv_conj_num;
-            }
-
-            if (var1.normalised_ne_conj_num < var1.interestingness && this.ne_conj_num_weight > 0.0D) {
-                var1.interestingness = var1.normalised_ne_conj_num;
-            }
-
-            if (var1.normalised_imp_conj_num < var1.interestingness && this.imp_conj_num_weight > 0.0D) {
-                var1.interestingness = var1.normalised_imp_conj_num;
-            }
-
-            if (var1.normalised_pi_conj_num < var1.interestingness && this.pi_conj_num_weight > 0.0D) {
-                var1.interestingness = var1.normalised_pi_conj_num;
-            }
-
-            if (var1.cross_domain_score < var1.interestingness && this.cross_domain_weight > 0.0D) {
-                var1.interestingness = var1.cross_domain_score;
-            }
-
-            if (var1.normalised_development_steps_num < var1.interestingness && this.development_steps_num_weight > 0.0D) {
-                var1.interestingness = var1.normalised_development_steps_num;
-            }
-
-            if (var1.highlight_score < var1.interestingness && this.highlight_weight > 0.0D) {
-                var1.interestingness = var1.highlight_score;
-            }
-
-            if (var1.parent_score < var1.interestingness && this.parent_weight > 0.0D) {
-                var1.interestingness = var1.parent_score;
-            }
-
-            if (var1.normalised_parsimony < var1.interestingness && this.parsimony_weight > 0.0D) {
-                var1.interestingness = var1.normalised_parsimony;
-            }
-
-            if (var1.normalised_predictive_power < var1.interestingness && this.predictive_power_weight > 0.0D) {
-                var1.interestingness = var1.normalised_predictive_power;
-            }
-
-            if (var1.normalised_productivity < var1.interestingness && this.productivity_weight > 0.0D) {
-                var1.interestingness = var1.normalised_productivity;
-            }
-
-            if (var1.normalised_novelty < var1.interestingness && this.novelty_weight > 0.0D) {
-                var1.interestingness = var1.normalised_novelty;
-            }
-
-            if (var1.normalised_variety < var1.interestingness && this.variety_weight > 0.0D) {
-                var1.interestingness = var1.normalised_variety;
-            }
+        if (keep_worst)
+        {
+            concept.interestingness = 1;
+            if (concept.normalised_applicability < concept.interestingness && applicability_weight > 0)
+                concept.interestingness = concept.normalised_applicability;
+            if (concept.coverage < concept.interestingness && coverage_weight > 0)
+                concept.interestingness = concept.coverage;
+            if (concept.normalised_comprehensibility < concept.interestingness && comprehensibility_weight > 0)
+                concept.interestingness = concept.normalised_comprehensibility;
+            if (concept.children_score < concept.interestingness && children_score_weight > 0)
+                concept.interestingness = concept.children_score;
+            if (concept.normalised_equiv_conj_score < concept.interestingness && equiv_conj_score_weight > 0)
+                concept.interestingness = concept.normalised_equiv_conj_score;
+            if (concept.normalised_ne_conj_score < concept.interestingness && ne_conj_score_weight > 0)
+                concept.interestingness = concept.normalised_ne_conj_score;
+            if (concept.normalised_invariance_score < concept.interestingness && invariance_weight > 0)
+                concept.interestingness = concept.normalised_invariance_score;
+            if (concept.normalised_discrimination_score < concept.interestingness && discrimination_weight > 0)
+                concept.interestingness = concept.normalised_discrimination_score;
+            if (concept.normalised_imp_conj_score < concept.interestingness && imp_conj_score_weight > 0)
+                concept.interestingness = concept.normalised_imp_conj_score;
+            if (concept.normalised_pi_conj_score < concept.interestingness && pi_conj_score_weight > 0)
+                concept.interestingness = concept.normalised_pi_conj_score;
+            if (concept.normalised_equiv_conj_num < concept.interestingness && equiv_conj_num_weight > 0)
+                concept.interestingness = concept.normalised_equiv_conj_num;
+            if (concept.normalised_ne_conj_num < concept.interestingness && ne_conj_num_weight > 0)
+                concept.interestingness = concept.normalised_ne_conj_num;
+            if (concept.normalised_imp_conj_num < concept.interestingness && imp_conj_num_weight > 0)
+                concept.interestingness = concept.normalised_imp_conj_num;
+            if (concept.normalised_pi_conj_num < concept.interestingness && pi_conj_num_weight > 0)
+                concept.interestingness = concept.normalised_pi_conj_num;
+            if (concept.cross_domain_score < concept.interestingness && cross_domain_weight > 0)
+                concept.interestingness = concept.cross_domain_score;
+            if (concept.normalised_development_steps_num < concept.interestingness && development_steps_num_weight > 0)
+                concept.interestingness = concept.normalised_development_steps_num;
+            if (concept.highlight_score < concept.interestingness && highlight_weight > 0)
+                concept.interestingness = concept.highlight_score;
+            if (concept.parent_score < concept.interestingness && parent_weight > 0)
+                concept.interestingness = concept.parent_score;
+            if (concept.normalised_parsimony < concept.interestingness && parsimony_weight > 0)
+                concept.interestingness = concept.normalised_parsimony;
+            if (concept.normalised_predictive_power < concept.interestingness && predictive_power_weight > 0)
+                concept.interestingness = concept.normalised_predictive_power;
+            if (concept.normalised_productivity < concept.interestingness && productivity_weight > 0)
+                concept.interestingness = concept.normalised_productivity;
+            if (concept.normalised_novelty < concept.interestingness && novelty_weight > 0)
+                concept.interestingness = concept.normalised_novelty;
+            if (concept.normalised_variety < concept.interestingness && variety_weight > 0)
+                concept.interestingness = concept.normalised_variety;
         }
 
-        if (var1.interestingness > 0.0D && var1.interestingness <= this.interestingness_zero_min) {
-            var1.interestingness = 0.0D;
-        }
-
+        if (concept.interestingness > 0 && concept.interestingness <= interestingness_zero_min)
+            concept.interestingness = 0;
     }
 
-    private void addConceptToHashtable(Double var1, Hashtable var2, Vector var3, Concept var4, String var5) {
-        Vector var6 = (Vector)var2.get(var1);
-        if (var6 == null) {
-            Vector var7 = new Vector();
-            var7.addElement(var4);
-            var7.trimToSize();
-            var2.put(var1, var7);
-            boolean var8 = false;
-            double var9 = var1;
-
-            for(int var11 = 0; var11 < var3.size() && !var8; ++var11) {
-                double var12 = (Double)var3.elementAt(var11);
-                if (var12 == var9) {
-                    var8 = true;
-                }
-
-                if (var12 > var9) {
-                    var3.insertElementAt(var1, var11);
-                    var3.trimToSize();
-                    var8 = true;
+    private void addConceptToHashtable(Double value, Hashtable hashtable, Vector sorted,
+                                       Concept concept, String type)
+    {
+        Vector concepts_with = (Vector)hashtable.get(value);
+        if (concepts_with==null)
+        {
+            Vector new_vector = new Vector();
+            new_vector.addElement(concept);
+            new_vector.trimToSize();
+            hashtable.put(value, new_vector);
+            boolean placed = false;
+            double new_sc = value.doubleValue();
+            for (int i=0; i<sorted.size() && !placed; i++)
+            {
+                double already_score = ((Double)sorted.elementAt(i)).doubleValue();
+                if (already_score==new_sc)
+                    placed = true;
+                if (already_score>new_sc)
+                {
+                    sorted.insertElementAt(value,i);
+                    sorted.trimToSize();
+                    placed = true;
                 }
             }
-
-            if (!var8) {
-                var3.addElement(var1);
-                var3.trimToSize();
+            if (!placed)
+            {
+                sorted.addElement(value);
+                sorted.trimToSize();
             }
-
-            this.reCalculateConceptValues(var2, var3, var5);
-        } else {
-            var6.addElement(var4);
-            var6.trimToSize();
+            reCalculateConceptValues(hashtable, sorted, type);
         }
-
+        else
+        {
+            concepts_with.addElement(concept);
+            concepts_with.trimToSize();
+        }
     }
 
-    private void reCalculateConceptValues(Hashtable var1, Vector var2, String var3) {
-        double var4 = new Double((double)(var2.size() - 1));
+    private void reCalculateConceptValues(Hashtable hashtable, Vector sorted, String type)
+    {
+        double size = (new Double(sorted.size()-1)).doubleValue();
+        for (int i=0; i<sorted.size(); i++)
+        {
+            Double de = (Double)sorted.elementAt(i);
+            Vector concepts_with = (Vector)hashtable.get(de);
+            double position = (new Double(i)).doubleValue();
+            for (int j=0; j<concepts_with.size(); j++)
+            {
+                Concept c = (Concept)concepts_with.elementAt(j);
+                double new_value = 0;
+                if (sorted.size()==1)
+                    new_value = 1;
+                else
+                    new_value = position/size;
 
-        for(int var6 = 0; var6 < var2.size(); ++var6) {
-            Double var7 = (Double)var2.elementAt(var6);
-            Vector var8 = (Vector)var1.get(var7);
-            double var9 = new Double((double)var6);
+                if (type.equals("equiv_conj_score"))
+                    c.normalised_equiv_conj_score=new_value;
+                if (type.equals("ne_conj_score"))
+                    c.normalised_ne_conj_score=new_value;
+                if (type.equals("imp_conj_score"))
+                    c.normalised_imp_conj_score=new_value;
+                if (type.equals("pi_conj_score"))
+                    c.normalised_pi_conj_score=new_value;
 
-            for(int var11 = 0; var11 < var8.size(); ++var11) {
-                Concept var12 = (Concept)var8.elementAt(var11);
-                double var13 = 0.0D;
-                if (var2.size() == 1) {
-                    var13 = 1.0D;
-                } else {
-                    var13 = var9 / var4;
-                }
-
-                if (var3.equals("equiv_conj_score")) {
-                    var12.normalised_equiv_conj_score = var13;
-                }
-
-                if (var3.equals("ne_conj_score")) {
-                    var12.normalised_ne_conj_score = var13;
-                }
-
-                if (var3.equals("imp_conj_score")) {
-                    var12.normalised_imp_conj_score = var13;
-                }
-
-                if (var3.equals("pi_conj_score")) {
-                    var12.normalised_pi_conj_score = var13;
-                }
-
-                if (var3.equals("equiv_conj_num")) {
-                    var12.normalised_equiv_conj_num = var13;
-                }
-
-                if (var3.equals("ne_conj_num")) {
-                    var12.normalised_ne_conj_num = var13;
-                }
-
-                if (var3.equals("imp_conj_num")) {
-                    var12.normalised_imp_conj_num = var13;
-                }
-
-                if (var3.equals("pi_conj_num")) {
-                    var12.normalised_pi_conj_num = var13;
-                }
+                if (type.equals("equiv_conj_num"))
+                    c.normalised_equiv_conj_num=new_value;
+                if (type.equals("ne_conj_num"))
+                    c.normalised_ne_conj_num=new_value;
+                if (type.equals("imp_conj_num"))
+                    c.normalised_imp_conj_num=new_value;
+                if (type.equals("pi_conj_num"))
+                    c.normalised_pi_conj_num=new_value;
             }
         }
 
     }
 
-    public boolean updateEquivConjectureScore(Concept var1, Equivalence var2) {
-        if (!this.measure_concepts) {
+    /** This updates the equivalence conjecture score of the concept in the light
+     * of an equivalence conjecture involving the concept.
+     */
+
+    public boolean updateEquivConjectureScore(Concept concept_to_update, Equivalence conjecture)
+    {
+        if (!measure_concepts)
             return false;
-        } else {
-            boolean var3 = false;
-            double var4 = var1.equiv_conj_score;
-            var1.equiv_conjectures.addElement(var2);
-            var1.equiv_conj_sum += var2.interestingness;
-            var1.equiv_conj_score = var1.equiv_conj_sum / new Double((double)var1.equiv_conjectures.size());
-            var3 = this.updateNormalisedConjectureScores(var4, var1.equiv_conj_score, var1, this.equiv_conj_scores_hashtable, this.sorted_equiv_conj_scores, "equiv_conj_score");
-            double var6 = new Double((double)(var1.equiv_conjectures.size() - 1));
-            double var8 = new Double((double)var1.equiv_conjectures.size());
-            boolean var10 = this.updateNormalisedConjectureScores(var6, var8, var1, this.equiv_conj_nums_hashtable, this.sorted_equiv_conj_nums, "equiv_conj_num");
-            if (var3 || var10) {
-                var3 = true;
-            }
+        boolean output = false;
+        double old_score = concept_to_update.equiv_conj_score;
+        concept_to_update.equiv_conjectures.addElement(conjecture);
+        concept_to_update.equiv_conj_sum =
+                concept_to_update.equiv_conj_sum + conjecture.interestingness;
 
-            return var3;
-        }
+        concept_to_update.equiv_conj_score =
+                concept_to_update.equiv_conj_sum/
+                        (new Double(concept_to_update.equiv_conjectures.size())).doubleValue();
+
+        output = updateNormalisedConjectureScores(old_score, concept_to_update.equiv_conj_score,
+                concept_to_update, equiv_conj_scores_hashtable,
+                sorted_equiv_conj_scores, "equiv_conj_score");
+
+        double old_num = (new Double(concept_to_update.equiv_conjectures.size()-1)).doubleValue();
+        double new_num = (new Double(concept_to_update.equiv_conjectures.size())).doubleValue();
+        boolean output2 = updateNormalisedConjectureScores(old_num, new_num,
+                concept_to_update, equiv_conj_nums_hashtable,
+                sorted_equiv_conj_nums, "equiv_conj_num");
+
+        if (output==true || output2==true)
+            output = true;
+        return output;
     }
 
-    public boolean updateNeConjectureScore(Vector var1, NonExists var2) {
-        if (!this.measure_concepts) {
+    /** This updates the non-existence conjecture score of the concept in the light
+     * of an equivalence conjecture involving the concept.
+     */
+
+    public boolean updateNeConjectureScore(Vector concepts_to_update, NonExists conjecture)
+    {
+        if (!measure_concepts)
             return false;
-        } else {
-            boolean var3 = false;
+        boolean output = false;
+        for (int i=0; i<concepts_to_update.size(); i++)
+        {
+            Concept concept_to_update = (Concept)concepts_to_update.elementAt(i);
+            double old_score = concept_to_update.ne_conj_score;
+            concept_to_update.ne_conjectures.addElement(conjecture);
+            concept_to_update.ne_conj_sum =
+                    concept_to_update.ne_conj_sum + conjecture.interestingness;
 
-            for(int var4 = 0; var4 < var1.size(); ++var4) {
-                Concept var5 = (Concept)var1.elementAt(var4);
-                double var6 = var5.ne_conj_score;
-                var5.ne_conjectures.addElement(var2);
-                var5.ne_conj_sum += var2.interestingness;
-                var5.ne_conj_score = var5.ne_conj_sum / new Double((double)var5.ne_conjectures.size());
-                boolean var8 = this.updateNormalisedConjectureScores(var6, var5.ne_conj_score, var5, this.ne_conj_scores_hashtable, this.sorted_ne_conj_scores, "ne_conj_score");
-                double var9 = new Double((double)(var5.ne_conjectures.size() - 1));
-                double var11 = new Double((double)var5.ne_conjectures.size());
-                boolean var13 = this.updateNormalisedConjectureScores(var9, var11, var5, this.ne_conj_nums_hashtable, this.sorted_ne_conj_nums, "ne_conj_num");
-                if (var8 || var13) {
-                    var3 = true;
-                }
-            }
+            concept_to_update.ne_conj_score =
+                    concept_to_update.ne_conj_sum/
+                            (new Double(concept_to_update.ne_conjectures.size())).doubleValue();
 
-            return var3;
+            boolean outp = updateNormalisedConjectureScores(old_score, concept_to_update.ne_conj_score,
+                    concept_to_update, ne_conj_scores_hashtable,
+                    sorted_ne_conj_scores, "ne_conj_score");
+            double old_num = (new Double(concept_to_update.ne_conjectures.size()-1)).doubleValue();
+            double new_num = (new Double(concept_to_update.ne_conjectures.size())).doubleValue();
+            boolean outp2 = updateNormalisedConjectureScores(old_num, new_num,
+                    concept_to_update, ne_conj_nums_hashtable,
+                    sorted_ne_conj_nums, "ne_conj_num");
+            if (outp==true || outp2==true)
+                output = true;
         }
+        return output;
     }
 
-    public boolean updateImpConjectureScore(Implicate var1) {
-        boolean var2 = false;
-        Concept var3 = var1.premise_concept;
-        double var4 = var3.imp_conj_score;
-        var3.imp_conjectures.addElement(var1);
-        var3.imp_conj_sum += var1.interestingness;
-        var3.imp_conj_score = var3.imp_conj_sum / new Double((double)var3.imp_conjectures.size());
-        var2 = this.updateNormalisedConjectureScores(var4, var3.imp_conj_score, var3, this.imp_conj_scores_hashtable, this.sorted_imp_conj_scores, "imp_conj_score");
-        double var6 = new Double((double)(var3.imp_conjectures.size() - 1));
-        double var8 = new Double((double)var3.imp_conjectures.size());
-        boolean var10 = this.updateNormalisedConjectureScores(var6, var8, var3, this.imp_conj_nums_hashtable, this.sorted_imp_conj_nums, "imp_conj_num");
-        if (var2 || var10) {
-            var2 = true;
-        }
+    /** This updates the implicate conjecture score of the concept in the light
+     * of an equivalence conjecture involving the concept.
+     */
 
-        return var2;
+    public boolean updateImpConjectureScore(Implicate conjecture)
+    {
+        boolean output = false;
+        Concept concept_to_update = conjecture.premise_concept;
+        double old_score = concept_to_update.imp_conj_score;
+
+        concept_to_update.imp_conjectures.addElement(conjecture);
+        concept_to_update.imp_conj_sum =
+                concept_to_update.imp_conj_sum + conjecture.interestingness;
+
+        concept_to_update.imp_conj_score =
+                concept_to_update.imp_conj_sum/
+                        (new Double(concept_to_update.imp_conjectures.size())).doubleValue();
+
+        output = updateNormalisedConjectureScores(old_score, concept_to_update.imp_conj_score,
+                concept_to_update, imp_conj_scores_hashtable,
+                sorted_imp_conj_scores, "imp_conj_score");
+
+        double old_num = (new Double(concept_to_update.imp_conjectures.size()-1)).doubleValue();
+        double new_num = (new Double(concept_to_update.imp_conjectures.size())).doubleValue();
+        boolean output2 = updateNormalisedConjectureScores(old_num, new_num,
+                concept_to_update, imp_conj_nums_hashtable,
+                sorted_imp_conj_nums, "imp_conj_num");
+
+        if (output==true || output2==true)
+            output = true;
+
+        return output;
     }
 
-    public boolean updateNormalisedConjectureScores(double var1, double var3, Concept var5, Hashtable var6, Vector var7, String var8) {
-        if (var1 == var3) {
+    public boolean updateNormalisedConjectureScores(double old_sc, double new_sc, Concept concept,
+                                                    Hashtable hashtable, Vector sorted, String type)
+    {
+        if (old_sc==new_sc)
             return false;
-        } else {
-            boolean var9 = false;
-            Double var10 = new Double(var1);
-            Vector var11 = (Vector)var6.get(var10);
-            var11.removeElement(var5);
-            if (var11.isEmpty()) {
-                var6.remove(var10);
-                var9 = true;
-                var7.removeElement(var10);
-            }
+        boolean need_to_recalculate_normalised = false;
+        Double old_score = new Double(old_sc);
+        Vector old_concepts_with_score = (Vector)hashtable.get(old_score);
 
-            Double var12 = new Double(var3);
-            Vector var13 = (Vector)var6.get(var12);
-            if (var13 == null) {
-                Vector var14 = new Vector();
-                var14.addElement(var5);
-                var6.put(var12, var14);
-                var9 = true;
-                boolean var15 = false;
-
-                for(int var16 = 0; var16 < var7.size() && !var15; ++var16) {
-                    double var17 = (Double)var7.elementAt(var16);
-                    if (var17 == var3) {
-                        var15 = true;
-                    }
-
-                    if (var17 > var3) {
-                        var7.insertElementAt(var12, var16);
-                        var15 = true;
-                    }
-                }
-
-                if (!var15) {
-                    var7.addElement(var12);
-                }
-            } else if (!var13.contains(var5)) {
-                var13.addElement(var5);
-            }
-
-            double var19 = 0.0D;
-            double var20 = new Double((double)(var7.size() - 1));
-            if (var20 == 0.0D) {
-                var19 = 1.0D;
-            } else {
-                var19 = (double)var7.indexOf(var12) / var20;
-            }
-
-            if (var8.equals("equiv_conj_score")) {
-                var5.normalised_equiv_conj_score = var19;
-            }
-
-            if (var8.equals("ne_conj_score")) {
-                var5.normalised_ne_conj_score = var19;
-            }
-
-            if (var8.equals("imp_conj_score")) {
-                var5.normalised_imp_conj_score = var19;
-            }
-
-            if (var8.equals("pi_conj_score")) {
-                var5.normalised_pi_conj_score = var19;
-            }
-
-            if (var8.equals("equiv_conj_num")) {
-                var5.normalised_equiv_conj_num = var19;
-            }
-
-            if (var8.equals("ne_conj_num")) {
-                var5.normalised_ne_conj_num = var19;
-            }
-
-            if (var8.equals("imp_conj_num")) {
-                var5.normalised_imp_conj_num = var19;
-            }
-
-            if (var8.equals("pi_conj_num")) {
-                var5.normalised_pi_conj_num = var19;
-            }
-
-            if (var9) {
-                this.reCalculateConceptValues(var6, var7, var8);
-            }
-
-            return var9;
+        old_concepts_with_score.removeElement(concept);
+        if (old_concepts_with_score.isEmpty())
+        {
+            hashtable.remove(old_score);
+            need_to_recalculate_normalised = true;
+            sorted.removeElement(old_score);
         }
+
+        Double new_score = new Double(new_sc);
+        Vector concepts_with_score = (Vector)hashtable.get(new_score);
+
+        if (concepts_with_score==null)
+        {
+            Vector new_lot = new Vector();
+            new_lot.addElement(concept);
+            hashtable.put(new_score,new_lot);
+            need_to_recalculate_normalised = true;
+            boolean placed = false;
+            for (int i=0; i<sorted.size() && !placed; i++)
+            {
+                double already_score = ((Double)sorted.elementAt(i)).doubleValue();
+                if (already_score==new_sc)
+                    placed = true;
+                if (already_score>new_sc)
+                {
+                    sorted.insertElementAt(new_score,i);
+                    placed = true;
+                }
+            }
+            if (!placed)
+                sorted.addElement(new_score);
+        }
+        else
+        {
+            if (!concepts_with_score.contains(concept))
+                concepts_with_score.addElement(concept);
+        }
+
+        double new_val = 0;
+        double size = (new Double(sorted.size()-1)).doubleValue();
+        if (size==0)
+            new_val = 1;
+        else
+            new_val = (sorted.indexOf(new_score))/size;
+
+        if (type.equals("equiv_conj_score"))
+            concept.normalised_equiv_conj_score=new_val;
+        if (type.equals("ne_conj_score"))
+            concept.normalised_ne_conj_score=new_val;
+        if (type.equals("imp_conj_score"))
+            concept.normalised_imp_conj_score=new_val;
+        if (type.equals("pi_conj_score"))
+            concept.normalised_pi_conj_score=new_val;
+
+        if (type.equals("equiv_conj_num"))
+            concept.normalised_equiv_conj_num=new_val;
+        if (type.equals("ne_conj_num"))
+            concept.normalised_ne_conj_num=new_val;
+        if (type.equals("imp_conj_num"))
+            concept.normalised_imp_conj_num=new_val;
+        if (type.equals("pi_conj_num"))
+            concept.normalised_pi_conj_num=new_val;
+
+        if (need_to_recalculate_normalised)
+            reCalculateConceptValues(hashtable, sorted, type);
+
+        return need_to_recalculate_normalised;
     }
 
-    public boolean updatePiConjectureScore(Implicate var1) {
-        boolean var2 = false;
-        return var2;
+    /** This updates the equivalence conjecture score of the concept in the light
+     * of an equivalence conjecture involving the concept.
+     */
+
+    public boolean updatePiConjectureScore(Implicate conjecture)
+    {
+        boolean output = false;
+        return output;
     }
 
-    public boolean updateNormalisedProductivities(Concept var1, boolean var2) {
-        boolean var3 = false;
-        Double var4;
-        Vector var5;
-        if (var2) {
-            var1.productivity = this.default_productivity;
-        } else {
-            var4 = new Double(var1.productivity);
-            var5 = (Vector)this.productivities_hashtable.get(var4);
-            var5.removeElement(var1);
-            if (var5.isEmpty()) {
-                this.productivities_hashtable.remove(var4);
-                var3 = true;
-                this.sorted_productivities.removeElement(var4);
-            }
+    /** This updates all the productivities of the concepts in the light of a new step.
+     */
 
-            var1.productivity = var1.number_of_children / var1.development_steps_num;
+    public boolean updateNormalisedProductivities(Concept concept, boolean is_new_concept)
+    {
+        boolean need_to_recalculate_normalised = false;
+        if (is_new_concept)
+            concept.productivity = default_productivity;
+        else
+        {
+            Double old_productivity = new Double(concept.productivity);
+            Vector old_concepts_with_prod = (Vector)productivities_hashtable.get(old_productivity);
+            old_concepts_with_prod.removeElement(concept);
+            if (old_concepts_with_prod.isEmpty())
+            {
+                productivities_hashtable.remove(old_productivity);
+                need_to_recalculate_normalised = true;
+                sorted_productivities.removeElement(old_productivity);
+            }
+            concept.productivity = concept.number_of_children/concept.development_steps_num;
         }
 
-        var4 = new Double(var1.productivity);
-        var5 = (Vector)this.productivities_hashtable.get(var4);
-        int var8;
-        if (var5 == null) {
-            Vector var6 = new Vector();
-            var6.addElement(var1);
-            this.productivities_hashtable.put(var4, var6);
-            var3 = true;
-            boolean var7 = false;
-
-            for(var8 = 0; var8 < this.sorted_productivities.size() && !var7; ++var8) {
-                double var9 = (Double)this.sorted_productivities.elementAt(var8);
-                if (var9 == var1.productivity) {
-                    var7 = true;
-                }
-
-                if (var9 > var1.productivity) {
-                    this.sorted_productivities.insertElementAt(var4, var8);
-                    var7 = true;
+        Double new_productivity = new Double(concept.productivity);
+        Vector concepts_with_prod = (Vector)productivities_hashtable.get(new_productivity);
+        if (concepts_with_prod==null)
+        {
+            Vector new_lot = new Vector();
+            new_lot.addElement(concept);
+            productivities_hashtable.put(new_productivity,new_lot);
+            need_to_recalculate_normalised = true;
+            boolean placed = false;
+            for (int i=0; i<sorted_productivities.size() && !placed; i++)
+            {
+                double old_prod = ((Double)sorted_productivities.elementAt(i)).doubleValue();
+                if (old_prod==concept.productivity)
+                    placed = true;
+                if (old_prod>concept.productivity)
+                {
+                    sorted_productivities.insertElementAt(new_productivity,i);
+                    placed = true;
                 }
             }
-
-            if (!var7) {
-                this.sorted_productivities.addElement(var4);
-            }
-        } else if (!var5.contains(var1)) {
-            var5.addElement(var1);
+            if (!placed)
+                sorted_productivities.addElement(new_productivity);
+        }
+        else
+        {
+            if (!concepts_with_prod.contains(concept))
+                concepts_with_prod.addElement(concept);
         }
 
-        if (var3) {
-            double var15 = new Double((double)this.sorted_productivities.size()) - 1.0D;
-
-            for(var8 = 0; var8 < this.sorted_productivities.size(); ++var8) {
-                Double var16 = (Double)this.sorted_productivities.elementAt(var8);
-                Vector var10 = (Vector)this.productivities_hashtable.get(var16);
-                double var11 = new Double((double)var8);
-
-                for(int var13 = 0; var13 < var10.size(); ++var13) {
-                    Concept var14 = (Concept)var10.elementAt(var13);
-                    if (this.sorted_productivities.size() == 1) {
-                        var14.normalised_productivity = 1.0D;
-                    } else {
-                        var14.normalised_productivity = var11 / var15;
-                    }
+        if (need_to_recalculate_normalised)
+        {
+            double size = (new Double(sorted_productivities.size())).doubleValue() - 1;
+            for (int i=0; i<sorted_productivities.size(); i++)
+            {
+                Double pr = (Double)sorted_productivities.elementAt(i);
+                Vector concepts_with_pty = (Vector)productivities_hashtable.get(pr);
+                double position = (new Double(i)).doubleValue();
+                for (int j=0; j<concepts_with_pty.size(); j++)
+                {
+                    Concept c = (Concept)concepts_with_pty.elementAt(j);
+                    if (sorted_productivities.size()==1)
+                        c.normalised_productivity=1;
+                    else
+                        c.normalised_productivity = position/size;
                 }
             }
         }
-
-        return var3;
+        return need_to_recalculate_normalised;
     }
 
-    public boolean updateNormalisedDevelopments(Concept var1, boolean var2) {
-        boolean var3 = false;
-        Double var4;
-        Vector var5;
-        if (var2) {
-            var1.development_steps_num = 0.0D;
-        } else {
-            var4 = new Double(var1.development_steps_num - 1.0D);
-            if (!this.developments_hashtable.contains(var4)) {
-                return false;
+    public boolean updateNormalisedDevelopments(Concept concept, boolean is_new_concept)
+    {
+        boolean need_to_recalculate_normalised = false;
+        if (is_new_concept)
+            concept.development_steps_num = 0;
+        else
+        {
+            Double old_development_steps_num = new Double(concept.development_steps_num-1);
+            Vector old_concepts_with_devel = (Vector)developments_hashtable.get(old_development_steps_num);
+            old_concepts_with_devel.removeElement(concept);
+            if (old_concepts_with_devel.isEmpty())
+            {
+                developments_hashtable.remove(old_development_steps_num);
+                need_to_recalculate_normalised = true;
+                sorted_developments.removeElement(old_development_steps_num);
             }
-            var5 = (Vector)this.developments_hashtable.get(var4);
-            var5.removeElement(var1);
-            if (var5.isEmpty()) {
-                this.developments_hashtable.remove(var4);
-                var3 = true;
-                this.sorted_developments.removeElement(var4);
-            }
-
-            ++var1.development_steps_num;
+            concept.development_steps_num++;
         }
 
-        var4 = new Double(var1.development_steps_num);
-        if (!this.developments_hashtable.contains(var4)) {
-            return false;
-        }
-        var5 = (Vector)this.developments_hashtable.get(var4);
-        int var8;
-        if (var5 == null) {
-            Vector var6 = new Vector();
-            var6.addElement(var1);
-            this.developments_hashtable.put(var4, var6);
-            var3 = true;
-            boolean var7 = false;
-
-            for(var8 = 0; var8 < this.sorted_developments.size() && !var7; ++var8) {
-                double var9 = (Double)this.sorted_developments.elementAt(var8);
-                if (var9 == var1.development_steps_num) {
-                    var7 = true;
-                }
-
-                if (var9 > var1.development_steps_num) {
-                    this.sorted_developments.insertElementAt(var4, var8);
-                    var7 = true;
+        Double new_development_steps_num = new Double(concept.development_steps_num);
+        Vector concepts_with_devel = (Vector)developments_hashtable.get(new_development_steps_num);
+        if (concepts_with_devel==null)
+        {
+            Vector new_lot = new Vector();
+            new_lot.addElement(concept);
+            developments_hashtable.put(new_development_steps_num,new_lot);
+            need_to_recalculate_normalised = true;
+            boolean placed = false;
+            for (int i=0; i<sorted_developments.size() && !placed; i++)
+            {
+                double old_devel = ((Double)sorted_developments.elementAt(i)).doubleValue();
+                if (old_devel==concept.development_steps_num)
+                    placed = true;
+                if (old_devel>concept.development_steps_num)
+                {
+                    sorted_developments.insertElementAt(new_development_steps_num,i);
+                    placed = true;
                 }
             }
-
-            if (!var7) {
-                this.sorted_developments.addElement(var4);
-            }
-        } else if (!var5.contains(var1)) {
-            var5.addElement(var1);
+            if (!placed)
+                sorted_developments.addElement(new_development_steps_num);
+        }
+        else
+        {
+            if (!concepts_with_devel.contains(concept))
+                concepts_with_devel.addElement(concept);
         }
 
-        if (var3) {
-            double var15 = new Double((double)this.sorted_developments.size()) - 1.0D;
-
-            for(var8 = 0; var8 < this.sorted_developments.size(); ++var8) {
-                Double var16 = (Double)this.sorted_developments.elementAt(var8);
-                Vector var10 = (Vector)this.developments_hashtable.get(var16);
-                double var11 = new Double((double)var8);
-
-                for(int var13 = 0; var13 < var10.size(); ++var13) {
-                    Concept var14 = (Concept)var10.elementAt(var13);
-                    if (this.sorted_developments.size() == 1) {
-                        var14.normalised_development_steps_num = 1.0D;
-                    } else {
-                        var14.normalised_development_steps_num = var11 / var15;
-                    }
+        if (need_to_recalculate_normalised)
+        {
+            double size = (new Double(sorted_developments.size())).doubleValue() - 1;
+            for (int i=0; i<sorted_developments.size(); i++)
+            {
+                Double de = (Double)sorted_developments.elementAt(i);
+                Vector concepts_with_pty = (Vector)developments_hashtable.get(de);
+                double position = (new Double(i)).doubleValue();
+                for (int j=0; j<concepts_with_pty.size(); j++)
+                {
+                    Concept c = (Concept)concepts_with_pty.elementAt(j);
+                    if (sorted_developments.size()==1)
+                        c.normalised_development_steps_num=1;
+                    else
+                        c.normalised_development_steps_num = position/size;
                 }
             }
         }
-
-        return var3;
+        return need_to_recalculate_normalised;
     }
 
-    public void getInvDiscPairs() {
-        this.gold_standard_entity_names = this.gold_standard_categorisation.getEntities();
-        this.gold_standard_categorisation.getCatPoses(this.gold_standard_entity_names);
+    /** This correlates the pairs of entities (given) that are categorised
+     * as the same/different by the gold standard categorisation.
+     */
 
-        for(int var1 = 0; var1 < this.gold_standard_entity_names.size(); ++var1) {
-            for(int var2 = var1 + 1; var2 < this.gold_standard_entity_names.size(); ++var2) {
-                int[] var3 = new int[]{var1, var2};
-                if (this.gold_standard_categorisation.cat_pos[var1] == this.gold_standard_categorisation.cat_pos[var2]) {
-                    this.gold_standard_same_pairs.addElement(var3);
-                } else {
-                    this.gold_standard_different_pairs.addElement(var3);
-                }
+    public void getInvDiscPairs()
+    {
+        gold_standard_entity_names = gold_standard_categorisation.getEntities();
+        gold_standard_categorisation.getCatPoses(gold_standard_entity_names);
+        for (int i=0; i<gold_standard_entity_names.size(); i++)
+        {
+            for (int j=i+1; j<gold_standard_entity_names.size(); j++)
+            {
+                int[] e_pair = new int[2];
+                e_pair[0] = i;
+                e_pair[1] = j;
+                if (gold_standard_categorisation.cat_pos[i]==gold_standard_categorisation.cat_pos[j])
+                    gold_standard_same_pairs.addElement(e_pair);
+                else
+                    gold_standard_different_pairs.addElement(e_pair);
             }
         }
-
     }
 }

@@ -1,100 +1,100 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.Serializable;
 import java.util.Vector;
+import java.lang.String;
+import java.io.Serializable;
 
-public class Tuples extends Vector implements Serializable {
-    public Tuples() {
-    }
+/** A class representing a vector of tuples from a row.
+ * It is an extension of a vector, where each element of the vector is a tuple.
+ * @author Simon Colton, started 11th December 1999
+ * @version 1.0
+ */
 
-    public boolean subsumes(Tuples var1) {
-        if (this.size() < var1.size()) {
+public class Tuples extends Vector implements Serializable
+{
+    /** Checks whether this vector subsumes (i.e., is a super-vector of)
+     * the other vector.
+     */
+
+    public boolean subsumes(Tuples other_tuples)
+    {
+        if (size()<other_tuples.size())
             return false;
-        } else {
-            String var2 = this.toString();
+        String this_string = toString();
+        for (int i=0; i<other_tuples.size(); i++)
+        {
+            Vector tuple = (Vector)other_tuples.elementAt(i);
+            String tuple_string = tuple.toString();
+            if (this_string.indexOf(tuple_string)<0)
+                return false;
+        }
+        return true;
+    }
 
-            for(int var3 = 0; var3 < var1.size(); ++var3) {
-                Vector var4 = (Vector)var1.elementAt(var3);
-                String var5 = var4.toString();
-                if (var2.indexOf(var5) < 0) {
-                    return false;
-                }
+    /** Removes any duplicate tuples.
+     */
+
+    public void removeDuplicates()
+    {
+        sort();
+        int i=0;
+        while (i<size()-1)
+        {
+            if (((Vector)elementAt(i)).toString().equals(((Vector)elementAt(i+1)).toString()))
+                removeElementAt(i);
+            else i++;
+        }
+    }
+
+    /** Sorts the tuple. Note that it sorts integers correctly.
+     */
+
+    public void sort()
+    {
+        quickSort(0, size() - 1);
+    }
+
+    private void quickSort(int left, int right)
+    {
+        if(right > left)
+        {
+            Vector s1 = ((Vector)elementAt(right));
+            int i = left - 1;
+            int j = right;
+            while(true)
+            {
+                while(tupleCompare(((Vector)elementAt(++i)),s1) < 0);
+                while(j > 0)
+                    if(tupleCompare(((Vector)elementAt(--j)),s1) <= 0) break;
+                if(i >= j) break;
+                swap(i, j);
             }
-
-            return true;
+            swap(i , right);
+            quickSort(left, i-1);
+            quickSort(i+1, right);
         }
     }
 
-    public void removeDuplicates() {
-        this.sort();
-        int var1 = 0;
-
-        while(var1 < this.size() - 1) {
-            if (((Vector)this.elementAt(var1)).toString().equals(((Vector)this.elementAt(var1 + 1)).toString())) {
-                this.removeElementAt(var1);
-            } else {
-                ++var1;
-            }
-        }
-
+    private int tupleCompare(Vector t1, Vector t2)
+    {
+        return ((t1.toString()).compareTo(t2.toString()));
     }
 
-    public void sort() {
-        this.quickSort(0, this.size() - 1);
+    private void swap(int loc1, int loc2) {
+        Object tmp = elementAt(loc1);
+        setElementAt(elementAt(loc2), loc1);
+        setElementAt(tmp, loc2);
     }
 
-    private void quickSort(int var1, int var2) {
-        if (var2 > var1) {
-            Vector var3 = (Vector)this.elementAt(var2);
-            int var4 = var1 - 1;
-            int var5 = var2;
+    /** Reverses the vector
+     */
 
-            while(true) {
-                while(true) {
-                    ++var4;
-                    if (this.tupleCompare((Vector)this.elementAt(var4), var3) >= 0) {
-                        while(var5 > 0) {
-                            --var5;
-                            if (this.tupleCompare((Vector)this.elementAt(var5), var3) <= 0) {
-                                break;
-                            }
-                        }
-
-                        if (var4 >= var5) {
-                            this.swap(var4, var2);
-                            this.quickSort(var1, var4 - 1);
-                            this.quickSort(var4 + 1, var2);
-                            return;
-                        }
-
-                        this.swap(var4, var5);
-                    }
-                }
-            }
-        }
-    }
-
-    private int tupleCompare(Vector var1, Vector var2) {
-        return var1.toString().compareTo(var2.toString());
-    }
-
-    private void swap(int var1, int var2) {
-        Object var3 = this.elementAt(var1);
-        this.setElementAt(this.elementAt(var2), var1);
-        this.setElementAt(var3, var2);
-    }
-
-    public void reverse() {
-        Tuples var1 = new Tuples();
-
-        int var2;
-        for(var2 = 0; var2 < this.size(); ++var2) {
-            var1.addElement(this.elementAt(this.size() - var2 - 1));
-        }
-
-        for(var2 = 0; var2 < this.size(); ++var2) {
-            this.setElementAt(var1.elementAt(var2), var2);
-        }
-
+    public void reverse()
+    {
+        Tuples new_output = new Tuples();
+        for (int i=0; i<size(); i++)
+            new_output.addElement(elementAt(size()-i-1));
+        for (int i=0; i<size(); i++)
+            setElementAt(new_output.elementAt(i),i);
     }
 }

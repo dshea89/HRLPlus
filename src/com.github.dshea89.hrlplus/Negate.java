@@ -3,179 +3,277 @@ package com.github.dshea89.hrlplus;
 import java.io.Serializable;
 import java.util.Vector;
 
-/**
- * This produces the compliment of a data-table, ie. those rows which could possibly be in the table,
- * but which aren't there.
- */
-public class Negate extends ProductionRule implements Serializable {
-    public Negate() {
-    }
+import java.util.Vector;
+import java.util.Enumeration;
+import java.lang.String;
+import java.io.Serializable;
 
-    public boolean isBinary() {
+/** A class representing the negate production rule. This production
+ * rule takes an two old datatables as input. There is no
+ * parameterization for this production rule. This production rule
+ * extracts rows from the first (generalised) datatable which do not appear in
+ * the second datatable.
+ *
+ * @author Simon Colton, started 3rd January 1999
+ * @version 1.0 */
+
+public class Negate extends ProductionRule implements Serializable
+{
+
+    /** Returns false as this is a unary production rule.
+     */
+
+    public boolean isBinary()
+    {
         return true;
     }
 
-    public String getName() {
+    /** Returns "negate" as that is the name of this production rule.
+     */
+
+    public String getName()
+    {
         return "negate";
     }
 
-    public Vector allParameters(Vector concept_list, Theory theory) {
-        return this.allParameters(concept_list);
+    /** Given a vector of two concepts, this will return all the parameterisations for this
+     * concept. It returns an empty vector if the secondary concept is not a generalisation
+     * of the first or if the types are different. Otherwise it returns a vector containing
+     * a single empty vector - indicating that the negation can go ahead.
+     *
+     * There is one forbidden path - double negation.
+     */
+
+    public Vector allParameters(Vector old_concepts, Theory theory)
+    {
+        return allParameters(old_concepts);
     }
 
-    public Vector allParameters(Vector var1) {
-        Vector var2 = new Vector();
-        Concept var3 = (Concept)var1.elementAt(0);
-        if (var3.arity > this.arity_limit) {
+    public Vector allParameters(Vector old_concepts)
+    {
+        Vector output = new Vector();
+        Concept old_concept =(Concept)old_concepts.elementAt(0);
+        if (old_concept.arity > arity_limit)
             return new Vector();
-        } else {
-            Concept var4 = (Concept)var1.elementAt(1);
-            if (var3 == var4) {
-                return new Vector();
-            } else {
-                if (var3.generalisations.contains(var4) && var3.arity == var4.arity) {
-                    var2.addElement(new Vector());
-                }
+        Concept supposed_generalisation = (Concept)old_concepts.elementAt(1);
+        if (old_concept==supposed_generalisation)
+            return new Vector();
+        if (old_concept.generalisations.contains(supposed_generalisation) &&
+                old_concept.arity == supposed_generalisation.arity)
+            output.addElement(new Vector());
 
-                return var3.construction.productionRule().getName().equals("negate") && ((Concept)var3.construction.conceptList().elementAt(1)).id.equals(var4.id) ? new Vector() : var2;
-            }
-        }
+        // Forbidden path //
+
+        if (old_concept.construction.productionRule().getName().equals("negate") &&
+                ((Concept)old_concept.construction.conceptList().elementAt(1)).id.equals(supposed_generalisation.id))
+            return (new Vector());
+        return output;
     }
 
-    public Vector newSpecifications(Vector concept_list, Vector parameters, Theory theory, Vector new_functions) {
-        Vector var5 = new Vector();
-        Concept var6 = (Concept) concept_list.elementAt(0);
-        Vector var7 = var6.specifications;
-        Concept var8 = (Concept) concept_list.elementAt(1);
-        Vector var9 = var8.specifications;
-        Specification var10 = new Specification();
-        var10.type = "negate";
-        if (var6.is_single_entity) {
-            var5 = (Vector)var9.clone();
-            Specification var16 = (Specification)var7.lastElement();
-            var10.previous_specifications.addElement(var16);
-            var10.permutation.addElement("0");
-            var5.addElement(var10);
-            return var5;
-        } else {
-            Vector var11 = new Vector();
+    /** This produces the new specifications for concepts output using
+     * the size production rule. To do this, it works out which generalisation
+     * of the starting concept was used. Then it determines which specifications
+     * were not in the generalisation, and negates them.
+     * It also determines which columns are used in the negated part of the specification.
+     */
 
-            int var12;
-            Specification var13;
-            int var14;
-            for(var12 = 0; var12 < var7.size(); ++var12) {
-                var13 = (Specification)var7.elementAt(var12);
-                if (var9.contains(var13)) {
-                    var5.addElement(var13);
-                } else {
-                    for(var14 = 0; var14 < var13.permutation.size(); ++var14) {
-                        String var15 = (String)var13.permutation.elementAt(var14);
-                        if (!var11.contains(var15)) {
-                            var11.addElement(var15);
-                        }
-                    }
+    public Vector newSpecifications(Vector input_concepts, Vector input_parameters,
+                                    Theory theory, Vector new_functions)
+    {
+        Vector output = new Vector();
+        Concept old_concept = (Concept)input_concepts.elementAt(0);
+        Vector all_specs = old_concept.specifications;
+        Concept generalisation = (Concept)input_concepts.elementAt(1);
+        Vector true_specs = generalisation.specifications;
+        Specification multiple_negate_spec = new Specification();
+        multiple_negate_spec.type = "negate";
 
-                    var10.previous_specifications.addElement(var13.copy());
-                }
-            }
-
-            for(var12 = 0; var12 < var6.arity; ++var12) {
-                if (var11.contains(Integer.toString(var12))) {
-                    var10.permutation.addElement(Integer.toString(var12));
-                }
-            }
-
-            for(var12 = 0; var12 < var10.previous_specifications.size(); ++var12) {
-                Vector var17 = new Vector();
-                Specification var18 = (Specification)var10.previous_specifications.elementAt(var12);
-
-                for(int var19 = 0; var19 < var18.permutation.size(); ++var19) {
-                    var17.addElement(Integer.toString(var10.permutation.indexOf((String)var18.permutation.elementAt(var19))));
-                }
-
-                var18.permutation = var17;
-            }
-
-            for(var12 = 0; var12 < var5.size(); ++var12) {
-                var13 = (Specification)var5.elementAt(var12);
-
-                for(var14 = 0; var14 < var13.functions.size(); ++var14) {
-                    new_functions.addElement(var13.functions.elementAt(var14));
-                }
-            }
-
-            var5.addElement(var10);
-            return var5;
-        }
-    }
-
-    public Datatable transformTable(Vector old_datatables, Vector old_concepts, Vector parameters, Vector all_concepts) {
-        Concept var5 = (Concept) old_concepts.elementAt(0);
-        Datatable var6 = new Datatable();
-        Concept var7 = (Concept) old_concepts.elementAt(1);
-        Datatable var8 = (Datatable) old_datatables.elementAt(0);
-
-        for(int var9 = 0; var9 < var8.size(); ++var9) {
-            Row var10 = new Row();
-            Row var11 = (Row)var8.elementAt(var9);
-            var10.entity = var11.entity;
-            Row var12 = var7.calculateRow(all_concepts, var11.entity);
-
-            for(int var13 = 0; var13 < var12.tuples.size(); ++var13) {
-                Vector var14 = (Vector)var12.tuples.elementAt(var13);
-                String var15 = var14.toString();
-                Vector var16 = new Vector();
-
-                for(int var17 = 0; var17 < var11.tuples.size(); ++var17) {
-                    var16.addElement(((Vector)var11.tuples.elementAt(var17)).toString());
-                }
-
-                if (!var16.contains(var15)) {
-                    var10.tuples.addElement(var14);
-                }
-            }
-
-            var6.addElement(var10);
+        // Special case: the concept being negated is a single entity (e.g., [a] : a=4).
+        if (old_concept.is_single_entity)
+        {
+            output = (Vector)true_specs.clone();
+            Specification spec_to_negate = (Specification)all_specs.lastElement();
+            multiple_negate_spec.previous_specifications.addElement(spec_to_negate);
+            multiple_negate_spec.permutation.addElement("0");
+            output.addElement(multiple_negate_spec);
+            return output;
         }
 
-        return var6;
+        Vector used_columns = new Vector();
+        for (int i=0; i<all_specs.size(); i++)
+        {
+            Specification spec = (Specification)all_specs.elementAt(i);
+            if (true_specs.contains(spec))
+                output.addElement(spec);
+            else
+            {
+                for (int j=0;j<spec.permutation.size();j++)
+                {
+                    String column = (String)spec.permutation.elementAt(j);
+                    if (!used_columns.contains(column))
+                        used_columns.addElement(column);
+                }
+                multiple_negate_spec.previous_specifications.addElement(spec.copy());
+            }
+        }
+        for (int i=0; i<old_concept.arity; i++)
+        {
+            if (used_columns.contains(Integer.toString(i)))
+                multiple_negate_spec.permutation.addElement(Integer.toString(i));
+        }
+
+        // Change the permutation of the previous specifications //
+
+        for (int i=0; i<multiple_negate_spec.previous_specifications.size(); i++)
+        {
+            Vector new_perm = new Vector();
+            Specification prev_spec =
+                    (Specification)multiple_negate_spec.previous_specifications.elementAt(i);
+            for (int j=0; j<prev_spec.permutation.size(); j++)
+                new_perm.addElement(Integer.toString(multiple_negate_spec.permutation.
+                        indexOf((String)prev_spec.permutation.elementAt(j))));
+            prev_spec.permutation=new_perm;
+        }
+
+        // Add in any functions not involved in the multiple specifications //
+
+        for (int i=0; i<output.size(); i++)
+        {
+            Specification spec = (Specification)output.elementAt(i);
+            for (int j=0; j<spec.functions.size(); j++)
+                new_functions.addElement(spec.functions.elementAt(j));
+        }
+
+        // If a single specification has been negated, then negate the functions
+        // from this and add them in
+        // THIS STILL NEEDS DOING: TAKEN OUT BECAUSE IT IS BROKEN //
+
+    /*
+    if (multiple_negate_spec.previous_specifications.size()==1)
+      {
+	Specification previous_spec =
+	  (Specification)multiple_negate_spec.previous_specifications.elementAt(0);
+	for (int i=0; i<previous_spec.functions.size(); i++)
+	  {
+	    Function function = (Function)previous_spec.functions.elementAt(i);
+	    Function negated_function = (Function)function.copy();
+	    if (negated_function.is_negated)
+	      negated_function.is_negated = false;
+	    else
+	      negated_function.is_negated = true;
+
+	    // Change the input and output columns of the new function //
+
+	    for (int j=0; j<negated_function.input_columns.size(); j++)
+	      {
+		String ic = (String)negated_function.input_columns.elementAt(j);
+		if (!(ic.substring(0,1).equals(":")))
+		  {
+		    int pos = (new Integer(ic)).intValue();
+		    String new_ic = (String)previous_spec.permutation.elementAt(pos);
+		    negated_function.input_columns.setElementAt(new_ic, j);
+		  }
+	      }
+	    for (int j=0; j<negated_function.output_columns.size(); j++)
+	      {
+		String oc = (String)negated_function.output_columns.elementAt(j);
+		if (!(oc.substring(0,1).equals(":")))
+		  {
+		    int pos = (new Integer(oc)).intValue();
+		    String new_oc = (String)previous_spec.permutation.elementAt(pos);
+		    negated_function.output_columns.setElementAt(new_oc, j);
+		  }
+	      }
+
+	    new_functions.addElement(negated_function);
+	    multiple_negate_spec.functions.addElement(negated_function);
+	  }
+      }
+      */
+
+        output.addElement(multiple_negate_spec);
+        return output;
     }
 
-    public Vector transformTypes(Vector old_concepts, Vector parameters) {
-        return ((Concept) old_concepts.elementAt(0)).types;
+    /** This produces the new datatable from the given datatable, using the parameters
+     * specified.
+     */
+
+    public Datatable transformTable(Vector input_datatables, Vector input_concepts,
+                                    Vector input_parameters, Vector all_concepts)
+    {
+        // First get the required old datatables. //
+
+        //System.out.println("1 - transformTable()");
+        Concept old_concept = (Concept)input_concepts.elementAt(0);
+        Datatable output = new Datatable();
+        Concept generalisation = (Concept)input_concepts.elementAt(1);
+
+        Datatable old_datatable = (Datatable)input_datatables.elementAt(0);
+        //System.out.println("2 - transformTable()");
+        for (int i=0;i<old_datatable.size();i++)
+        {
+            Row new_row = new Row();
+            Row old_row = (Row)old_datatable.elementAt(i);
+            new_row.entity = old_row.entity;
+            Row general_row = generalisation.calculateRow(all_concepts,old_row.entity);
+            for (int j=0;j<general_row.tuples.size();j++)
+            {
+                Vector general_tuple = (Vector)general_row.tuples.elementAt(j);
+                String general_tuple_string = general_tuple.toString();
+                Vector check_vector = new Vector();
+                for (int k=0; k<old_row.tuples.size();k++)
+                    check_vector.addElement(((Vector)old_row.tuples.elementAt(k)).toString());
+                if (!check_vector.contains(general_tuple_string))
+                    new_row.tuples.addElement(general_tuple);
+            }
+            //System.out.println("3 - old_concept.prettyPrintExamples(old_datatable) is\n" + old_concept.prettyPrintExamples(old_datatable));
+            //System.out.println("4 - generalisation.prettyPrintExamples(generalisation.datatable) is\n" + generalisation.prettyPrintExamples(generalisation.datatable));
+            output.addElement(new_row);
+        }
+
+        return output;
     }
 
-    public int patternScore(Vector concept_list, Vector all_concepts, Vector entity_list, Vector non_entity_list) {
-        Concept var5 = (Concept) concept_list.elementAt(0);
-        if (this.allParameters(concept_list).isEmpty()) {
+    /** Returns the types of the objects in the columns of the new datatable.
+     */
+
+    public Vector transformTypes(Vector old_concepts, Vector parameters)
+    {
+        return ((Concept)old_concepts.elementAt(0)).types;
+    }
+
+    /** This assigns a score to a concept depending on whether the
+     * production rule can see any likelihood of a pattern. The pattern for the negate
+     * production rule is that each of the entities has a empty row of tuples. The
+     * fewer the non-entities that have an empty row, the better.
+     */
+
+    public int patternScore(Vector concept_list, Vector all_concepts,
+                            Vector entity_list, Vector non_entity_list)
+    {
+        Concept c = (Concept)concept_list.elementAt(0);
+        if (allParameters(concept_list).isEmpty())
             return 0;
-        } else {
-            int var6 = 0;
-
-            boolean var7;
-            for(var7 = true; var7 && var6 < entity_list.size(); ++var6) {
-                String var8 = (String) entity_list.elementAt(var6);
-                Row var9 = var5.calculateRow(all_concepts, var8);
-                if (var9.tuples.size() > 0) {
-                    var7 = false;
-                }
-            }
-
-            if (!var7) {
-                return 0;
-            } else {
-                int var11 = non_entity_list.size();
-
-                for(var6 = 0; var6 < non_entity_list.size(); ++var6) {
-                    String var12 = (String) non_entity_list.elementAt(var6);
-                    Row var10 = var5.calculateRow(all_concepts, var12);
-                    if (var10.tuples.size() == 0) {
-                        --var11;
-                    }
-                }
-
-                return var11;
-            }
+        int i=0;
+        boolean empty_pattern = true;
+        while (empty_pattern && i<entity_list.size())
+        {
+            String entity = (String)entity_list.elementAt(i);
+            Row row = c.calculateRow(all_concepts,entity);
+            if (row.tuples.size()>0)
+                empty_pattern = false;
+            i++;
         }
+        if (!empty_pattern) return 0;
+        int score = non_entity_list.size();
+        for (i=0;i<non_entity_list.size();i++)
+        {
+            String entity = (String)non_entity_list.elementAt(i);
+            Row row = c.calculateRow(all_concepts,entity);
+            if (row.tuples.size()==0)
+                score--;
+        }
+        return score;
     }
 }

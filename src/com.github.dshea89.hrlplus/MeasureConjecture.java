@@ -1,440 +1,712 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.Serializable;
 import java.util.Vector;
+import java.lang.String;
+import java.io.Serializable;
 
-public class MeasureConjecture extends Measure implements Serializable {
+/** A class for measuring conjectures.
+ *
+ * @author Simon Colton, started 1st December 2000
+ * @version 1.0 */
+
+public class MeasureConjecture extends Measure implements Serializable
+{
+    /** Whether or not to measure the conjectures
+     */
+
     public boolean measure_conjectures = true;
-    public double applicability_weight = 0.5D;
-    public double comprehensibility_weight = 0.5D;
-    public double cross_domain_weight = 0.5D;
-    public double surprisingness_weight = 0.5D;
-    public double plausibility_weight = 0.5D;
+
+    /** The weight for the applicability measure in the weighted sum.
+     */
+
+    public double applicability_weight = 0.5;
+
+    /** The weight for the comprehensibility measure in the weighted sum.
+     */
+
+    public double comprehensibility_weight = 0.5;
+
+    /** The weight for the comprehensibility measure in the weighted sum.
+     */
+
+    public double cross_domain_weight = 0.5;
+
+    /** The weight for the surprisingness measure in the weighted sum.
+     */
+
+    public double surprisingness_weight = 0.5;
+
+    /** The weight for the plausibility measure in the weighted sum.
+     */
+
+    public double plausibility_weight = 0.5;
+
+    /** All the different applicabilities so far for equivalence conjectures.
+     */
+
     public Vector all_equiv_applicabilities = new Vector();
+
+    /** All the different applicabilities so far for implication conjectures.
+     */
+
     public Vector all_implication_applicabilities = new Vector();
+
+    /** All the different applicabilities so far for implicate conjectures.
+     */
+
     public Vector all_implicate_applicabilities = new Vector();
+
+    /** All the different comprehensibilities so far for implicate conjectures.
+     */
+
     public Vector all_implicate_comprehensibilities = new Vector();
+
+    /** All the different comprehensibilities so far for equivalence conjectures.
+     */
+
     public Vector all_equiv_comprehensibilities = new Vector();
+
+    /** All the different comprehensibilities so far for implication conjectures.
+     */
+
     public Vector all_implication_comprehensibilities = new Vector();
+
+    /** All the different surprisingnesses so far for equivalence conjectures.
+     */
+
     public Vector all_equiv_surprisingnesses = new Vector();
+
+    /** All the different surprisingnesses so far for implication conjectures.
+     */
+
     public Vector all_implication_surprisingnesses = new Vector();
+
+    /** All the different comprehensibilities so far for non-exists conjectures.
+     */
+
     public Vector all_ne_comprehensibilities = new Vector();
+
+    /** All the different surprisingnesses so far for non-exists conjectures.
+     */
+
     public Vector all_ne_surprisingnesses = new Vector();
 
-    public MeasureConjecture() {
-    }
+    /** This calculates all the measures for a given Equivalence
+     * conjecture. It also updates the measures for all the other
+     * conjectures if needed.
+     */
 
-    public void measureConjecture(Equivalence var1, Vector var2) {
-        if (this.measure_conjectures) {
-            this.old_measures_have_been_updated = false;
-            var1.arity = (double)var1.lh_concept.arity;
-            var1.applicability = var1.lh_concept.applicability;
-            var1.normalised_applicability = super.normalisedValue(var1.applicability, this.all_equiv_applicabilities);
-            int var3;
-            Conjecture var4;
-            int var5;
-            if (this.measures_need_updating) {
-                this.old_measures_have_been_updated = true;
+    public void measureConjecture(Equivalence conjecture, Vector conjectures)
+    {
+        if (!measure_conjectures)
+            return;
+        old_measures_have_been_updated = false;
 
-                for(var3 = 0; var3 < var2.size(); ++var3) {
-                    var4 = (Conjecture)var2.elementAt(var3);
-                    var5 = this.all_equiv_applicabilities.indexOf(Double.toString(var4.applicability));
-                    var4.normalised_applicability = new Double((double)var5) / (new Double((double)this.all_equiv_applicabilities.size()) - 1.0D);
-                }
+        // Arity //
+
+        conjecture.arity = conjecture.lh_concept.arity;
+
+        // Applicability //
+
+        conjecture.applicability = conjecture.lh_concept.applicability;
+        conjecture.normalised_applicability = super.normalisedValue(conjecture.applicability, all_equiv_applicabilities);
+
+        if (measures_need_updating)
+        {
+            old_measures_have_been_updated = true;
+            for (int i=0; i<conjectures.size(); i++)
+            {
+                Conjecture old_conjecture = (Conjecture)conjectures.elementAt(i);
+                int pos = all_equiv_applicabilities.indexOf(Double.toString(old_conjecture.applicability));
+                old_conjecture.normalised_applicability =
+                        (new Double(pos)).doubleValue()/((new Double(all_equiv_applicabilities.size())).doubleValue() - 1);
             }
+        }
 
-            var1.complexity = (double)(var1.lh_concept.complexity + var1.rh_concept.complexity);
-            var1.comprehensibility = 1.0D / var1.complexity;
-            var1.normalised_comprehensibility = super.normalisedValue(var1.comprehensibility, this.all_equiv_comprehensibilities);
-            if (this.measures_need_updating) {
-                this.old_measures_have_been_updated = true;
+        // Comprehensibility //
 
-                for(var3 = 0; var3 < var2.size(); ++var3) {
-                    var4 = (Conjecture)var2.elementAt(var3);
-                    var5 = this.all_equiv_comprehensibilities.indexOf(Double.toString(var4.comprehensibility));
-                    var4.normalised_comprehensibility = new Double((double)var5) / (new Double((double)this.all_equiv_comprehensibilities.size()) - 1.0D);
-                }
+        conjecture.complexity = conjecture.lh_concept.complexity + conjecture.rh_concept.complexity;
+        conjecture.comprehensibility = 1/conjecture.complexity;
+        conjecture.normalised_comprehensibility =
+                super.normalisedValue(conjecture.comprehensibility, all_equiv_comprehensibilities);
+
+        if (measures_need_updating)
+        {
+            old_measures_have_been_updated = true;
+            for (int i=0; i<conjectures.size(); i++)
+            {
+                Conjecture old_conjecture = (Conjecture)conjectures.elementAt(i);
+                int pos = all_equiv_comprehensibilities.indexOf(Double.toString(old_conjecture.comprehensibility));
+                old_conjecture.normalised_comprehensibility =
+                        (new Double(pos)).doubleValue()/((new Double(all_equiv_comprehensibilities.size())).doubleValue() - 1);
             }
+        }
 
-            double var11 = 0.0D;
+        // Surprisingness //
 
-            for(var5 = 0; var5 < var1.lh_concept.ancestor_ids.size(); ++var5) {
-                if (!var1.rh_concept.ancestor_ids.contains(var1.lh_concept.ancestor_ids.elementAt(var5))) {
-                    ++var11;
-                }
+        double surprisingness = 0;
+        for (int i=0; i<conjecture.lh_concept.ancestor_ids.size(); i++)
+        {
+            if (!conjecture.rh_concept.ancestor_ids.contains(conjecture.lh_concept.ancestor_ids.elementAt(i)))
+                surprisingness++;
+        }
+        for (int i=0; i<conjecture.rh_concept.ancestor_ids.size(); i++)
+        {
+            if (!conjecture.lh_concept.ancestor_ids.contains(conjecture.rh_concept.ancestor_ids.elementAt(i)))
+                surprisingness++;
+        }
+
+        conjecture.surprisingness = surprisingness;
+        conjecture.normalised_surprisingness = super.normalisedValue(surprisingness, all_equiv_surprisingnesses);
+
+        if (measures_need_updating)
+        {
+            old_measures_have_been_updated = true;
+            for (int i=0; i<conjectures.size(); i++)
+            {
+                Conjecture old_conjecture = (Conjecture)conjectures.elementAt(i);
+                int pos = all_equiv_surprisingnesses.indexOf(Double.toString(old_conjecture.surprisingness));
+                old_conjecture.normalised_surprisingness =
+                        (new Double(pos)).doubleValue()/((new Double(all_equiv_surprisingnesses.size())).doubleValue() - 1);
             }
+        }
 
-            for(var5 = 0; var5 < var1.rh_concept.ancestor_ids.size(); ++var5) {
-                if (!var1.lh_concept.ancestor_ids.contains(var1.rh_concept.ancestor_ids.elementAt(var5))) {
-                    ++var11;
-                }
+        // Plausibility //
+
+        double plausibility = 0;
+        Vector entities_conj_discusses =  removeDuplicates(conjecture.lh_concept.getPositives(), conjecture.rh_concept.getPositives());
+        try {
+            plausibility = ((double)(entities_conj_discusses.size() - conjecture.counterexamples.size()))/((double)entities_conj_discusses.size());
+        } catch (ArithmeticException ignored) {
+        }
+        conjecture.plausibility = plausibility;
+
+        if (measures_need_updating)
+        {
+            old_measures_have_been_updated = true;
+            for (int i=0; i<conjectures.size(); i++)
+            {
+                Conjecture old_conjecture = (Conjecture)conjectures.elementAt(i);
+                int pos = all_equiv_surprisingnesses.indexOf(Double.toString(old_conjecture.surprisingness));
+                old_conjecture.normalised_surprisingness =
+                        (new Double(pos)).doubleValue()/((new Double(all_equiv_surprisingnesses.size())).doubleValue() - 1);
             }
+        }
 
-            var1.surprisingness = var11;
-            var1.normalised_surprisingness = super.normalisedValue(var11, this.all_equiv_surprisingnesses);
-            if (this.measures_need_updating) {
-                this.old_measures_have_been_updated = true;
+        calculateOverallValue(conjecture);
 
-                for(var5 = 0; var5 < var2.size(); ++var5) {
-                    Conjecture var6 = (Conjecture)var2.elementAt(var5);
-                    int var7 = this.all_equiv_surprisingnesses.indexOf(Double.toString(var6.surprisingness));
-                    var6.normalised_surprisingness = new Double((double)var7) / (new Double((double)this.all_equiv_surprisingnesses.size()) - 1.0D);
-                }
-            }
+        // If any measures have changed for any old conjecture, we need to calculate the
+        // overall scores for every concept.
 
-            double var13 = 0.0D;
-            Vector var12 = this.removeDuplicates(var1.lh_concept.getPositives(), var1.rh_concept.getPositives());
-            var13 = (double)(var12.size() - var1.counterexamples.size()) / (double)var12.size();
-            var1.plausibility = var13;
-            int var8;
-            if (this.measures_need_updating) {
-                this.old_measures_have_been_updated = true;
-
-                for(var8 = 0; var8 < var2.size(); ++var8) {
-                    Conjecture var9 = (Conjecture)var2.elementAt(var8);
-                    int var10 = this.all_equiv_surprisingnesses.indexOf(Double.toString(var9.surprisingness));
-                    var9.normalised_surprisingness = new Double((double)var10) / (new Double((double)this.all_equiv_surprisingnesses.size()) - 1.0D);
-                }
-            }
-
-            this.calculateOverallValue(var1);
-            if (this.old_measures_have_been_updated) {
-                for(var8 = 0; var8 < var2.size(); ++var8) {
-                    this.calculateOverallValue((Equivalence)var2.elementAt(var8));
-                }
-            }
-
+        if (old_measures_have_been_updated)
+        {
+            for (int i=0; i<conjectures.size(); i++)
+                calculateOverallValue((Equivalence)conjectures.elementAt(i));
         }
     }
 
-    public void measureConjecture(NearEquivalence var1, Vector var2) {
-        System.out.println("started measureConjecture on " + var1.writeConjecture());
-        if (this.measure_conjectures) {
-            this.old_measures_have_been_updated = false;
-            var1.arity = (double)var1.lh_concept.arity;
-            Vector var3 = this.removeDuplicates(var1.lh_concept.getPositives(), var1.rh_concept.getPositives());
-            var1.applicability = (double)var3.size();
-            var1.complexity = (double)(var1.lh_concept.complexity + var1.rh_concept.complexity);
-            var1.comprehensibility = 1.0D / var1.complexity;
-            double var4 = 0.0D;
 
-            int var6;
-            for(var6 = 0; var6 < var1.lh_concept.ancestor_ids.size(); ++var6) {
-                if (!var1.rh_concept.ancestor_ids.contains(var1.lh_concept.ancestor_ids.elementAt(var6))) {
-                    ++var4;
-                }
-            }
+    /** This calculates all the measures for a given NearEquivalence
+     * conjecture. It also updates the measures for all the other
+     * conjectures if needed. It does not calculate the normalised
+     * value.
+     */
 
-            for(var6 = 0; var6 < var1.rh_concept.ancestor_ids.size(); ++var6) {
-                if (!var1.lh_concept.ancestor_ids.contains(var1.rh_concept.ancestor_ids.elementAt(var6))) {
-                    ++var4;
-                }
-            }
+    public void measureConjecture(NearEquivalence conjecture, Vector conjectures)
+    {
+        System.out.println("started measureConjecture on " + conjecture.writeConjecture());
+        if (!measure_conjectures)
+            return;
+        old_measures_have_been_updated = false;
 
-            var1.surprisingness = var4;
-            double var10 = 0.0D;
-            Vector var8 = this.removeDuplicates(var1.lh_concept.getPositives(), var1.rh_concept.getPositives());
-            var10 = (double)(var8.size() - var1.counterexamples.size()) / (double)var8.size();
-            var1.plausibility = var10;
-            this.calculateOverallValue(var1);
-            if (this.old_measures_have_been_updated) {
-                for(int var9 = 0; var9 < var2.size(); ++var9) {
-                    this.calculateOverallValue((NearEquivalence)var2.elementAt(var9));
-                }
-            }
+        // Arity //
 
+        conjecture.arity = conjecture.lh_concept.arity;
+
+        // Applicability //
+
+        Vector num_entities = removeDuplicates(conjecture.lh_concept.getPositives(),conjecture.rh_concept.getPositives());
+        conjecture.applicability = num_entities.size();
+
+
+        // Comprehensibility //
+
+        conjecture.complexity = conjecture.lh_concept.complexity + conjecture.rh_concept.complexity;
+        conjecture.comprehensibility = 1/conjecture.complexity;
+
+        // Surprisingness //
+
+        double surprisingness = 0;
+        for (int i=0; i<conjecture.lh_concept.ancestor_ids.size(); i++)
+        {
+            if (!conjecture.rh_concept.ancestor_ids.contains(conjecture.lh_concept.ancestor_ids.elementAt(i)))
+                surprisingness++;
+        }
+        for (int i=0; i<conjecture.rh_concept.ancestor_ids.size(); i++)
+        {
+            if (!conjecture.lh_concept.ancestor_ids.contains(conjecture.rh_concept.ancestor_ids.elementAt(i)))
+                surprisingness++;
+        }
+
+        conjecture.surprisingness = surprisingness;
+
+        // Plausibility //
+
+        double plausibility = 0;
+        Vector entities_conj_discusses = removeDuplicates(conjecture.lh_concept.getPositives(), conjecture.rh_concept.getPositives());
+        plausibility = ((double)(entities_conj_discusses.size() - conjecture.counterexamples.size()))/((double)entities_conj_discusses.size());
+        conjecture.plausibility = plausibility;
+
+        calculateOverallValue(conjecture);
+
+        // If any measures have changed for any old conjecture, we need to calculate the
+        // overall scores for every concept.
+
+        if (old_measures_have_been_updated)
+        {
+            for (int i=0; i<conjectures.size(); i++)
+                calculateOverallValue((NearEquivalence)conjectures.elementAt(i));
         }
     }
 
-    public void measureConjecture(Implication var1, Vector var2) {
-        if (this.measure_conjectures) {
-            this.old_measures_have_been_updated = false;
-            var1.arity = (double)var1.lh_concept.arity;
-            var1.applicability = var1.lh_concept.applicability;
-            var1.normalised_applicability = super.normalisedValue(var1.applicability, this.all_implication_applicabilities);
-            int var3;
-            Conjecture var4;
-            int var5;
-            if (this.measures_need_updating) {
-                this.old_measures_have_been_updated = true;
 
-                for(var3 = 0; var3 < var2.size(); ++var3) {
-                    var4 = (Conjecture)var2.elementAt(var3);
-                    var5 = this.all_implication_applicabilities.indexOf(Double.toString(var4.applicability));
-                    var4.normalised_applicability = new Double((double)var5) / (new Double((double)this.all_implication_applicabilities.size()) - 1.0D);
-                }
+
+
+
+    /** This calculates all the measures for a given Implication
+     * conjecture. It also updates the measures for all the other
+     * conjectures if needed.
+     */
+
+    public void measureConjecture(Implication conjecture, Vector conjectures)
+    {
+        if (!measure_conjectures)
+            return;
+        old_measures_have_been_updated = false;
+
+        // Arity //
+
+        conjecture.arity = conjecture.lh_concept.arity;
+
+        // Applicability //
+
+        conjecture.applicability = conjecture.lh_concept.applicability;
+        conjecture.normalised_applicability = super.normalisedValue(conjecture.applicability, all_implication_applicabilities);
+
+        if (measures_need_updating)
+        {
+            old_measures_have_been_updated = true;
+            for (int i=0; i<conjectures.size(); i++)
+            {
+                Conjecture old_conjecture = (Conjecture)conjectures.elementAt(i);
+                int pos = all_implication_applicabilities.indexOf(Double.toString(old_conjecture.applicability));
+                old_conjecture.normalised_applicability =
+                        (new Double(pos)).doubleValue()/((new Double(all_implication_applicabilities.size())).doubleValue() - 1);
             }
+        }
 
-            var1.complexity = (double)(var1.lh_concept.complexity + var1.rh_concept.complexity);
-            var1.comprehensibility = 1.0D / var1.complexity;
-            var1.normalised_comprehensibility = super.normalisedValue(var1.comprehensibility, this.all_implication_comprehensibilities);
-            if (this.measures_need_updating) {
-                this.old_measures_have_been_updated = true;
+        // Comprehensibility //
 
-                for(var3 = 0; var3 < var2.size(); ++var3) {
-                    var4 = (Conjecture)var2.elementAt(var3);
-                    var5 = this.all_implication_comprehensibilities.indexOf(Double.toString(var4.comprehensibility));
-                    var4.normalised_comprehensibility = new Double((double)var5) / (new Double((double)this.all_implication_comprehensibilities.size()) - 1.0D);
-                }
+        conjecture.complexity = conjecture.lh_concept.complexity + conjecture.rh_concept.complexity;
+        conjecture.comprehensibility = 1/conjecture.complexity;
+        conjecture.normalised_comprehensibility =
+                super.normalisedValue(conjecture.comprehensibility, all_implication_comprehensibilities);
+
+        if (measures_need_updating)
+        {
+            old_measures_have_been_updated = true;
+            for (int i=0; i<conjectures.size(); i++)
+            {
+                Conjecture old_conjecture = (Conjecture)conjectures.elementAt(i);
+                int pos = all_implication_comprehensibilities.indexOf(Double.toString(old_conjecture.comprehensibility));
+                old_conjecture.normalised_comprehensibility =
+                        (new Double(pos)).doubleValue()/((new Double(all_implication_comprehensibilities.size())).doubleValue() - 1);
             }
+        }
 
-            double var11 = 0.0D;
+        // Surprisingness //
 
-            for(var5 = 0; var5 < var1.lh_concept.ancestor_ids.size(); ++var5) {
-                if (!var1.rh_concept.ancestor_ids.contains(var1.lh_concept.ancestor_ids.elementAt(var5))) {
-                    ++var11;
-                }
+        double surprisingness = 0;
+        for (int i=0; i<conjecture.lh_concept.ancestor_ids.size(); i++)
+        {
+            if (!conjecture.rh_concept.ancestor_ids.contains(conjecture.lh_concept.ancestor_ids.elementAt(i)))
+                surprisingness++;
+        }
+        for (int i=0; i<conjecture.rh_concept.ancestor_ids.size(); i++)
+        {
+            if (!conjecture.lh_concept.ancestor_ids.contains(conjecture.rh_concept.ancestor_ids.elementAt(i)))
+                surprisingness++;
+        }
+
+        conjecture.surprisingness = surprisingness;
+        conjecture.normalised_surprisingness = super.normalisedValue(surprisingness, all_implication_surprisingnesses);
+
+        // Plausibility //
+
+        double plausibility = 0;
+        Vector entities_conj_discusses = conjecture.lh_concept.getPositives();
+        try {
+            plausibility = ((double) (entities_conj_discusses.size() - conjecture.counterexamples.size())) / ((double) entities_conj_discusses.size());
+        } catch (ArithmeticException ignored) {
+        }
+        conjecture.plausibility = plausibility;
+
+        if (measures_need_updating)
+        {
+            old_measures_have_been_updated = true;
+            for (int i=0; i<conjectures.size(); i++)
+            {
+                Conjecture old_conjecture = (Conjecture)conjectures.elementAt(i);
+                int pos = all_implication_surprisingnesses.indexOf(Double.toString(old_conjecture.surprisingness));
+                old_conjecture.normalised_surprisingness =
+                        (new Double(pos)).doubleValue()/((new Double(all_implication_surprisingnesses.size())).doubleValue() - 1);
             }
+        }
 
-            for(var5 = 0; var5 < var1.rh_concept.ancestor_ids.size(); ++var5) {
-                if (!var1.lh_concept.ancestor_ids.contains(var1.rh_concept.ancestor_ids.elementAt(var5))) {
-                    ++var11;
-                }
-            }
+        calculateOverallValue(conjecture);
 
-            var1.surprisingness = var11;
-            var1.normalised_surprisingness = super.normalisedValue(var11, this.all_implication_surprisingnesses);
-            double var12 = 0.0D;
-            Vector var7 = var1.lh_concept.getPositives();
-            var12 = (double)(var7.size() - var1.counterexamples.size()) / (double)var7.size();
-            var1.plausibility = var12;
-            int var8;
-            if (this.measures_need_updating) {
-                this.old_measures_have_been_updated = true;
+        // If any measures have changed for any old conjecture, we need to calculate the
+        // overall scores for every concept.
 
-                for(var8 = 0; var8 < var2.size(); ++var8) {
-                    Conjecture var9 = (Conjecture)var2.elementAt(var8);
-                    int var10 = this.all_implication_surprisingnesses.indexOf(Double.toString(var9.surprisingness));
-                    var9.normalised_surprisingness = new Double((double)var10) / (new Double((double)this.all_implication_surprisingnesses.size()) - 1.0D);
-                }
-            }
-
-            this.calculateOverallValue(var1);
-            if (this.old_measures_have_been_updated) {
-                for(var8 = 0; var8 < var2.size(); ++var8) {
-                    this.calculateOverallValue((Implication)var2.elementAt(var8));
-                }
-            }
-
+        if (old_measures_have_been_updated)
+        {
+            for (int i=0; i<conjectures.size(); i++)
+                calculateOverallValue((Implication)conjectures.elementAt(i));
         }
     }
 
-    public void measureConjecture(NearImplication var1, Vector var2) {
-        if (this.measure_conjectures) {
-            this.old_measures_have_been_updated = false;
-            var1.arity = (double)var1.lh_concept.arity;
-            var1.applicability = var1.lh_concept.applicability;
-            var1.complexity = (double)(var1.lh_concept.complexity + var1.rh_concept.complexity);
-            var1.comprehensibility = 1.0D / var1.complexity;
-            double var3 = 0.0D;
 
-            int var5;
-            for(var5 = 0; var5 < var1.lh_concept.ancestor_ids.size(); ++var5) {
-                if (!var1.rh_concept.ancestor_ids.contains(var1.lh_concept.ancestor_ids.elementAt(var5))) {
-                    ++var3;
-                }
-            }
+    /** This calculates all the measures for a given NearImplication
+     * conjecture. It also updates the measures for all the other
+     * conjectures if needed. It does not calculate the normalised
+     * value.
+     */
 
-            for(var5 = 0; var5 < var1.rh_concept.ancestor_ids.size(); ++var5) {
-                if (!var1.lh_concept.ancestor_ids.contains(var1.rh_concept.ancestor_ids.elementAt(var5))) {
-                    ++var3;
-                }
-            }
+    public void measureConjecture(NearImplication conjecture, Vector conjectures)
+    {
+        if (!measure_conjectures)
+            return;
+        old_measures_have_been_updated = false;
 
-            var1.surprisingness = var3;
-            double var9 = 0.0D;
-            Vector var7 = var1.lh_concept.getPositives();
-            var9 = (double)(var7.size() - var1.counterexamples.size()) / (double)var7.size();
-            var1.plausibility = var9;
-            this.calculateOverallValue(var1);
-            if (this.old_measures_have_been_updated) {
-                for(int var8 = 0; var8 < var2.size(); ++var8) {
-                    this.calculateOverallValue((Implication)var2.elementAt(var8));
-                }
-            }
+        // Arity //
 
+        conjecture.arity = conjecture.lh_concept.arity;
+
+        // Applicability //
+
+        conjecture.applicability = conjecture.lh_concept.applicability;
+
+        // Comprehensibility //
+
+        conjecture.complexity = conjecture.lh_concept.complexity + conjecture.rh_concept.complexity;
+        conjecture.comprehensibility = 1/conjecture.complexity;
+
+        // Surprisingness //
+
+        double surprisingness = 0;
+        for (int i=0; i<conjecture.lh_concept.ancestor_ids.size(); i++)
+        {
+            if (!conjecture.rh_concept.ancestor_ids.contains(conjecture.lh_concept.ancestor_ids.elementAt(i)))
+                surprisingness++;
+        }
+        for (int i=0; i<conjecture.rh_concept.ancestor_ids.size(); i++)
+        {
+            if (!conjecture.lh_concept.ancestor_ids.contains(conjecture.rh_concept.ancestor_ids.elementAt(i)))
+                surprisingness++;
+        }
+
+        conjecture.surprisingness = surprisingness;
+
+        // Plausibility //
+
+        double plausibility = 0;
+        Vector entities_conj_discusses = conjecture.lh_concept.getPositives();
+        plausibility = ((double)(entities_conj_discusses.size() - conjecture.counterexamples.size()))/((double)entities_conj_discusses.size());
+        conjecture.plausibility = plausibility;
+
+
+        calculateOverallValue(conjecture);
+
+        // If any measures have changed for any old conjecture, we need to calculate the
+        // overall scores for every concept.
+
+        if (old_measures_have_been_updated)
+        {
+            for (int i=0; i<conjectures.size(); i++)
+                calculateOverallValue((Implication)conjectures.elementAt(i));
         }
     }
 
-    public void calculateOverallValue(Equivalence var1) {
-        var1.interestingness = var1.normalised_applicability * this.applicability_weight + var1.normalised_comprehensibility * this.comprehensibility_weight + var1.normalised_surprisingness * this.surprisingness_weight;
+
+
+
+    /** This calculates the overall worth of an equivalence conjecture.
+     */
+
+    public void calculateOverallValue(Equivalence conjecture)
+    {
+        conjecture.interestingness =
+                (conjecture.normalised_applicability * applicability_weight) +
+                        (conjecture.normalised_comprehensibility * comprehensibility_weight) +
+                        (conjecture.normalised_surprisingness * surprisingness_weight);
     }
 
-    public void calculateOverallValue(NearEquivalence var1) {
-        System.out.println("plausibility_weight is " + this.plausibility_weight);
-        var1.interestingness = var1.normalised_applicability * this.applicability_weight + var1.normalised_comprehensibility * this.comprehensibility_weight + var1.normalised_surprisingness * this.surprisingness_weight + var1.plausibility * this.plausibility_weight;
+    /** This calculates the overall worth of a near-equivalence conjecture.
+     */
+
+    public void calculateOverallValue(NearEquivalence conjecture)
+    {
+        System.out.println("plausibility_weight is " + plausibility_weight);
+
+        conjecture.interestingness =
+                (conjecture.normalised_applicability * applicability_weight) +
+                        (conjecture.normalised_comprehensibility * comprehensibility_weight) +
+                        (conjecture.normalised_surprisingness * surprisingness_weight) +
+                        (conjecture.plausibility * plausibility_weight);
     }
 
-    public void calculateOverallValue(Implication var1) {
-        var1.interestingness = var1.normalised_applicability * this.applicability_weight + var1.normalised_comprehensibility * this.comprehensibility_weight + var1.normalised_surprisingness * this.surprisingness_weight;
+    /** This calculates the overall worth of an implication conjecture.
+     */
+
+    public void calculateOverallValue(Implication conjecture)
+    {
+        conjecture.interestingness =
+                (conjecture.normalised_applicability * applicability_weight) +
+                        (conjecture.normalised_comprehensibility * comprehensibility_weight) +
+                        (conjecture.normalised_surprisingness * surprisingness_weight);
     }
 
-    public void calculateOverallValue(NearImplication var1) {
-        var1.interestingness = var1.normalised_applicability * this.applicability_weight + var1.normalised_comprehensibility * this.comprehensibility_weight + var1.normalised_surprisingness * this.surprisingness_weight + var1.plausibility * this.plausibility_weight;
+    /** This calculates the overall worth of a near-implication conjecture.
+     */
+
+    public void calculateOverallValue(NearImplication conjecture)
+    {
+        conjecture.interestingness =
+                (conjecture.normalised_applicability * applicability_weight) +
+                        (conjecture.normalised_comprehensibility * comprehensibility_weight) +
+                        (conjecture.normalised_surprisingness * surprisingness_weight) +
+                        (conjecture.plausibility * plausibility_weight);
     }
 
-    public void measureConjecture(Implicate var1, Vector var2) {
-        if (this.measure_conjectures) {
-            this.old_measures_have_been_updated = false;
-            var1.arity = (double)var1.premise_concept.arity;
-            var1.applicability = var1.premise_concept.applicability;
-            var1.normalised_applicability = super.normalisedValue(var1.applicability, this.all_implicate_applicabilities);
-            int var3;
-            if (this.measures_need_updating) {
-                this.old_measures_have_been_updated = true;
+    /** This calculates all the measures for a given implicate
+     * conjecture. It also updates the measures for all the other
+     * conjectures if needed.
+     */
 
-                for(var3 = 0; var3 < var2.size(); ++var3) {
-                    Conjecture var4 = (Conjecture)var2.elementAt(var3);
-                    int var5 = this.all_implicate_applicabilities.indexOf(Double.toString(var4.applicability));
-                    var4.normalised_applicability = new Double((double)var5) / (new Double((double)this.all_implicate_applicabilities.size()) - 1.0D);
-                }
+    public void measureConjecture(Implicate conjecture, Vector conjectures)
+    {
+        if (!measure_conjectures)
+            return;
+        old_measures_have_been_updated = false;
+
+        // Arity //
+
+        conjecture.arity = conjecture.premise_concept.arity;
+
+        // Applicability //
+
+        conjecture.applicability = conjecture.premise_concept.applicability;
+        conjecture.normalised_applicability = super.normalisedValue(conjecture.applicability, all_implicate_applicabilities);
+
+        if (measures_need_updating)
+        {
+            old_measures_have_been_updated = true;
+            for (int i=0; i<conjectures.size(); i++)
+            {
+                Conjecture old_conjecture = (Conjecture)conjectures.elementAt(i);
+                int pos = all_implicate_applicabilities.indexOf(Double.toString(old_conjecture.applicability));
+                old_conjecture.normalised_applicability =
+                        (new Double(pos)).doubleValue()/((new Double(all_implicate_applicabilities.size())).doubleValue() - 1);
             }
+        }
 
-            var1.complexity = (double)var1.premise_concept.complexity;
-            if (var1.complexity == 0.0D) {
-                var1.comprehensibility = 1.0D;
-            } else {
-                var1.comprehensibility = 1.0D / var1.complexity;
-            }
+        // Comprehensibility //
 
-            var1.normalised_comprehensibility = super.normalisedValue(var1.comprehensibility, this.all_implicate_comprehensibilities);
-            if (!var1.parent_conjectures.isEmpty()) {
-                Conjecture var6 = (Conjecture)var1.parent_conjectures.elementAt(0);
-                var1.surprisingness = var6.surprisingness;
-                var1.normalised_surprisingness = var6.normalised_surprisingness;
-            }
+        conjecture.complexity = conjecture.premise_concept.complexity;
+        if (conjecture.complexity==0)
+            conjecture.comprehensibility = 1;
+        else
+            conjecture.comprehensibility = 1/conjecture.complexity;
+        conjecture.normalised_comprehensibility =
+                super.normalisedValue(conjecture.comprehensibility, all_implicate_comprehensibilities);
 
-            this.calculateOverallValue(var1);
-            if (this.old_measures_have_been_updated) {
-                for(var3 = 0; var3 < var2.size(); ++var3) {
-                    this.calculateOverallValue((Implicate)var2.elementAt(var3));
-                }
-            }
+        // Surprisingness //
 
+        if (!conjecture.parent_conjectures.isEmpty())
+        {
+            Conjecture parent = (Conjecture)conjecture.parent_conjectures.elementAt(0);
+            conjecture.surprisingness = parent.surprisingness;
+            conjecture.normalised_surprisingness = parent.normalised_surprisingness;
+        }
+
+        calculateOverallValue(conjecture);
+
+        // If any measures have changed for any old conjecture, we need to calculate the
+        // overall scores for every concept.
+
+        if (old_measures_have_been_updated)
+        {
+            for (int i=0; i<conjectures.size(); i++)
+                calculateOverallValue((Implicate)conjectures.elementAt(i));
         }
     }
 
-    public void calculateOverallValue(Implicate var1) {
-        var1.interestingness = var1.normalised_applicability * this.applicability_weight + var1.normalised_surprisingness * this.surprisingness_weight + var1.normalised_comprehensibility * this.comprehensibility_weight;
+    /** This calculates the overall worth of an implicate conjecture.
+     */
+
+    public void calculateOverallValue(Implicate conjecture)
+    {
+        conjecture.interestingness =
+                (conjecture.normalised_applicability * applicability_weight) +
+                        (conjecture.normalised_surprisingness * surprisingness_weight) +
+                        (conjecture.normalised_comprehensibility * comprehensibility_weight);
     }
 
-    public void measureConjecture(NonExists var1, Vector var2, Theory var3) {
-        if (this.measure_conjectures) {
-            this.old_measures_have_been_updated = false;
-            var1.arity = (double)var1.concept.arity;
-            var1.complexity = (double)var1.concept.complexity;
-            var1.comprehensibility = 1.0D / var1.complexity;
-            var1.normalised_comprehensibility = super.normalisedValue(var1.comprehensibility, this.all_ne_comprehensibilities);
-            int var6;
-            if (this.measures_need_updating) {
-                this.old_measures_have_been_updated = true;
+    /** This calculates all the measures for a given non existence
+     * conjecture. It also updates the measures for all the other
+     * conjectures if needed.
+     */
 
-                for(int var4 = 0; var4 < var2.size(); ++var4) {
-                    Conjecture var5 = (Conjecture)var2.elementAt(var4);
-                    var6 = this.all_ne_comprehensibilities.indexOf(Double.toString(var5.comprehensibility));
-                    var5.normalised_comprehensibility = new Double((double)var6) / (new Double((double)this.all_ne_comprehensibilities.size()) - 1.0D);
-                }
+    public void measureConjecture(NonExists conjecture, Vector conjectures, Theory theory)
+    {
+        if (!measure_conjectures)
+            return;
+        old_measures_have_been_updated = false;
+
+        // Arity //
+
+        conjecture.arity = conjecture.concept.arity;
+
+        // Comprehensibility //
+
+        conjecture.complexity = conjecture.concept.complexity;
+        conjecture.comprehensibility = 1/conjecture.complexity;
+        conjecture.normalised_comprehensibility =
+                super.normalisedValue(conjecture.comprehensibility, all_ne_comprehensibilities);
+
+        if (measures_need_updating)
+        {
+            old_measures_have_been_updated = true;
+            for (int i=0; i<conjectures.size(); i++)
+            {
+                Conjecture old_conjecture = (Conjecture)conjectures.elementAt(i);
+                int pos = all_ne_comprehensibilities.indexOf(Double.toString(old_conjecture.comprehensibility));
+                old_conjecture.normalised_comprehensibility =
+                        (new Double(pos)).doubleValue()/((new Double(all_ne_comprehensibilities.size())).doubleValue() - 1);
             }
+        }
 
-            double var9 = 0.0D;
+        // Surprisingness //
 
-            for(var6 = 0; var6 < var1.concept.parents.size(); ++var6) {
-                Concept var7 = (Concept)var1.concept.parents.elementAt(var6);
-                var9 += var7.applicability;
+        double surprisingness = 0;
+        for (int i=0; i<conjecture.concept.parents.size(); i++)
+        {
+            Concept parent = (Concept)conjecture.concept.parents.elementAt(i);
+            surprisingness = surprisingness + parent.applicability;
+        }
+
+        if (conjecture.concept.parents.isEmpty())
+            conjecture.surprisingness = 1;
+        else
+        {
+            conjecture.surprisingness = surprisingness/conjecture.concept.parents.size();
+            conjecture.normalised_surprisingness =
+                    super.normalisedValue(conjecture.surprisingness, all_ne_surprisingnesses);
+        }
+
+        if (measures_need_updating)
+        {
+            old_measures_have_been_updated = true;
+            for (int i=0; i<conjectures.size(); i++)
+            {
+                Conjecture old_conjecture = (Conjecture)conjectures.elementAt(i);
+                int pos = all_ne_surprisingnesses.indexOf(Double.toString(old_conjecture.surprisingness));
+                old_conjecture.normalised_surprisingness =
+                        (new Double(pos)).doubleValue()/((new Double(all_ne_surprisingnesses.size())).doubleValue() - 1);
             }
+        }
 
-            if (var1.concept.parents.isEmpty()) {
-                var1.surprisingness = 1.0D;
-            } else {
-                var1.surprisingness = var9 / (double)var1.concept.parents.size();
-                var1.normalised_surprisingness = super.normalisedValue(var1.surprisingness, this.all_ne_surprisingnesses);
-            }
+        //plausibility
+        double plausibility = 0;
+        plausibility = (theory.entities.size() - conjecture.counterexamples.size())/theory.entities.size();
+        conjecture.plausibility = plausibility;
 
-            int var8;
-            if (this.measures_need_updating) {
-                this.old_measures_have_been_updated = true;
 
-                for(var6 = 0; var6 < var2.size(); ++var6) {
-                    Conjecture var10 = (Conjecture)var2.elementAt(var6);
-                    var8 = this.all_ne_surprisingnesses.indexOf(Double.toString(var10.surprisingness));
-                    var10.normalised_surprisingness = new Double((double)var8) / (new Double((double)this.all_ne_surprisingnesses.size()) - 1.0D);
-                }
-            }
 
-            double var11 = 0.0D;
-            try {
-                var11 = (double) ((var3.entities.size() - var1.counterexamples.size()) / var3.entities.size());
-            } catch (ArithmeticException ignored) {
-            }
-            var1.plausibility = var11;
-            this.calculateOverallValue(var1);
-            if (this.old_measures_have_been_updated) {
-                for(var8 = 0; var8 < var2.size(); ++var8) {
-                    this.calculateOverallValue((NonExists)var2.elementAt(var8));
-                }
-            }
+        calculateOverallValue(conjecture);
 
+        // If any measures have changed for any old conjecture, we need to calculate the
+        // overall scores for every concept.
+
+        if (old_measures_have_been_updated)
+        {
+            for (int i=0; i<conjectures.size(); i++)
+                calculateOverallValue((NonExists)conjectures.elementAt(i));
         }
     }
 
-    public void calculateOverallValue(NonExists var1) {
-        var1.interestingness = var1.normalised_comprehensibility * this.comprehensibility_weight + var1.normalised_surprisingness * this.surprisingness_weight;
+    /** This calculates the overall worth of an non-exists conjecture.
+     */
+
+    public void calculateOverallValue(NonExists conjecture)
+    {
+        conjecture.interestingness =
+                (conjecture.normalised_comprehensibility * comprehensibility_weight) +
+                        (conjecture.normalised_surprisingness * surprisingness_weight);
     }
 
-    public void measureConjecture(Conjecture var1, Theory var2) {
-        if (var1 instanceof Equivalence) {
-            this.measureConjecture((Equivalence)var1, var2.equivalences);
-        }
+    /** This calls the right method to calculate all the measures for a
+     * given conjecture. It also updates the measures for all the other
+     * conjectures if needed.
+     */
 
-        if (var1 instanceof NearEquivalence) {
-            this.measureConjecture((NearEquivalence)var1, var2.near_equivalences);
-        }
+    public void measureConjecture(Conjecture conjecture, Theory theory)
+    {
+        if(conjecture instanceof Equivalence)
+            measureConjecture((Equivalence)conjecture, theory.equivalences);
 
-        if (var1 instanceof Implication) {
-            this.measureConjecture((Implication)var1, var2.implications);
-        }
+        if(conjecture instanceof NearEquivalence)
+            measureConjecture((NearEquivalence)conjecture, theory.near_equivalences);
 
-        if (var1 instanceof NearImplication) {
-            this.measureConjecture((NearImplication)var1, var2.near_implications);
-        }
+        if(conjecture instanceof Implication)
+            measureConjecture((Implication)conjecture, theory.implications);
 
-        if (var1 instanceof Implicate) {
-            this.measureConjecture((Implicate)var1, var2.implicates);
-        }
+        if(conjecture instanceof NearImplication)
+            measureConjecture((NearImplication)conjecture, theory.near_implications);
 
-        if (var1 instanceof NonExists) {
-            this.measureConjecture((NonExists)var1, var2.non_existences, var2);
-        }
+        if(conjecture instanceof Implicate)
+            measureConjecture((Implicate)conjecture, theory.implicates);
 
+        if(conjecture instanceof NonExists)
+            measureConjecture((NonExists)conjecture, theory.non_existences, theory);
     }
 
-    public Vector removeDuplicates(Vector var1, Vector var2) {
-        Vector var3 = new Vector();
-
-        int var4;
-        String var5;
-        for(var4 = 0; var4 < var1.size(); ++var4) {
-            var5 = (String)var1.elementAt(var4);
-            boolean var6 = true;
-
-            for(int var7 = 0; var7 < var2.size(); ++var7) {
-                String var8 = (String)var2.elementAt(var7);
-                if (var8.equals(var5)) {
-                    var6 = false;
+    /** Given two vectors of strings, removes the duplicates and
+     * returns -- needs testing (alisonp)*/
+    public Vector removeDuplicates(Vector vector1, Vector vector2)
+    {
+        Vector output = new Vector();
+        for(int i=0;i<vector1.size();i++)
+        {
+            String entity1 = (String)vector1.elementAt(i);
+            boolean add_entity = true;
+            for(int j=0;j<vector2.size();j++)
+            {
+                String entity2 = (String)vector2.elementAt(j);
+                if(entity2.equals(entity1))
+                {
+                    add_entity = false;
                     break;
                 }
             }
-
-            if (var6) {
-                var3.addElement(var5);
-            }
+            if(add_entity)
+                output.addElement(entity1);
         }
-
-        for(var4 = 0; var4 < var2.size(); ++var4) {
-            var5 = (String)var2.elementAt(var4);
-            var3.addElement(var5);
+        for(int i=0;i<vector2.size();i++)
+        {
+            String entity = (String)vector2.elementAt(i);
+            output.addElement(entity);
         }
-
-        return var3;
+        return output;
     }
 }

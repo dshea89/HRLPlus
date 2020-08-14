@@ -1,93 +1,144 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.Serializable;
 import java.util.Vector;
+import java.lang.String;
+import java.io.Serializable;
 
-public class Step extends Vector implements Serializable {
+/** A class representing a theory formation step. This is just an extension of a vector.
+ * The first entry of the vector is the list of concepts which were used in the step.
+ * The second entry is the production rule used. The third entry is the parameters used.
+ * @author Simon Colton, started 13th December 1999
+ * @version 1.0
+ */
+
+public class Step extends Vector implements Serializable
+{
+    /** The id of this step.
+     */
+
     public String id = "";
+
+    /** If a concept arises from this step, then don't develop it further
+     * i.e., dont add it to the agenda.
+     */
+
     public boolean dont_develop = false;
+
+    /** The name of the concept (which should) arise from this step.
+     */
+
     public String concept_arising_name = "";
-    public double score = 0.0D;
+
+    /** A score for the step. This will help place the step in an Agenda.
+     */
+
+    public double score = 0;
+
+    /** Flag to say whether the concept was forced or not
+     */
+
     public boolean forced = false;
+
+    /** What happened when this step was carried out.
+     */
+
     public String result_of_step_explanation = "";
+
+    /** The theory object which resulted from this step.
+     */
+
     public TheoryConstituent result_of_step = new TheoryConstituent();
 
-    public Step() {
+    /** Simple constructor
+     */
+
+    public Step()
+    {
     }
 
-    public String asString() {
-        if (this.size() == 0) {
-            return "";
-        } else {
-            String var1 = "[";
-            Vector var2;
-            if (this.size() == 1) {
-                var2 = (Vector)this.elementAt(0);
+    /** Pretty printing the step.
+     */
 
-                for(int var3 = 0; var3 < var2.size(); ++var3) {
-                    var1 = var1 + ((Concept)var2.elementAt(var3)).id + " ";
-                }
-
-                var1 = var1.trim();
-            }
-
-            ProductionRule var6;
-            if (this.size() == 2) {
-                var2 = (Vector)this.elementAt(0);
-                var6 = (ProductionRule)this.elementAt(1);
-
-                for(int var4 = 0; var4 < var2.size(); ++var4) {
-                    var1 = var1 + ((Concept)var2.elementAt(var4)).id + " ";
-                }
-
-                var1 = var1.trim() + "," + var6.getName();
-            }
-
-            if (this.size() == 3) {
-                var2 = (Vector)this.elementAt(0);
-                var6 = (ProductionRule)this.elementAt(1);
-                Vector var7 = (Vector)this.elementAt(2);
-
-                for(int var5 = 0; var5 < var2.size(); ++var5) {
-                    var1 = var1 + ((Concept)var2.elementAt(var5)).id + " ";
-                }
-
-                var1 = var1.trim() + "," + var6.getName() + "," + this.writeParameters(var7);
-            }
-
-            var1 = var1 + "]";
-            return var1;
+    public String asString()
+    {
+        // System.out.println("\n\n\nstarted asString()");
+        //System.out.println("size() is " + size());
+        if (size()==0) return("");
+        String output = "[";
+        if (size()==1)
+        {
+            //System.out.println("size()==1");
+            Vector concept_list = (Vector)elementAt(0);
+            for (int i=0;i<concept_list.size();i++)
+                output = output + ((Concept)concept_list.elementAt(i)).id + " ";
+            //System.out.println("output is " + output);
+            output = output.trim();
         }
-    }
-
-    public String writeParameters(Vector var1) {
-        String var2 = "[";
-
-        for(int var3 = 0; var3 < var1.size(); ++var3) {
-            Object var4 = var1.elementAt(var3);
-            if (var4 instanceof Concept) {
-                var2 = var2 + ((Concept)var4).id;
-            } else {
-                var2 = var2 + var4.toString();
-            }
-
-            if (var3 < var1.size() - 1) {
-                var2 = var2 + ", ";
-            }
+        if (size()==2)
+        {
+            //System.out.println("size()==2");
+            Vector concept_list = (Vector)elementAt(0);
+            ProductionRule pr = (ProductionRule)elementAt(1);
+            for (int i=0;i<concept_list.size();i++)
+                output = output + ((Concept)concept_list.elementAt(i)).id + " ";
+            output = output.trim() + "," + pr.getName();
         }
-
-        return var2 + "]";
+        if (size()==3)
+        {
+            //System.out.println("size()==3");
+            Vector concept_list = (Vector)elementAt(0);
+            ProductionRule pr = (ProductionRule)elementAt(1);
+            Vector parameters = (Vector)elementAt(2);
+            for (int i=0;i<concept_list.size();i++)
+                output = output + ((Concept)concept_list.elementAt(i)).id + " ";
+            output = output.trim() + "," + pr.getName() + "," + writeParameters(parameters);
+        }
+        output = output + "]";
+        //System.out.println("finished asString() - got output is "+output);
+        return output;
     }
 
-    public Vector conceptList() {
-        return (Vector)this.elementAt(0);
+    public String writeParameters(Vector parameters)
+    {
+        String output = "[";
+        for (int i=0; i<parameters.size(); i++)
+        {
+            Object param = parameters.elementAt(i);
+            if (param instanceof Concept)
+                output = output + ((Concept)param).id;
+            else
+                output = output + param.toString();
+            if (i<parameters.size()-1)
+                output = output + ", ";
+        }
+        return output + "]";
     }
 
-    public ProductionRule productionRule() {
-        return this.size() < 1 ? new ProductionRule() : (ProductionRule)this.elementAt(1);
+    /** This returns the concept list used in this step.
+     */
+
+    public Vector conceptList()
+    {
+        return (Vector)elementAt(0);
     }
 
-    public Vector parameters() {
-        return this.size() < 2 ? new Vector() : (Vector)this.elementAt(2);
+    /** This returns the production rule used in this step.
+     */
+
+    public ProductionRule productionRule()
+    {
+        if (size()<1)
+            return new ProductionRule();
+        return (ProductionRule)elementAt(1);
+    }
+
+    /** This returns the parameters used in this step.
+     */
+
+    public Vector parameters()
+    {
+        if (size()<2)
+            return new Vector();
+        return (Vector)elementAt(2);
     }
 }

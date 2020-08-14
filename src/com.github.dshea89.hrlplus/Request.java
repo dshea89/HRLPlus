@@ -53,20 +53,19 @@ public class Request extends GroupAgendaElement implements Cloneable {
         } else if (this.motivation.attempted_method.equals("monster-barring")) {
             return this.string_object;
         } else {
-            Conjecture var1 = this.motivation.conjecture_under_discussion;
-            String var2 = this.motivation.attempted_method;
-            new String();
-            String var3;
+            Conjecture conjecture = this.motivation.conjecture_under_discussion;
+            String attempted_method = this.motivation.attempted_method;
+            String var;
             if (this.num == 1) {
-                var3 = "a";
+                var = "a";
             } else {
-                var3 = (new Integer(this.num)).toString();
+                var = (new Integer(this.num)).toString();
             }
 
-            if (var2.equals("to get discussion started")) {
-                return this.condition.equals("null") ? "supply " + var3 + " " + this.type + ", in order to " + var2 : "supply " + var3 + " " + this.type + " which " + this.condition + " " + this.toString(this.theory_constituent_vector) + ", in order to " + var2;
+            if (attempted_method.equals("to get discussion started")) {
+                return this.condition.equals("null") ? "supply " + var + " " + this.type + ", in order to " + attempted_method : "supply " + var + " " + this.type + " which " + this.condition + " " + this.toString(this.theory_constituent_vector) + ", in order to " + attempted_method;
             } else {
-                return "supply " + var3 + " " + this.type + " which " + this.condition + " " + this.toString(this.theory_constituent_vector) + ", in order to " + var2;
+                return "supply " + var + " " + this.type + " which " + this.condition + " " + this.toString(this.theory_constituent_vector) + ", in order to " + attempted_method;
             }
         }
     }

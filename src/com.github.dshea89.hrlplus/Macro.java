@@ -1,202 +1,205 @@
 package com.github.dshea89.hrlplus;
 
-import java.awt.Button;
-import java.awt.Checkbox;
-import java.awt.Choice;
-import java.awt.Component;
-import java.awt.List;
-import java.awt.TextComponent;
-import java.awt.event.ActionEvent;
-import java.awt.event.ItemEvent;
-import java.io.Serializable;
-import java.lang.reflect.Field;
-import java.util.Hashtable;
 import java.util.Vector;
-import javax.swing.Icon;
-import javax.swing.JEditorPane;
-import javax.swing.JOptionPane;
-import javax.swing.JTable;
+import java.util.Hashtable;
+import java.util.Enumeration;
+import java.lang.String;
+import java.io.Serializable;
+import java.awt.event.*;
+import java.awt.*;
+import java.lang.reflect.*;
+import javax.swing.*;
 
-public class Macro extends PseudoCodeUser implements Serializable {
+/** A class for individual macros which set front end settings (and can do other things);
+ *
+ * @author Simon Colton, started 24th April 2002
+ * @version 1.0 */
+
+public class Macro extends PseudoCodeUser implements Serializable
+{
     public boolean use_tutorial = true;
     public String next_tutor_text = "";
     public boolean waiting_for_theory = false;
     public int tutorial_stage = 0;
     public Theory theory = null;
     public Reflection reflect = new Reflection();
-    public JEditorPane tutorial_text = new JEditorPane("text/html", "");
+    public JEditorPane tutorial_text = new JEditorPane("text/html","");
 
-    public Macro(Theory var1, String var2, Hashtable var3) {
-        this.getCodeLines(var2);
-        this.original_alias_hashtable = var3;
-        this.original_alias_hashtable.put("this", this);
-        this.original_alias_hashtable.put("theory", var1);
-        this.pseudo_code_interpreter.local_alias_hashtable = this.original_alias_hashtable;
-        this.theory = var1;
+    public Macro(Theory given_theory, String pseudo_code, Hashtable hashtable)
+    {
+        getCodeLines(pseudo_code);
+        original_alias_hashtable = hashtable;
+        original_alias_hashtable.put("this",this);
+        original_alias_hashtable.put("theory",given_theory);
+        pseudo_code_interpreter.local_alias_hashtable = original_alias_hashtable;
+        theory = given_theory;
     }
 
-    public Component getComponent(String var1) {
-        try {
-            Field var2 = this.theory.front_end.getClass().getField(var1);
-            return (Component)var2.get(this.theory.front_end);
-        } catch (Exception var3) {
-            return null;
+    public Component getComponent(String component_name)
+    {
+        try
+        {
+            Field f = theory.front_end.getClass().getField(component_name);
+            return (Component)f.get(theory.front_end);
+        }
+        catch(Exception e)
+        {
+        }
+        return null;
+    }
+
+    public void clickButton(String button_name)
+    {
+        Button button = (Button)getComponent(button_name);
+        if (button!=null)
+        {
+            theory.actionPerformed(new ActionEvent(button,ActionEvent.ACTION_PERFORMED, "button"));
+            theory.front_end.actionPerformed(new ActionEvent(button,ActionEvent.ACTION_PERFORMED, "button"));
         }
     }
 
-    public void clickButton(String var1) {
-        Button var2 = (Button)this.getComponent(var1);
-        if (var2 != null) {
-            this.theory.actionPerformed(new ActionEvent(var2, 1001, "button"));
-            this.theory.front_end.actionPerformed(new ActionEvent(var2, 1001, "button"));
+    public void setText(String text_component_name, String text_value)
+    {
+        TextComponent text_component = (TextComponent)getComponent(text_component_name);
+        if (text_component!=null)
+            text_component.setText(text_value);
+    }
+
+    public void clickCheckbox(String check_box_name, String check_value)
+    {
+        Checkbox check_box = (Checkbox)getComponent(check_box_name);
+        if (check_box!=null)
+        {
+            if (check_value.equals("true"))
+                check_box.setState(true);
+            if (check_value.equals("false"))
+                check_box.setState(false);
+            theory.itemStateChanged(new ItemEvent(check_box,ItemEvent.ITEM_STATE_CHANGED,
+                    "0",ItemEvent.ITEM_STATE_CHANGED));
+            theory.front_end.itemStateChanged(new ItemEvent(check_box,ItemEvent.ITEM_STATE_CHANGED,
+                    "0",ItemEvent.ITEM_STATE_CHANGED));
         }
-
     }
 
-    public void setText(String var1, String var2) {
-        TextComponent var3 = (TextComponent)this.getComponent(var1);
-        if (var3 != null) {
-            var3.setText(var2);
+    public void clickList(String list_name, String list_item_name, String check_value)
+    {
+        List list = (List)getComponent(list_name);
+        if (list!=null)
+        {
+            Vector items = new Vector();
+            for (int j=0; j<list.getItemCount(); j++)
+                items.addElement(list.getItem(j));
+            int item_num = items.indexOf(list_item_name);
+            String item_num_string = Integer.toString(item_num);
+            if (check_value.equals("true"))
+                list.select(item_num);
+            if (check_value.equals("false"))
+                list.deselect(item_num);
+            theory.itemStateChanged(new ItemEvent(list,ItemEvent.ITEM_STATE_CHANGED,
+                    item_num_string,ItemEvent.ITEM_STATE_CHANGED));
+            theory.front_end.itemStateChanged(new ItemEvent(list,ItemEvent.ITEM_STATE_CHANGED,
+                    item_num_string,ItemEvent.ITEM_STATE_CHANGED));
         }
-
     }
 
-    public void clickCheckbox(String var1, String var2) {
-        Checkbox var3 = (Checkbox)this.getComponent(var1);
-        if (var3 != null) {
-            if (var2.equals("true")) {
-                var3.setState(true);
-            }
+    public void clickChoice(String choice_name, String list_item_name)
+    {
+        Choice choice = (Choice)getComponent(choice_name);
+        if (choice!=null)
+        {
+            Vector items = new Vector();
+            for (int j=0; j<choice.getItemCount(); j++)
+                items.addElement(choice.getItem(j));
 
-            if (var2.equals("false")) {
-                var3.setState(false);
-            }
-
-            this.theory.itemStateChanged(new ItemEvent(var3, 701, "0", 701));
-            this.theory.front_end.itemStateChanged(new ItemEvent(var3, 701, "0", 701));
+            int item_num = items.indexOf(list_item_name);
+            String item_num_string = Integer.toString(item_num);
+            choice.select(item_num);
+            theory.itemStateChanged(new ItemEvent(choice,ItemEvent.ITEM_STATE_CHANGED,
+                    item_num_string,ItemEvent.ITEM_STATE_CHANGED));
+            theory.front_end.itemStateChanged(new ItemEvent(choice,ItemEvent.ITEM_STATE_CHANGED,
+                    item_num_string,ItemEvent.ITEM_STATE_CHANGED));
         }
-
     }
 
-    public void clickList(String var1, String var2, String var3) {
-        List var4 = (List)this.getComponent(var1);
-        if (var4 != null) {
-            Vector var5 = new Vector();
+    public void setTableValue(String table_name, String value, int row, int col)
+    {
+        JTable table = (JTable)getComponent(table_name);
+        table.setValueAt(value, row, col);
+    }
 
-            int var6;
-            for(var6 = 0; var6 < var4.getItemCount(); ++var6) {
-                var5.addElement(var4.getItem(var6));
-            }
-
-            var6 = var5.indexOf(var2);
-            String var7 = Integer.toString(var6);
-            if (var3.equals("true")) {
-                var4.select(var6);
-            }
-
-            if (var3.equals("false")) {
-                var4.deselect(var6);
-            }
-
-            this.theory.itemStateChanged(new ItemEvent(var4, 701, var7, 701));
-            this.theory.front_end.itemStateChanged(new ItemEvent(var4, 701, var7, 701));
+    public void clearTable(String table_name)
+    {
+        JTable table = (JTable)getComponent(table_name);
+        int num_rows = table.getRowCount();
+        int num_cols = table.getColumnCount();
+        for (int i=0; i<num_rows; i++)
+        {
+            for (int j=0; j<num_cols; j++)
+                table.setValueAt("", i, j);
         }
-
     }
 
-    public void clickChoice(String var1, String var2) {
-        Choice var3 = (Choice)this.getComponent(var1);
-        if (var3 != null) {
-            Vector var4 = new Vector();
-
-            int var5;
-            for(var5 = 0; var5 < var3.getItemCount(); ++var5) {
-                var4.addElement(var3.getItem(var5));
-            }
-
-            var5 = var4.indexOf(var2);
-            String var6 = Integer.toString(var5);
-            var3.select(var5);
-            this.theory.itemStateChanged(new ItemEvent(var3, 701, var6, 701));
-            this.theory.front_end.itemStateChanged(new ItemEvent(var3, 701, var6, 701));
+    public void waitForTheory()
+    {
+        int i=0;
+        boolean add_to_next_macro = false;
+        theory.macro_to_complete = "";
+        for (i=0; i<pseudo_code_lines.size(); i++)
+        {
+            String pseudo_code_line = (String)pseudo_code_lines.elementAt(i);
+            if (add_to_next_macro)
+                theory.macro_to_complete = theory.macro_to_complete + pseudo_code_line + "\n";
+            if (pseudo_code_line.trim().equals("waitForTheory();"))
+                add_to_next_macro = true;
         }
-
+        pseudo_code_interpreter.break_now = true;
+        waiting_for_theory = true;
     }
 
-    public void setTableValue(String var1, String var2, int var3, int var4) {
-        JTable var5 = (JTable)this.getComponent(var1);
-        var5.setValueAt(var2, var3, var4);
+    public void noteToUser(String note)
+    {
+        JOptionPane.showMessageDialog(null, note);
     }
 
-    public void clearTable(String var1) {
-        JTable var2 = (JTable)this.getComponent(var1);
-        int var3 = var2.getRowCount();
-        int var4 = var2.getColumnCount();
+    public void tutorLine(String line)
+    {
+        next_tutor_text = next_tutor_text + line;
+    }
 
-        for(int var5 = 0; var5 < var3; ++var5) {
-            for(int var6 = 0; var6 < var4; ++var6) {
-                var2.setValueAt("", var5, var6);
-            }
+    public void tutor(String header)
+    {
+        if (use_tutorial)
+        {
+            JOptionPane.showMessageDialog(null, next_tutor_text, header, JOptionPane.INFORMATION_MESSAGE);
+            next_tutor_text = "";
         }
-
     }
 
-    public void waitForTheory() {
-        boolean var1 = false;
-        boolean var2 = false;
-        this.theory.macro_to_complete = "";
-
-        for(int var4 = 0; var4 < this.pseudo_code_lines.size(); ++var4) {
-            String var3 = (String)this.pseudo_code_lines.elementAt(var4);
-            if (var2) {
-                this.theory.macro_to_complete = this.theory.macro_to_complete + var3 + "\n";
-            }
-
-            if (var3.trim().equals("waitForTheory();")) {
-                var2 = true;
-            }
+    public void tutor(String header, String help_text)
+    {
+        if (use_tutorial)
+        {
+            JOptionPane.showMessageDialog(null, help_text + next_tutor_text, header, JOptionPane.INFORMATION_MESSAGE);
+            next_tutor_text = "";
         }
-
-        this.pseudo_code_interpreter.break_now = true;
-        this.waiting_for_theory = true;
     }
 
-    public void noteToUser(String var1) {
-        JOptionPane.showMessageDialog((Component)null, var1);
+    public void showScreen(String screen_name)
+    {
+        HR hr = (HR)theory.front_end.main_frame;
+        hr.changeScreen(screen_name);
     }
 
-    public void tutorLine(String var1) {
-        this.next_tutor_text = this.next_tutor_text + var1;
+    public void useTutorial()
+    {
+        use_tutorial = true;
+        Object[] options = { "Yes", "No" };
+        int i = JOptionPane.showOptionDialog(null, "Do you want to read the tutorial\nassociated with this macro?",
+                "Run Tutorial?",
+                JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
+                null, options, options[0]);
+        if (i==JOptionPane.CLOSED_OPTION || i==1)
+            use_tutorial = false;
     }
 
-    public void tutor(String var1) {
-        if (this.use_tutorial) {
-            JOptionPane.showMessageDialog((Component)null, this.next_tutor_text, var1, 1);
-            this.next_tutor_text = "";
-        }
-
-    }
-
-    public void tutor(String var1, String var2) {
-        if (this.use_tutorial) {
-            JOptionPane.showMessageDialog((Component)null, var2 + this.next_tutor_text, var1, 1);
-            this.next_tutor_text = "";
-        }
-
-    }
-
-    public void showScreen(String var1) {
-        HR var2 = this.theory.front_end.main_frame;
-        var2.changeScreen(var1);
-    }
-
-    public void useTutorial() {
-        this.use_tutorial = true;
-        Object[] var1 = new Object[]{"Yes", "No"};
-        int var2 = JOptionPane.showOptionDialog((Component)null, "Do you want to read the tutorial\nassociated with this macro?", "Run Tutorial?", 0, 2, (Icon)null, var1, var1[0]);
-        if (var2 == -1 || var2 == 1) {
-            this.use_tutorial = false;
-        }
-
-    }
 }

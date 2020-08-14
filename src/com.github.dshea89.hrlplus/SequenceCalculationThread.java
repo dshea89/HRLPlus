@@ -1,14 +1,18 @@
 package com.github.dshea89.hrlplus;
 
-import java.awt.Button;
-import java.awt.TextField;
-import java.io.Serializable;
 import java.util.Vector;
+import java.util.Hashtable;
+import java.lang.String;
+import java.awt.*;
+import java.io.Serializable;
 
-/**
- * A class for extending a sequence of objects of interest
- */
-public class SequenceCalculationThread extends Thread implements Serializable {
+/** A class for extending a sequence of objects of interest
+ *
+ * @author Simon Colton, started 8th August 1999
+ * @version 1.0 */
+
+public class SequenceCalculationThread extends Thread implements Serializable
+{
     public int bottom_limit = 0;
     public int top_limit = 0;
     public boolean must_stop = false;
@@ -17,55 +21,53 @@ public class SequenceCalculationThread extends Thread implements Serializable {
     public Button calculate_button = new Button();
     public Vector concepts = new Vector();
 
-    public SequenceCalculationThread() {
+    public SequenceCalculationThread(){}
+
+    public SequenceCalculationThread(int bottom_int, int top_int,
+                                     Concept sequence_concept,
+                                     TextField output_text,
+                                     Button calc_button,
+                                     Vector concepts_in)
+    {
+        bottom_limit = bottom_int;
+        top_limit = top_int;
+        concept = sequence_concept;
+        calculate_output_text = output_text;
+        calculate_button = calc_button;
+        concepts = concepts_in;
     }
 
-    public SequenceCalculationThread(int bottom_int, int top_int, Concept sequence_concept, TextField output_text,
-                                     Button calc_button, Vector concepts_in) {
-        this.bottom_limit = bottom_int;
-        this.top_limit = top_int;
-        this.concept = sequence_concept;
-        this.calculate_output_text = output_text;
-        this.calculate_button = calc_button;
-        this.concepts = concepts_in;
-    }
+    public void run()
+    {
+        int i=bottom_limit;
+        Row row = new Row();
 
-    public void run() {
-        int var1 = this.bottom_limit;
-        Row var2 = new Row();
-
-        while(var1 <= this.top_limit && !var2.is_void && !this.must_stop) {
-            String var3 = Integer.toString(var1);
-            var2 = this.concept.calculateRow(this.concepts, var3);
-            if (!this.calculate_output_text.getText().equals("") && this.concept.arity == 1 && var2.tuples.size() > 0) {
-                this.calculate_output_text.setText(this.calculate_output_text.getText() + ", ");
-            }
-
-            if (this.concept.arity == 1 && var2.tuples.size() > 0) {
-                this.calculate_output_text.setText(this.calculate_output_text.getText() + var2.entity);
-            }
-
-            if (this.concept.arity == 2) {
-                for(int var4 = 0; var4 < var2.tuples.size(); ++var4) {
-                    if (!this.calculate_output_text.getText().equals("")) {
-                        this.calculate_output_text.setText(this.calculate_output_text.getText() + ", ");
-                    }
-
-                    Vector var5 = (Vector)var2.tuples.elementAt(var4);
-                    this.calculate_output_text.setText(this.calculate_output_text.getText() + (String)var5.elementAt(0));
+        while (i<=top_limit && !row.is_void && !must_stop)
+        {
+            String entity = Integer.toString(i);
+            row = concept.calculateRow(concepts, entity);
+            if (!calculate_output_text.getText().equals("") &&
+                    concept.arity==1 && row.tuples.size()>0)
+                calculate_output_text.setText(calculate_output_text.getText() + ", ");
+            if (concept.arity==1 && row.tuples.size() > 0)
+                calculate_output_text.setText(calculate_output_text.getText() + row.entity);
+            if (concept.arity==2)
+            {
+                for (int j=0;j<row.tuples.size();j++)
+                {
+                    if (!calculate_output_text.getText().equals(""))
+                        calculate_output_text.setText(calculate_output_text.getText() + ", ");
+                    Vector tuple = (Vector)row.tuples.elementAt(j);
+                    calculate_output_text.setText(calculate_output_text.getText() +
+                            (String)tuple.elementAt(0));
                 }
             }
-
-            this.calculate_button.setLabel(Integer.toString(var1) + " STOP");
-            ++var1;
-            this.calculate_output_text.setCaretPosition(this.calculate_output_text.getText().length());
+            calculate_button.setLabel(Integer.toString(i) + " STOP");
+            i++;
+            calculate_output_text.setCaretPosition(calculate_output_text.getText().length());
         }
-
-        if (var2.is_void) {
-            this.calculate_output_text.setText(this.calculate_output_text.getText() + ",.....?");
-        }
-
-        this.calculate_output_text.setCaretPosition(0);
-        this.calculate_button.setLabel("Calculate");
+        if (row.is_void) calculate_output_text.setText(calculate_output_text.getText()+",.....?");
+        calculate_output_text.setCaretPosition(0);
+        calculate_button.setLabel("Calculate");
     }
 }

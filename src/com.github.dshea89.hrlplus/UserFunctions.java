@@ -1,672 +1,804 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.Serializable;
 import java.util.Vector;
+import java.lang.String;
+import java.util.Hashtable;
+import java.util.Enumeration;
+import java.io.Serializable;
 
-public class UserFunctions implements Serializable {
+/** A class where all the user defined concept calculations are stored.
+ * Note that these can also appeal to external processes. At present, the
+ * only external program available is Maplev3.
+ *
+ * @author Simon Colton, started 31st August 2001
+ * @version 1.0 */
+
+public class UserFunctions implements Serializable
+{
+    /** The maple handler for the users to employ.
+     */
+
     public Maple maple = new Maple();
 
-    public UserFunctions() {
-    }
+    public Tuples calculateTuples(String concept_id, String entity)
+    {
+        Maths maths = new Maths();
+        Tuples output = new Tuples();
 
-    public Tuples calculateTuples(String var1, String var2) {
-        Maths var3 = new Maths();
-        Tuples var4 = new Tuples();
-        if (var1.equals("int001")) {
-            var4.addElement(new Vector());
+        if (concept_id.equals("int001"))
+        {
+            //System.out.println("got int001");
+            output.addElement(new Vector());
         }
 
-        int var5;
-        Vector var6;
-        if (var1.equals("int002") && !var2.equals("0")) {
-            for(var5 = 1; var5 <= new Integer(var2); ++var5) {
-                var6 = new Vector();
-                var6.addElement(Integer.toString(var5));
-                var4.addElement(var6);
-            }
-        }
-
-        int var8;
-        double var9;
-        Vector var11;
-        Integer var30;
-        double var31;
-        Vector var35;
-        if (var1.equals("int003") && !var2.equals("0")) {
-            var30 = new Integer(var2);
-            var31 = (double)var30;
-
-            for(var8 = 1; (double)var8 <= var31 / 2.0D; ++var8) {
-                var9 = var31 / (double)var8;
-                if (var9 == Math.floor(var9)) {
-                    var11 = new Vector();
-                    var11.addElement(Integer.toString(var8));
-                    var4.addElement(var11);
-                }
-            }
-
-            var35 = new Vector();
-            var35.addElement(var30.toString());
-            var4.addElement(var35);
-        }
-
-        if (var1.equals("int019") && !var2.equals("0")) {
-            var30 = new Integer(var2);
-            var31 = (double)var30;
-
-            for(var8 = 2; (double)var8 <= var31 / 2.0D; ++var8) {
-                var9 = var31 / (double)var8;
-                if (var9 == Math.floor(var9)) {
-                    var11 = new Vector();
-                    var11.addElement(Integer.toString(var8));
-                    var4.addElement(var11);
-                }
-            }
-
-            var35 = new Vector();
-            var35.addElement(var30.toString());
-            var4.addElement(var35);
-        }
-
-        Vector var7;
-        if (var1.equals("int004")) {
-            var5 = 0;
-
-            for(var6 = new Vector(); var5 < var2.length(); ++var5) {
-                if (!var6.contains(var2.substring(var5, var5 + 1))) {
-                    var7 = new Vector();
-                    var7.addElement(var2.substring(var5, var5 + 1));
-                    var6.addElement(var2.substring(var5, var5 + 1));
-                    var4.addElement(var7);
+        if (concept_id.equals("int002"))
+        {
+            if (!entity.equals("0"))
+            {
+                for(int i=1;i<=(new Integer(entity)).intValue();i++)
+                {
+                    Vector tuple = new Vector();
+                    tuple.addElement(Integer.toString(i));
+                    output.addElement(tuple);
                 }
             }
         }
 
-        Vector var12;
-        int var43;
-        if (var1.equals("int005")) {
-            var30 = new Integer(var2);
-            var31 = (double)var30;
+        if (concept_id.equals("int003"))
+        {
+            if (!entity.equals("0"))
+            {
+                Integer i = new Integer(entity);
+                double i2=i.intValue();
+                for(int j=1;j<=i2/2;j++)
+                {
+                    double k=i2/j;
+                    if(k==Math.floor(k))
+                    {
+                        Vector tuple = new Vector();
+                        tuple.addElement(Integer.toString(j));
+                        output.addElement(tuple);
+                    }
+                }
+                Vector tuple = new Vector();
+                tuple.addElement(i.toString());
+                output.addElement(tuple);
+            }
+        }
 
-            for(var8 = 1; (double)var8 <= var31 / 2.0D; ++var8) {
-                var9 = var31 / (double)var8;
-                var43 = (int)var31 / var8;
-                if (var9 == Math.floor(var9)) {
-                    var12 = new Vector();
-                    var12.addElement(Integer.toString(var8));
-                    var12.addElement(Integer.toString(var43));
-                    var4.addElement(var12);
+        if (concept_id.equals("int019"))
+        {
+            if (!entity.equals("0"))
+            {
+                Integer i = new Integer(entity);
+                double i2=i.intValue();
+                for(int j=2;j<=i2/2;j++)
+                {
+                    double k=i2/j;
+                    if(k==Math.floor(k))
+                    {
+                        Vector tuple = new Vector();
+                        tuple.addElement(Integer.toString(j));
+                        output.addElement(tuple);
+                    }
+                }
+                Vector tuple = new Vector();
+                tuple.addElement(i.toString());
+                output.addElement(tuple);
+            }
+        }
+
+
+
+        if (concept_id.equals("int004"))
+        {
+            int i=0;
+            Vector digits = new Vector();
+            while (i<entity.length())
+            {
+                if (!digits.contains(entity.substring(i,i+1)))
+                {
+                    Vector tuple = new Vector();
+                    tuple.addElement(entity.substring(i,i+1));
+                    digits.addElement(entity.substring(i,i+1));
+                    output.addElement(tuple);
+                }
+                i++;
+            }
+        }
+
+        if (concept_id.equals("int005"))
+        {
+            Integer i = new Integer(entity);
+            double i2=i.intValue();
+            for(int j=1;j<=i2/2;j++)
+            {
+                double k = i2/j;
+                int k2 = (int)i2/j;
+                if(k==Math.floor(k))
+                {
+                    Vector tuple = new Vector();
+                    tuple.addElement(Integer.toString(j));
+                    tuple.addElement(Integer.toString(k2));
+                    output.addElement(tuple);
                 }
             }
-
-            var35 = new Vector();
-            var35.addElement(var30.toString());
-            var35.addElement("1");
-            var4.addElement(var35);
+            Vector tuple = new Vector();
+            tuple.addElement(i.toString());
+            tuple.addElement("1");
+            output.addElement(tuple);
         }
 
-        if (var1.equals("int020")) {
-            var30 = new Integer(var2);
-            var31 = (double)var30;
 
-            for(var8 = 2; (double)var8 <= var31 / 2.0D; ++var8) {
-                var9 = var31 / (double)var8;
-                var43 = (int)var31 / var8;
-                if (var9 == Math.floor(var9)) {
-                    var12 = new Vector();
-                    var12.addElement(Integer.toString(var8));
-                    var12.addElement(Integer.toString(var43));
-                    var4.addElement(var12);
+        if (concept_id.equals("int020"))
+        {
+            Integer i = new Integer(entity);
+            double i2=i.intValue();
+            for(int j=2;j<=i2/2;j++)
+            {
+                double k = i2/j;
+                int k2 = (int)i2/j;
+                if(k==Math.floor(k))
+                {
+                    Vector tuple = new Vector();
+                    tuple.addElement(Integer.toString(j));
+                    tuple.addElement(Integer.toString(k2));
+                    output.addElement(tuple);
                 }
             }
-
-            var35 = new Vector();
-            var35.addElement(var30.toString());
-            var35.addElement("1");
-            var4.addElement(var35);
+            Vector tuple = new Vector();
+            tuple.addElement(i.toString());
+            tuple.addElement("1");
+            output.addElement(tuple);
         }
 
-        String var32;
-        int var33;
-        Tuples var39;
-        String var44;
-        if (var1.equals("int006")) {
-            var5 = new Integer(var2);
 
-            for(var33 = 1; var33 < var5; ++var33) {
-                var32 = Integer.toString(var33);
-                var44 = Integer.toString(var5 - var33);
-                var39 = new Tuples();
-                var39.addElement(var32);
-                var39.addElement(var44);
-                var4.addElement(var39);
+        if (concept_id.equals("int006"))
+        {
+            int i = (new Integer(entity)).intValue();
+            for(int j=1;j<i;j++)
+            {
+                String js = Integer.toString(j);
+                String js2 = Integer.toString(i-j);
+                Tuples tuple = new Tuples();
+                tuple.addElement(js);
+                tuple.addElement(js2);
+                output.addElement(tuple);
             }
         }
 
-        if (var1.equals("int018")) {
-            var5 = new Integer(var2);
 
-            for(var33 = 0; var33 <= var5; ++var33) {
-                var32 = Integer.toString(var33);
-                var44 = Integer.toString(var5 - var33);
-                var39 = new Tuples();
-                var39.addElement(var32);
-                var39.addElement(var44);
-                var4.addElement(var39);
+        if (concept_id.equals("int018"))
+        {
+            int i = (new Integer(entity)).intValue();
+            for(int j=0;j<=i;j++)
+            {
+                String js = Integer.toString(j);
+                String js2 = Integer.toString(i-j);
+                Tuples tuple = new Tuples();
+                tuple.addElement(js);
+                tuple.addElement(js2);
+                output.addElement(tuple);
             }
         }
 
-        if (var1.equals("int007")) {
-            var4 = var3.baseRepresentation(2, var2);
+        if (concept_id.equals("int007"))
+        {
+            output = maths.baseRepresentation(2,entity);
         }
 
-        String[] var34;
-        if (var1.equals("int008")) {
-            var34 = new String[]{"numtheory"};
-            var4 = this.maple.getOutput(2, var2, "tau", var34);
+        if (concept_id.equals("int008"))
+        {
+            String[] packages = {"numtheory"};
+            output = maple.getOutput(2, entity,"tau",packages);
         }
 
-        if (var1.equals("int009")) {
-            var34 = new String[]{"numtheory"};
-            var4 = this.maple.getOutput(2, var2, "sigma", var34);
+        if (concept_id.equals("int009"))
+        {
+            String[] packages = {"numtheory"};
+            output = maple.getOutput(2, entity,"sigma",packages);
         }
 
-        if (var1.equals("int010")) {
-            var34 = new String[]{"numtheory"};
-            var4 = this.maple.getOutput(2, var2, "phi", var34);
+        if (concept_id.equals("int010"))
+        {
+            String[] packages = {"numtheory"};
+            output = maple.getOutput(2, entity,"phi",packages);
         }
 
-        if (var1.equals("int011") && !var2.equals("0") && !var2.equals("1") && !var2.equals("2")) {
-            var34 = new String[]{"numtheory"};
-            var4 = this.maple.getOutput(2, var2, "prevprime", var34);
-        }
-
-        if (var1.equals("int012")) {
-            var34 = new String[]{"numtheory"};
-            var4 = this.maple.getOutput(1, var2, "isprime", var34);
-        }
-
-        Tuples var37;
-        if (var1.equals("int013")) {
-            var34 = new String[]{"numtheory"};
-            var37 = this.maple.getOutput(2, var2, "divisors", var34);
-            if (var37.toString().indexOf("[" + Integer.toString(var37.size()) + "]") >= 0) {
-                var7 = new Vector();
-                var4.addElement(var7);
+        if (concept_id.equals("int011"))
+        {
+            if (!entity.equals("0") && !entity.equals("1") && !entity.equals("2"))
+            {
+                String[] packages = {"numtheory"};
+                output = maple.getOutput(2, entity,"prevprime",packages);
             }
         }
 
-        if (var1.equals("int014")) {
-            var34 = new String[]{"numtheory"};
-            var4 = this.maple.getOutput(1, var2, "issqrfree", var34);
+        if (concept_id.equals("int012"))
+        {
+            String[] packages = {"numtheory"};
+            output = maple.getOutput(1, entity,"isprime",packages);
         }
 
-        Vector var40;
-        if (var1.equals("int015") && var3.isSquare(var2)) {
-            var40 = new Vector();
-            var4.addElement(var40);
-        }
-
-        if (var1.equals("int016") && var3.isOdd(var2)) {
-            var40 = new Vector();
-            var4.addElement(var40);
-        }
-
-        if (var1.equals("int017") && var3.isEven(var2)) {
-            var40 = new Vector();
-            var4.addElement(var40);
-        }
-
-        if (var1.equals("poly001")) {
-            var4.addElement(new Vector());
-        }
-
-        String var38;
-        if (var1.equals("poly002")) {
-            var5 = 0;
-
-            for(var38 = var2.substring(var5, var5 + 1); !var38.equals("["); var38 = var2.substring(var5, var5 + 1)) {
-                var7 = new Vector();
-                var7.addElement(var38);
-                var4.addElement(var7);
-                ++var5;
+        if (concept_id.equals("int013"))
+        {
+            String[] packages = {"numtheory"};
+            Tuples t = maple.getOutput(2,entity,"divisors",packages);
+            if (t.toString().indexOf("[" + Integer.toString(t.size()) + "]") >= 0)
+            {
+                Vector tuple = new Vector();
+                output.addElement(tuple);
             }
         }
 
-        int var36;
-        Vector var42;
-        boolean var45;
-        if (var1.equals("poly003")) {
-            if (var2.indexOf("[]") > -1) {
+        if (concept_id.equals("int014"))
+        {
+            String[] packages = {"numtheory"};
+            output = maple.getOutput(1, entity,"issqrfree",packages);
+        }
+
+        if (concept_id.equals("int015"))
+        {
+            if (maths.isSquare(entity))
+            {
+                Vector tuple = new Vector();
+                output.addElement(tuple);
+            }
+        }
+
+        if (concept_id.equals("int016"))
+        {
+            if (maths.isOdd(entity))
+            {
+                Vector tuple = new Vector();
+                output.addElement(tuple);
+            }
+        }
+
+        if (concept_id.equals("int017"))
+        {
+            if (maths.isEven(entity))
+            {
+                Vector tuple = new Vector();
+                output.addElement(tuple);
+            }
+        }
+
+        if (concept_id.equals("poly001"))
+        {
+            output.addElement(new Vector());
+        }
+
+        if (concept_id.equals("poly002"))
+        {
+            int i = 0;
+            String node = entity.substring(i,i+1);
+            while (!node.equals("["))
+            {
+                Vector tuple = new Vector();
+                tuple.addElement(node);
+                output.addElement(tuple);
+                i++;
+                node = entity.substring(i,i+1);
+            }
+        }
+
+        if (concept_id.equals("poly003"))
+        {
+            //System.out.println("entity is " + entity);
+            if (entity.indexOf("[]")>-1)
                 return new Tuples();
-            }
-
-            var45 = var2.indexOf("[]") > -1;
+            boolean b = entity.indexOf("[]")>-1;
+            //System.out.println("entity.indexOf(\"[]\")>-1 is " + b);
+            //System.out.println("entity.substring(entity.indexOf(\"[\"), entity.indexOf(\"]\")) is " +
+            //entity.substring(entity.indexOf("["), entity.indexOf("]")));
+            int thrice_num_edges = 0;
             try {
-                var33 = var2.substring(var2.indexOf("["), var2.indexOf("]")).length();
-            } catch (StringIndexOutOfBoundsException e) {
-                var33 = 0;
+                thrice_num_edges = entity.substring(entity.indexOf("["), entity.indexOf("]")).length();
+            } catch (StringIndexOutOfBoundsException ignored) {
             }
-            var36 = 1;
-
-            for(var8 = 0; var8 < var33; var8 += 3) {
-                var42 = new Vector();
-                var42.addElement("e" + Integer.toString(var36++));
-                var4.addElement(var42);
+            //System.out.println("thrice_num_edges is " + thrice_num_edges);
+            int j = 1;
+            for (int i=0; i<thrice_num_edges; i=i+3)
+            {
+                Vector tuple = new Vector();
+                //System.out.println("1) tuple is " + tuple);
+                tuple.addElement("e"+Integer.toString(j++));
+                //System.out.println("2) tuple is now " + tuple);
+                output.addElement(tuple);
+                //System.out.println("3) output is " + output);
             }
         }
 
-        if (var1.equals("poly004")) {
-            if (var2.indexOf("[]") > -1) {
+        if (concept_id.equals("poly004"))
+        {
+            // System.out.println("just calculating the faces");//here
+            if (entity.indexOf("[]")>-1)
                 return new Tuples();
-            }
-
-            var45 = var2.indexOf("[]") > -1;
+            boolean b = entity.indexOf("[]")>-1;
+            //System.out.println("entity.indexOf(\"[]\")>-1 is " + b);
+            // System.out.println("entity.substring(entity.indexOf(\"[\"), entity.indexOf(\"]\")) is " +
+            //	       entity.substring(entity.indexOf("["), entity.indexOf("]")));
+            int six_times_num_faces = 0;
             try {
-                var33 = var2.substring(var2.indexOf("["), var2.indexOf("]")).length();
-            } catch (StringIndexOutOfBoundsException e) {
-                var33 = 0;
+                six_times_num_faces = entity.substring(entity.indexOf("["), entity.indexOf("]")).length();
+            } catch (StringIndexOutOfBoundsException ignored) {
             }
-            var36 = 1;
-
-            for(var8 = 0; var8 < var33; var8 += 6) {
-                var42 = new Vector();
-                var42.addElement("f" + Integer.toString(var36++));
-                var4.addElement(var42);
+            //System.out.println("six_times_num_faces is " + six_times_num_faces);
+            int j = 1;
+            for (int i=0; i<six_times_num_faces; i=i+6)
+            {
+                Vector tuple = new Vector();
+                //System.out.println("1) tuple is " + tuple);
+                tuple.addElement("f"+Integer.toString(j++));
+                // System.out.println("2) tuple is now " + tuple);
+                output.addElement(tuple);
+                // System.out.println("3) output is " + output);
             }
         }
 
-        if (var1.equals("poly009")) {
-            var4.addElement(new Vector());
+        if (concept_id.equals("poly009"))
+        {
+            output.addElement(new Vector());
         }
 
-        Vector var10;
-        String var46;
-        if (var1.equals("poly005")) {
-            if (var2.indexOf("[]") > -1) {
+
+        if (concept_id.equals("poly005"))
+        {
+            if (entity.indexOf("[]")>-1) return new Tuples();
+            int thrice_num_edges = entity.substring(entity.indexOf("["), entity.indexOf("]")).length();
+            int j = 1;
+            int offset = entity.indexOf("[") + 1;
+            for (int i=0; i<thrice_num_edges; i=i+3)
+            {
+                Vector tuple1 = new Vector();
+                Vector tuple2 = new Vector();
+                String pair = entity.substring(offset+(i),offset+(i)+2);
+                tuple1.addElement(pair.substring(0,1));
+                tuple1.addElement("e"+Integer.toString(j));
+                tuple2.addElement(pair.substring(1,2));
+                tuple2.addElement("e"+Integer.toString(j));
+                output.addElement(tuple1);
+                output.addElement(tuple2);
+                j++;
+            }
+        }
+
+        if (concept_id.equals("poly006"))
+        {
+            output.addElement(new Vector());
+        }
+
+
+        if (concept_id.equals("graph001"))
+        {
+            //System.out.println("got graph001");
+            output.addElement(new Vector());
+        }
+
+        if (concept_id.equals("graph001m")) //?
+        {
+            String[] packages = {"networks"};
+            output = maple.getOutput(1, entity,"new",packages);
+        }
+
+        if (concept_id.equals("graph002"))
+        {
+            //System.out.println("got graph002");
+            int i = 0;
+            String node = entity.substring(i,i+1);
+            while (!node.equals("["))
+            {
+                Vector tuple = new Vector();
+                tuple.addElement(node);
+                output.addElement(tuple);
+                i++;
+                node = entity.substring(i,i+1);
+            }
+        }
+
+        if (concept_id.equals("graph002m"))
+        {
+            String[] packages = {"networks"};
+            output = maple.getOutput(2, entity,"addvertex",packages);
+        }
+
+        if (concept_id.equals("graph003"))
+        {
+            //System.out.println("got graph003");
+            if (entity.indexOf("[]")>-1)
                 return new Tuples();
-            }
-
-            var5 = var2.substring(var2.indexOf("["), var2.indexOf("]")).length();
-            var33 = 1;
-            var36 = var2.indexOf("[") + 1;
-
-            for(var8 = 0; var8 < var5; var8 += 3) {
-                var42 = new Vector();
-                var10 = new Vector();
-                var46 = var2.substring(var36 + var8, var36 + var8 + 2);
-                var42.addElement(var46.substring(0, 1));
-                var42.addElement("e" + Integer.toString(var33));
-                var10.addElement(var46.substring(1, 2));
-                var10.addElement("e" + Integer.toString(var33));
-                var4.addElement(var42);
-                var4.addElement(var10);
-                ++var33;
+            int thrice_num_edges = entity.substring(entity.indexOf("["), entity.indexOf("]")).length();
+            int j = 1;
+            for (int i=0; i<thrice_num_edges; i=i+3)
+            {
+                Vector tuple = new Vector();
+                tuple.addElement("e"+Integer.toString(j++));
+                output.addElement(tuple);
             }
         }
 
-        if (var1.equals("poly006")) {
-            var4.addElement(new Vector());
+        if (concept_id.equals("graph003m"))
+        {
+            String[] packages = {"networks"};
+            output = maple.getOutput(2, entity,"connect",packages);
         }
 
-        if (var1.equals("graph001")) {
-            var4.addElement(new Vector());
-        }
 
-        if (var1.equals("graph001m")) {
-            var34 = new String[]{"networks"};
-            var4 = this.maple.getOutput(1, var2, "new", var34);
-        }
-
-        if (var1.equals("graph002")) {
-            var5 = 0;
-
-            for(var38 = var2.substring(var5, var5 + 1); !var38.equals("["); var38 = var2.substring(var5, var5 + 1)) {
-                var7 = new Vector();
-                var7.addElement(var38);
-                var4.addElement(var7);
-                ++var5;
+        if (concept_id.equals("graph004"))
+        {
+            //System.out.println("got graph004");
+            if (entity.indexOf("[]")>-1) return new Tuples();
+            int thrice_num_edges = entity.substring(entity.indexOf("["), entity.indexOf("]")).length();
+            int j = 1;
+            int offset = entity.indexOf("[") + 1;
+            for (int i=0; i<thrice_num_edges; i=i+3)
+            {
+                Vector tuple1 = new Vector();
+                Vector tuple2 = new Vector();
+                String pair = entity.substring(offset+(i),offset+(i)+2);
+                tuple1.addElement(pair.substring(0,1));
+                tuple1.addElement("e"+Integer.toString(j));
+                tuple2.addElement(pair.substring(1,2));
+                tuple2.addElement("e"+Integer.toString(j));
+                output.addElement(tuple1);
+                output.addElement(tuple2);
+                j++;
             }
         }
 
-        if (var1.equals("graph002m")) {
-            var34 = new String[]{"networks"};
-            var4 = this.maple.getOutput(2, var2, "addvertex", var34);
+        if (concept_id.equals("graph005"))
+        {
+            //System.out.println("got graph005");
+            String entity_for_maple = maple.writeGraphForMaple(entity);
+            //System.out.println("entity_for_maple is " + entity_for_maple);
+            String[] packages = {"networks"};
+            output = maple.getOutput(1, entity_for_maple,"isplanar",packages);
         }
 
-        if (var1.equals("graph003")) {
-            if (var2.indexOf("[]") > -1) {
-                return new Tuples();
-            }
+        if (concept_id.equals("algebra001") ||
+                concept_id.equals("group001") ||
+                concept_id.equals("abq001") ||
+                concept_id.equals("aq5001") ||
+                concept_id.equals("as6001") ||
+                concept_id.equals("naq5001") ||
+                concept_id.equals("nas6001") ||
+                concept_id.equals("am5001") ||
+                concept_id.equals("nam5001") ||
+                concept_id.equals("naq6001") ||
+                concept_id.equals("nas5001"))
 
-            var5 = var2.substring(var2.indexOf("["), var2.indexOf("]")).length();
-            var33 = 1;
-
-            for(var36 = 0; var36 < var5; var36 += 3) {
-                var35 = new Vector();
-                var35.addElement("e" + Integer.toString(var33++));
-                var4.addElement(var35);
-            }
+        {
+            output.addElement(new Vector());
         }
 
-        if (var1.equals("graph003m")) {
-            var34 = new String[]{"networks"};
-            var4 = this.maple.getOutput(2, var2, "connect", var34);
-        }
-
-        if (var1.equals("graph004")) {
-            if (var2.indexOf("[]") > -1) {
-                return new Tuples();
-            }
-
-            var5 = var2.substring(var2.indexOf("["), var2.indexOf("]")).length();
-            var33 = 1;
-            var36 = var2.indexOf("[") + 1;
-
-            for(var8 = 0; var8 < var5; var8 += 3) {
-                var42 = new Vector();
-                var10 = new Vector();
-                var46 = var2.substring(var36 + var8, var36 + var8 + 2);
-                var42.addElement(var46.substring(0, 1));
-                var42.addElement("e" + Integer.toString(var33));
-                var10.addElement(var46.substring(1, 2));
-                var10.addElement("e" + Integer.toString(var33));
-                var4.addElement(var42);
-                var4.addElement(var10);
-                ++var33;
-            }
-        }
-
-        String var58;
-        if (var1.equals("graph005")) {
-            var58 = this.maple.writeGraphForMaple(var2);
-            String[] var53 = new String[]{"networks"};
-            var4 = this.maple.getOutput(1, var58, "isplanar", var53);
-        }
-
-        if (var1.equals("algebra001") || var1.equals("group001") || var1.equals("abq001") || var1.equals("aq5001") || var1.equals("as6001") || var1.equals("naq5001") || var1.equals("nas6001") || var1.equals("am5001") || var1.equals("nam5001") || var1.equals("naq6001") || var1.equals("nas5001")) {
-            var4.addElement(new Vector());
-        }
-
-        if (var1.equals("algebra002") || var1.equals("group002") || var1.equals("abq002") || var1.equals("aq5002") || var1.equals("as6002") || var1.equals("naq5002") || var1.equals("nas6002") || var1.equals("am5002") || var1.equals("nam5002") || var1.equals("naq6002") || var1.equals("nas5002")) {
-            var5 = 1;
-
-            for(var38 = "0123456789"; var5 * var5 <= var2.length(); ++var5) {
-                var7 = new Vector();
-                var7.addElement(var38.substring(var5 - 1, var5));
-                var4.addElement(var7);
+        if (concept_id.equals("algebra002") ||
+                concept_id.equals("group002") ||
+                concept_id.equals("abq002") ||
+                concept_id.equals("aq5002") ||
+                concept_id.equals("as6002") ||
+                concept_id.equals("naq5002") ||
+                concept_id.equals("nas6002") ||
+                concept_id.equals("am5002") ||
+                concept_id.equals("nam5002") ||
+                concept_id.equals("naq6002") ||
+                concept_id.equals("nas5002"))
+        {
+            int i = 1;
+            String all_elements = "0123456789";
+            while (i*i<=entity.length())
+            {
+                Vector tuple = new Vector();
+                tuple.addElement(all_elements.substring(i-1,i));
+                output.addElement(tuple);
+                i++;
             }
         }
 
-        String var13;
-        String var14;
-        Vector var15;
-        int var41;
-        int var47;
-        int var48;
-        if (var1.equals("algebra003") || var1.equals("algebra004") || var1.equals("group003") || var1.equals("abq003") || var1.equals("aq5003") || var1.equals("as6003") || var1.equals("naq5003") || var1.equals("nas6003") || var1.equals("am5003") || var1.equals("nam5003") || var1.equals("naq6003") || var1.equals("nas5003")) {
-            var58 = "0123456789";
-            var31 = new Double((double)var2.length());
-            var8 = (new Double(Math.sqrt(var31))).intValue();
-            var47 = 0;
-
-            for(var41 = 1; var41 <= var8; ++var41) {
-                var46 = var58.substring(var41 - 1, var41);
-
-                for(var48 = 1; var48 <= var8; ++var48) {
-                    var13 = var58.substring(var48 - 1, var48);
-                    var14 = var2.substring(var47, var47 + 1);
-                    ++var47;
-                    var15 = new Vector();
-                    var15.addElement(var46);
-                    var15.addElement(var13);
-                    var15.addElement(var14);
-                    var4.addElement(var15);
+        if (concept_id.equals("algebra003") ||
+                concept_id.equals("algebra004") ||
+                concept_id.equals("group003") ||
+                concept_id.equals("abq003") ||
+                concept_id.equals("aq5003") ||
+                concept_id.equals("as6003") ||
+                concept_id.equals("naq5003") ||
+                concept_id.equals("nas6003") ||
+                concept_id.equals("am5003") ||
+                concept_id.equals("nam5003") ||
+                concept_id.equals("naq6003") ||
+                concept_id.equals("nas5003"))
+        {
+            String all_elements = "0123456789";
+            double l = (new Double(entity.length())).doubleValue();
+            int size = (new Double(Math.sqrt(l))).intValue();
+            int pos = 0;
+            for (int i=1; i<=size; i++)
+            {
+                String a = all_elements.substring(i-1,i);
+                for (int j=1; j<=size; j++)
+                {
+                    String b = all_elements.substring(j-1,j);
+                    String ab = entity.substring(pos,pos+1);
+                    pos++;
+                    Vector tuple = new Vector();
+                    tuple.addElement(a);
+                    tuple.addElement(b);
+                    tuple.addElement(ab);
+                    output.addElement(tuple);
                 }
             }
         }
 
-        String var50;
-        Vector var51;
-        if (var1.equals("algebra005") || var1.equals("group004")) {
-            var58 = "0123456789";
-            var31 = new Double((double)var2.length());
-            var8 = (new Double(Math.sqrt(var31))).intValue();
-            boolean var49 = false;
-
-            for(var41 = 0; !var49 && var41 < var8; ++var41) {
-                var46 = var58.substring(var41, var41 + 1);
-                var50 = var2.substring(var41 * var8 + var41, var41 * var8 + var41 + 1);
-                if (var46.equals(var50)) {
-                    var49 = true;
-                    var51 = new Vector();
-                    var51.addElement(var46);
-                    var4.addElement(var51);
+        if (concept_id.equals("algebra005") ||
+                concept_id.equals("group004"))
+        {
+            String all_elements = "0123456789";
+            double l = (new Double(entity.length())).doubleValue();
+            int size = (new Double(Math.sqrt(l))).intValue();
+            boolean found = false;
+            int i=0;
+            while (!found && i<size)
+            {
+                String a = all_elements.substring(i,i+1);
+                String aa = entity.substring(i*size+i,(i*size+i)+1);
+                if (a.equals(aa))
+                {
+                    found = true;
+                    Vector tuple = new Vector();
+                    tuple.addElement(a);
+                    output.addElement(tuple);
                 }
+                i++;
             }
         }
 
-        if (var1.equals("group004a")) {
-            var58 = this.getIdentity(var2);
-            if (!var58.equals("no identity")) {
-                var6 = new Vector();
-                var6.addElement(var58);
-                var4.addElement(var6);
+
+        if (concept_id.equals("group004a"))
+        {
+            String id_string = getIdentity(entity);
+            if(!(id_string.equals("no identity")))
+            {
+                Vector tuple = new Vector();
+                tuple.addElement(id_string);
+                output.addElement(tuple);
             }
         }
 
-        String var54;
-        Vector var55;
-        if (var1.equals("algebra006") || var1.equals("group005")) {
-            var58 = "0123456789";
-            var31 = new Double((double)var2.length());
-            var8 = (new Double(Math.sqrt(var31))).intValue();
-            var54 = "";
 
-            for(var41 = 0; var54.equals("") && var41 < var8; ++var41) {
-                var46 = var58.substring(var41, var41 + 1);
-                var50 = var2.substring(var41 * var8 + var41, var41 * var8 + var41 + 1);
-                if (var46.equals(var50)) {
-                    var54 = var46;
-                }
+        if (concept_id.equals("algebra006") ||
+                concept_id.equals("group005"))
+        {
+            String all_elements = "0123456789";
+            double l = (new Double(entity.length())).doubleValue();
+            int size = (new Double(Math.sqrt(l))).intValue();
+            String identity = "";
+            int i=0;
+            while (identity.equals("") && i<size)
+            {
+                String a = all_elements.substring(i,i+1);
+                String aa = entity.substring(i*size+i,((i*size)+i)+1);
+                if (a.equals(aa))
+                    identity=a;
+                i++;
             }
-
-            for(var41 = 0; var41 < var8; ++var41) {
-                var46 = var58.substring(var41, var41 + 1);
-
-                for(var48 = 0; var48 < var8; ++var48) {
-                    var13 = var2.substring(var41 * var8 + var48, var41 * var8 + var48 + 1);
-                    if (var13.equals(var54)) {
-                        var55 = new Vector();
-                        var55.addElement(var46);
-                        var55.addElement(var58.substring(var48, var48 + 1));
-                        var4.addElement(var55);
+            for (i=0; i<size; i++)
+            {
+                String a = all_elements.substring(i,i+1);
+                for (int j=0; j<size; j++)
+                {
+                    String possid = entity.substring(i*size+j,((i*size)+j)+1);
+                    if (possid.equals(identity))
+                    {
+                        Vector tuple = new Vector();
+                        tuple.addElement(a);
+                        tuple.addElement(all_elements.substring(j,j+1));
+                        output.addElement(tuple);
                     }
                 }
             }
         }
 
-        if (var1.equals("group005a")) {
-            var58 = "0123456789";
-            var31 = new Double((double)var2.length());
-            var8 = (new Double(Math.sqrt(var31))).intValue();
-            var54 = this.getIdentity(var2);
-            boolean var52 = false;
+        if (concept_id.equals("group005a"))
+        {
+            String all_elements = "0123456789";
+            double l = (new Double(entity.length())).doubleValue();
+            int size = (new Double(Math.sqrt(l))).intValue();
+            String identity = getIdentity(entity);
+            int i=0;
 
-            for(var41 = 0; var41 < var8; ++var41) {
-                var46 = var58.substring(var41, var41 + 1);
-
-                for(var48 = 0; var48 < var8; ++var48) {
-                    var13 = var2.substring(var41 * var8 + var48, var41 * var8 + var48 + 1);
-                    if (var13.equals(var54)) {
-                        var55 = new Vector();
-                        var55.addElement(var46);
-                        var55.addElement(var58.substring(var48, var48 + 1));
-                        var4.addElement(var55);
+            for (i=0; i<size; i++)
+            {
+                String a = all_elements.substring(i,i+1);
+                for (int j=0; j<size; j++)
+                {
+                    String possid = entity.substring(i*size+j,((i*size)+j)+1);
+                    if (possid.equals(identity))
+                    {
+                        Vector tuple = new Vector();
+                        tuple.addElement(a);
+                        tuple.addElement(all_elements.substring(j,j+1));
+                        output.addElement(tuple);
                     }
                 }
             }
         }
 
-        String var16;
-        int var17;
-        String var18;
-        Vector var19;
-        int var20;
-        String var21;
-        String var22;
-        Vector var23;
-        int var24;
-        String var25;
-        Vector var26;
-        int var27;
-        String var28;
-        Vector var29;
-        int var57;
-        double var61;
-        Tuples var62;
-        if (var1.equals("group006")) {
-            var62 = this.calculateTuples("group003", var2);
-            var37 = this.calculateTuples("group005", var2);
-            var32 = "0123456789";
-            var61 = new Double((double)var2.length());
-            var41 = (new Double(Math.sqrt(var61))).intValue();
-            var43 = 0;
 
-            for(var48 = 1; var48 <= var41; ++var48) {
-                var13 = var32.substring(var48 - 1, var48);
-                var55 = (Vector)var37.elementAt(0);
-
-                for(var57 = 0; !((String)var55.elementAt(0)).equals(var13) && var57 < var37.size(); var55 = (Vector)var37.elementAt(var57)) {
-                    ++var57;
+        if (concept_id.equals("group006"))
+        {
+            Tuples mults = calculateTuples("group003", entity);
+            Tuples invs = calculateTuples("group005", entity);
+            String all_elements = "0123456789";
+            double l = (new Double(entity.length())).doubleValue();
+            int size = (new Double(Math.sqrt(l))).intValue();
+            int pos = 0;
+            for (int i=1; i<=size; i++)
+            {
+                String a = all_elements.substring(i-1,i);
+                Vector inv_vector_a = (Vector)invs.elementAt(0);
+                int inv_pos_a=0;
+                while (!((String)inv_vector_a.elementAt(0)).equals(a) && inv_pos_a<invs.size())
+                {
+                    inv_pos_a++;
+                    inv_vector_a = (Vector)invs.elementAt(inv_pos_a);
                 }
-
-                var16 = (String)var55.elementAt(1);
-
-                for(var17 = 1; var17 <= var41; ++var17) {
-                    var18 = var32.substring(var17 - 1, var17);
-                    var19 = (Vector)var37.elementAt(0);
-
-                    for(var20 = 0; !((String)var19.elementAt(0)).equals(var18) && var20 < var37.size(); var19 = (Vector)var37.elementAt(var20)) {
-                        ++var20;
+                String inv_a = (String)inv_vector_a.elementAt(1);
+                for (int j=1; j<=size; j++)
+                {
+                    String b = all_elements.substring(j-1,j);
+                    Vector inv_vector_b = (Vector)invs.elementAt(0);
+                    int inv_pos_b=0;
+                    while (!((String)inv_vector_b.elementAt(0)).equals(b) && inv_pos_b<invs.size())
+                    {
+                        inv_pos_b++;
+                        inv_vector_b = (Vector)invs.elementAt(inv_pos_b);
                     }
+                    String inv_b = (String)inv_vector_b.elementAt(1);
+                    String ab = entity.substring(pos,pos+1);
 
-                    var21 = (String)var19.elementAt(1);
-                    var22 = var2.substring(var43, var43 + 1);
-                    var23 = (Vector)var62.elementAt(0);
-
-                    for(var24 = 0; (!((String)var23.elementAt(0)).equals(var22) || !((String)var23.elementAt(1)).equals(var16)) && var24 < var62.size(); var23 = (Vector)var62.elementAt(var24)) {
-                        ++var24;
+                    Vector mult_vector1 = (Vector)mults.elementAt(0);
+                    int mult_pos1 = 0;
+                    while (!(((String)mult_vector1.elementAt(0)).equals(ab)
+                            && ((String)mult_vector1.elementAt(1)).equals(inv_a)) && mult_pos1 < mults.size())
+                    {
+                        mult_pos1++;
+                        mult_vector1 = (Vector)mults.elementAt(mult_pos1);
                     }
+                    String abinv_a = (String)mult_vector1.elementAt(2);
 
-                    var25 = (String)var23.elementAt(2);
-                    var26 = (Vector)var62.elementAt(0);
-
-                    for(var27 = 0; (!((String)var26.elementAt(0)).equals(var25) || !((String)var26.elementAt(1)).equals(var21)) && var27 < var62.size(); var26 = (Vector)var62.elementAt(var27)) {
-                        ++var27;
+                    Vector mult_vector2 = (Vector)mults.elementAt(0);
+                    int mult_pos2 = 0;
+                    while (!(((String)mult_vector2.elementAt(0)).equals(abinv_a)
+                            && ((String)mult_vector2.elementAt(1)).equals(inv_b)) && mult_pos2 < mults.size())
+                    {
+                        mult_pos2++;
+                        mult_vector2 = (Vector)mults.elementAt(mult_pos2);
                     }
+                    String abinv_ainv_b = (String)mult_vector2.elementAt(2);
 
-                    var28 = (String)var26.elementAt(2);
-                    ++var43;
-                    var29 = new Vector();
-                    var29.addElement(var13);
-                    var29.addElement(var18);
-                    var29.addElement(var28);
-                    var4.addElement(var29);
+                    pos++;
+                    Vector tuple = new Vector();
+                    tuple.addElement(a);
+                    tuple.addElement(b);
+                    tuple.addElement(abinv_ainv_b);
+                    output.addElement(tuple);
                 }
             }
         }
 
-        if (var1.equals("group006a")) {
-            var62 = this.calculateTuples("group003", var2);
-            var37 = this.calculateTuples("group005a", var2);
-            var32 = "0123456789";
-            var61 = new Double((double)var2.length());
-            var41 = (new Double(Math.sqrt(var61))).intValue();
-            var43 = 0;
-
-            for(var48 = 1; var48 <= var41; ++var48) {
-                var13 = var32.substring(var48 - 1, var48);
-                var55 = (Vector)var37.elementAt(0);
-
-                for(var57 = 0; !((String)var55.elementAt(0)).equals(var13) && var57 < var37.size(); var55 = (Vector)var37.elementAt(var57)) {
-                    ++var57;
+        //this doesn't work
+        if (concept_id.equals("group006a"))
+        {
+            Tuples mults = calculateTuples("group003", entity);
+            Tuples invs = calculateTuples("group005a", entity);
+            String all_elements = "0123456789";
+            double l = (new Double(entity.length())).doubleValue();
+            int size = (new Double(Math.sqrt(l))).intValue();
+            int pos = 0;
+            for (int i=1; i<=size; i++)
+            {
+                String a = all_elements.substring(i-1,i);
+                Vector inv_vector_a = (Vector)invs.elementAt(0);
+                int inv_pos_a=0;
+                while (!((String)inv_vector_a.elementAt(0)).equals(a) && inv_pos_a<invs.size())
+                {
+                    inv_pos_a++;
+                    inv_vector_a = (Vector)invs.elementAt(inv_pos_a);
                 }
-
-                var16 = (String)var55.elementAt(1);
-
-                for(var17 = 1; var17 <= var41; ++var17) {
-                    var18 = var32.substring(var17 - 1, var17);
-                    var19 = (Vector)var37.elementAt(0);
-
-                    for(var20 = 0; !((String)var19.elementAt(0)).equals(var18) && var20 < var37.size(); var19 = (Vector)var37.elementAt(var20)) {
-                        ++var20;
+                String inv_a = (String)inv_vector_a.elementAt(1);
+                for (int j=1; j<=size; j++)
+                {
+                    String b = all_elements.substring(j-1,j);
+                    Vector inv_vector_b = (Vector)invs.elementAt(0);
+                    int inv_pos_b=0;
+                    while (!((String)inv_vector_b.elementAt(0)).equals(b) && inv_pos_b<invs.size())
+                    {
+                        inv_pos_b++;
+                        inv_vector_b = (Vector)invs.elementAt(inv_pos_b);
                     }
+                    String inv_b = (String)inv_vector_b.elementAt(1);
+                    String ab = entity.substring(pos,pos+1);
 
-                    var21 = (String)var19.elementAt(1);
-                    var22 = var2.substring(var43, var43 + 1);
-                    var23 = (Vector)var62.elementAt(0);
-
-                    for(var24 = 0; (!((String)var23.elementAt(0)).equals(var22) || !((String)var23.elementAt(1)).equals(var16)) && var24 < var62.size(); var23 = (Vector)var62.elementAt(var24)) {
-                        ++var24;
+                    Vector mult_vector1 = (Vector)mults.elementAt(0);
+                    int mult_pos1 = 0;
+                    while (!(((String)mult_vector1.elementAt(0)).equals(ab)
+                            && ((String)mult_vector1.elementAt(1)).equals(inv_a)) && mult_pos1 < mults.size())
+                    {
+                        mult_pos1++;
+                        mult_vector1 = (Vector)mults.elementAt(mult_pos1);
                     }
+                    String abinv_a = (String)mult_vector1.elementAt(2);
 
-                    var25 = (String)var23.elementAt(2);
-                    var26 = (Vector)var62.elementAt(0);
-
-                    for(var27 = 0; (!((String)var26.elementAt(0)).equals(var25) || !((String)var26.elementAt(1)).equals(var21)) && var27 < var62.size(); var26 = (Vector)var62.elementAt(var27)) {
-                        ++var27;
+                    Vector mult_vector2 = (Vector)mults.elementAt(0);
+                    int mult_pos2 = 0;
+                    while (!(((String)mult_vector2.elementAt(0)).equals(abinv_a)
+                            && ((String)mult_vector2.elementAt(1)).equals(inv_b)) && mult_pos2 < mults.size())
+                    {
+                        mult_pos2++;
+                        mult_vector2 = (Vector)mults.elementAt(mult_pos2);
                     }
+                    String abinv_ainv_b = (String)mult_vector2.elementAt(2);
 
-                    var28 = (String)var26.elementAt(2);
-                    ++var43;
-                    var29 = new Vector();
-                    var29.addElement(var13);
-                    var29.addElement(var18);
-                    var29.addElement(var28);
-                    var4.addElement(var29);
+                    pos++;
+                    Vector tuple = new Vector();
+                    tuple.addElement(a);
+                    tuple.addElement(b);
+                    tuple.addElement(abinv_ainv_b);
+                    output.addElement(tuple);
                 }
             }
         }
 
-        String var56;
-        boolean var59;
-        String var60;
-        if (var1.equals("group007")) {
-            var62 = this.calculateTuples("group003", var2);
-            var59 = true;
+        //may need more testing
+        if (concept_id.equals("group007"))
+        {
+            Tuples mults = calculateTuples("group003", entity);
+            boolean associative = true;
 
-            for(var36 = 0; var36 < var62.size(); ++var36) {
-                var35 = (Vector)var62.elementAt(var36);
-                var54 = (String)var35.elementAt(0);
-                var56 = (String)var35.elementAt(1);
-                var46 = (String)var35.elementAt(2);
+            for(int i=0; i<mults.size(); i++)
+            {
+                Vector tuple1 = (Vector)mults.elementAt(i);
+                String a = (String)tuple1.elementAt(0);
+                String b = (String)tuple1.elementAt(1);
+                String a_times_b = (String)tuple1.elementAt(2);
 
-                for(var48 = 0; var48 < var62.size(); ++var48) {
-                    var51 = (Vector)var62.elementAt(var48);
-                    var14 = (String)var51.elementAt(0);
-                    if (var14.equals(var46)) {
-                        var60 = (String)var51.elementAt(1);
-                        var16 = (String)var51.elementAt(2);
+                for(int j=0; j<mults.size();j++)
+                {
+                    Vector other_tuple1 = (Vector)mults.elementAt(j);
+                    String first_in_tuple = (String)other_tuple1.elementAt(0);
+                    if(first_in_tuple.equals(a_times_b))
+                    {
+                        String c = (String)other_tuple1.elementAt(1);
+                        String a_times_b___times_c = (String)other_tuple1.elementAt(2);
 
-                        for(var17 = 0; var17 < var62.size(); ++var17) {
-                            Vector var63 = (Vector)var62.elementAt(var17);
-                            String var64 = (String)var63.elementAt(0);
-                            if (var64.equals(var54)) {
-                                for(var20 = 0; var20 < var62.size(); ++var20) {
-                                    Vector var65 = (Vector)var62.elementAt(var20);
-                                    var22 = (String)var65.elementAt(0);
-                                    if (var22.equals(var56)) {
-                                        String var66 = (String)var65.elementAt(1);
-                                        if (var66.equals(var60)) {
-                                            String var67 = (String)var65.elementAt(2);
+                        for(int k=0; k<mults.size(); k++)
+                        {
+                            Vector tuple2 = (Vector)mults.elementAt(k);
+                            String a2 = (String)tuple2.elementAt(0);
 
-                                            for(int var68 = 0; var68 < var62.size(); ++var68) {
-                                                var26 = (Vector)var62.elementAt(var68);
-                                                if (var26.elementAt(0).equals(var64) && var26.elementAt(1).equals(var67)) {
-                                                    String var69 = (String)var26.elementAt(2);
-                                                    if (!var69.equals(var16)) {
-                                                        var59 = false;
+                            if(a2.equals(a))
+                            {
+                                for(int l=0; l<mults.size(); l++)
+                                {
+                                    Vector other_tuple2 = (Vector)mults.elementAt(l);
+                                    String b2 = (String)other_tuple2.elementAt(0);
+                                    if(b2.equals(b))
+                                    {
+                                        String c2 = (String)other_tuple2.elementAt(1);
+                                        if(c2.equals(c))
+                                        {
+                                            String b_times_c = (String)other_tuple2.elementAt(2);
+
+                                            for(int m=0; m<mults.size(); m++)
+                                            {
+                                                Vector tuple = (Vector)mults.elementAt(m);
+                                                if(tuple.elementAt(0).equals(a2) && tuple.elementAt(1).equals(b_times_c))
+                                                {
+                                                    String a_times___b_times_c = (String)tuple.elementAt(2);
+
+                                                    if(!(a_times___b_times_c.equals(a_times_b___times_c)))
+                                                    {
+                                                        associative = false;
                                                         break;
                                                     }
                                                 }
@@ -679,152 +811,212 @@ public class UserFunctions implements Serializable {
                     }
                 }
             }
-
-            if (var59) {
-                var4.addElement(new Vector());
-            }
+            if(associative)
+                output.addElement(new Vector());
         }
 
-        if (var1.equals("group008")) {
-            var62 = this.calculateTuples("group003", var2);
-            var59 = true;
 
-            for(var36 = 0; var36 < var62.size(); ++var36) {
-                var35 = (Vector)var62.elementAt(var36);
-                var54 = (String)var35.elementAt(0);
-                var56 = (String)var35.elementAt(1);
-                var46 = (String)var35.elementAt(2);
+        //test here
+        if (concept_id.equals("group008"))
+        {
+            //System.out.println("Thursday -- testing group008");
+            Tuples mults = calculateTuples("group003", entity);
+            boolean left_hand_cancellation = true;
 
-                for(var48 = 0; var48 < var62.size(); ++var48) {
-                    var51 = (Vector)var62.elementAt(var48);
-                    var14 = (String)var51.elementAt(0);
-                    var60 = (String)var51.elementAt(1);
-                    var16 = (String)var51.elementAt(2);
-                    if (var14.equals(var54) && var16.equals(var46) && !var60.equals(var56)) {
-                        var59 = false;
-                        break;
+            for(int i=0; i<mults.size(); i++)
+            {
+                Vector tuple1 = (Vector)mults.elementAt(i);
+                //System.out.println("\n\ngot tuple1 " + tuple1);
+                String a = (String)tuple1.elementAt(0);
+                String b = (String)tuple1.elementAt(1);
+                String c = (String)tuple1.elementAt(2);
+                for(int j=0; j<mults.size(); j++)
+                {
+                    Vector tuple2 = (Vector)mults.elementAt(j);
+                    //System.out.println("got tuple2 " + tuple2);
+                    String a1 = (String)tuple2.elementAt(0);
+                    String b1= (String)tuple2.elementAt(1);
+                    String c1 = (String)tuple2.elementAt(2);
+                    if(a1.equals(a) && c1.equals(c))
+                    {
+                        //System.out.println("a1 is " + a1 + " and a is " + a + " and a1.equals(a) is "
+                        //				       + a1.equals(a));
+
+                        //System.out.println("b1 is " + b1 + " and b is " + b + " and b1.equals(b) is "
+                        //	       + b1.equals(b));
+                        //System.out.println("c1 is " + c1 + " and c is " + c + " and c1.equals(c) is "
+                        //	       + c1.equals(c));
+
+                        //  System.out.println("a1 = a and c1 = c");
+
+                        if(!(b1.equals(b)))
+                        {
+                            //	System.out.println("in here -- but b1 is not =b");
+                            left_hand_cancellation = false;
+                            break;
+                        }
                     }
                 }
+
             }
 
-            if (var59) {
-                var4.addElement(new Vector());
-            }
+            if(left_hand_cancellation)
+                output.addElement(new Vector());
+
+//	System.out.println("Thursday -- finished testing group008 -- left_hand_cancellation is "
+            //   + left_hand_cancellation);
         }
 
-        if (var1.equals("algebra007")) {
-            var5 = 1;
-
-            for(var38 = "0123456789"; var5 * var5 <= var2.length(); ++var5) {
-                var7 = new Vector();
-                var7.addElement(var38.substring(var5 - 1, var5));
-                var7.addElement(var38.substring(var5 - 1, var5));
-                var4.addElement(var7);
-            }
-        }
-
-        if (var1.equals("qg3001") || var1.equals("qg4001") || var1.equals("qg5001") || var1.equals("qg6001") || var1.equals("qg7001") || var1.equals("qg8001") || var1.equals("qg9001")) {
-            var4.addElement(new Vector());
-        }
-
-        if (var1.equals("qg3002") || var1.equals("qg4002") || var1.equals("qg5002") || var1.equals("qg6002") || var1.equals("qg7002") || var1.equals("qg8002") || var1.equals("qg9002")) {
-            var5 = 1;
-
-            for(var38 = "abcdefghijklmnopqrstuvwxyz"; var5 * var5 <= var2.length(); ++var5) {
-                var7 = new Vector();
-                var7.addElement(var38.substring(var5 - 1, var5));
-                var4.addElement(var7);
+        if (concept_id.equals("algebra007"))
+        {
+            int i = 1;
+            String all_elements = "0123456789";
+            while (i*i<=entity.length())
+            {
+                Vector tuple = new Vector();
+                tuple.addElement(all_elements.substring(i-1,i));
+                tuple.addElement(all_elements.substring(i-1,i));
+                output.addElement(tuple);
+                i++;
             }
         }
 
-        if (var1.equals("qg3003") || var1.equals("qg4003") || var1.equals("qg5003") || var1.equals("qg6003") || var1.equals("qg7003") || var1.equals("qg8003") || var1.equals("qg9003")) {
-            var58 = "abcdefghijklmnopqrstuvwxyz";
-            var31 = new Double((double)var2.length());
-            var8 = (new Double(Math.sqrt(var31))).intValue();
-            var47 = 0;
+        if (concept_id.equals("qg3001") ||
+                concept_id.equals("qg4001") ||
+                concept_id.equals("qg5001") ||
+                concept_id.equals("qg6001") ||
+                concept_id.equals("qg7001") ||
+                concept_id.equals("qg8001") ||
+                concept_id.equals("qg9001"))
+        {
+            output.addElement(new Vector());
+        }
 
-            for(var41 = 1; var41 <= var8; ++var41) {
-                var46 = var58.substring(var41 - 1, var41);
+        if (concept_id.equals("qg3002") ||
+                concept_id.equals("qg4002") ||
+                concept_id.equals("qg5002") ||
+                concept_id.equals("qg6002") ||
+                concept_id.equals("qg7002") ||
+                concept_id.equals("qg8002") ||
+                concept_id.equals("qg9002"))
+        {
+            int i = 1;
+            String all_elements = "abcdefghijklmnopqrstuvwxyz";
+            while (i*i<=entity.length())
+            {
+                Vector tuple = new Vector();
+                tuple.addElement(all_elements.substring(i-1,i));
+                output.addElement(tuple);
+                i++;
+            }
+        }
 
-                for(var48 = 1; var48 <= var8; ++var48) {
-                    var13 = var58.substring(var48 - 1, var48);
-                    var14 = var2.substring(var47, var47 + 1);
-                    ++var47;
-                    var15 = new Vector();
-                    var15.addElement(var46);
-                    var15.addElement(var13);
-                    var15.addElement(var14);
-                    var4.addElement(var15);
+        if (concept_id.equals("qg3003") ||
+                concept_id.equals("qg4003") ||
+                concept_id.equals("qg5003") ||
+                concept_id.equals("qg6003") ||
+                concept_id.equals("qg7003") ||
+                concept_id.equals("qg8003") ||
+                concept_id.equals("qg9003"))
+        {
+            String all_elements = "abcdefghijklmnopqrstuvwxyz";
+            double l = (new Double(entity.length())).doubleValue();
+            int size = (new Double(Math.sqrt(l))).intValue();
+            int pos = 0;
+            for (int i=1; i<=size; i++)
+            {
+                String a = all_elements.substring(i-1,i);
+                for (int j=1; j<=size; j++)
+                {
+                    String b = all_elements.substring(j-1,j);
+                    String ab = entity.substring(pos,pos+1);
+                    pos++;
+                    Vector tuple = new Vector();
+                    tuple.addElement(a);
+                    tuple.addElement(b);
+                    tuple.addElement(ab);
+                    output.addElement(tuple);
                 }
             }
         }
-
-        var4.sort();
-        return var4;
+        output.sort();
+        return output;
     }
 
-    public String getIdentity(String var1) {
-        String var2 = "0123456789";
-        double var3 = new Double((double)var1.length());
-        int var5 = (new Double(Math.sqrt(var3))).intValue();
-        int var6 = 0;
-        boolean var7 = false;
-        int var8 = 200;
-        int var9 = 0;
+    /** finds the identity of a group entity. If there is no identity,
+     * returns "no identity" */
+    public String getIdentity(String entity)
+    {
+        String all_elements = "0123456789";
+        double l = (new Double(entity.length())).doubleValue();
 
-        String var10;
-        Integer var11;
-        while(var9 < var5) {
-            var10 = var1.substring(var6 * var5 + var9, var6 * var5 + var9 + 1);
-            var11 = new Integer(var9);
-            if (var10.equals(var11.toString())) {
-                var7 = true;
-                ++var9;
-            } else {
-                if (var6 >= var5 - 1) {
-                    var7 = false;
+        int size = (new Double(Math.sqrt(l))).intValue();
+        int n=0;
+        boolean oksofar = false;
+        int identity = 200;
+
+        for(int i=0;i<size;)
+        {
+            String a = entity.substring(n*size+i,(n*size+i)+1);
+            Integer integer_i = new Integer(i);
+            if(a.equals(integer_i.toString()))
+            {
+                oksofar = true;
+                i++;
+            }
+
+            else
+            {
+                if(n<(size-1))
+                {
+                    n++;
+                    i=0;
+                    oksofar = false;
+                }
+                else
+                {
+                    oksofar = false;
                     break;
                 }
+            }
+        }
+        if (oksofar)
+            identity = n;
 
-                ++var6;
-                var9 = 0;
-                var7 = false;
+        if(oksofar)
+        {
+            n=0;
+            for(int i=0;i<size;i++)
+            {
+                String a = entity.substring(identity+(n*size),(identity+(n*size))+1);
+                Integer integer_i = new Integer(i);
+                if(a.equals(integer_i.toString()))
+                {
+                    oksofar = true;
+                    n++;
+                }
+                else
+                {
+                    oksofar = false;
+
+                    break;
+                }
             }
         }
 
-        if (var7) {
-            var8 = var6;
+        if(!oksofar)
+            identity = 200;
+
+
+        String id_string = new String();
+        if(oksofar && !(identity==200))
+        {
+            Integer integer_id = new Integer(identity);
+            id_string = integer_id.toString();
         }
+        else
+            id_string = "no identity";
 
-        if (var7) {
-            var6 = 0;
-
-            for(var9 = 0; var9 < var5; ++var9) {
-                var10 = var1.substring(var8 + var6 * var5, var8 + var6 * var5 + 1);
-                var11 = new Integer(var9);
-                if (!var10.equals(var11.toString())) {
-                    var7 = false;
-                    break;
-                }
-
-                var7 = true;
-                ++var6;
-            }
-        }
-
-        if (!var7) {
-            var8 = 200;
-        }
-
-        new String();
-        String var13;
-        if (var7 && var8 != 200) {
-            Integer var12 = new Integer(var8);
-            var13 = var12.toString();
-        } else {
-            var13 = "no identity";
-        }
-
-        return var13;
+        return id_string;
     }
 }

@@ -1,561 +1,654 @@
 package com.github.dshea89.hrlplus;
 
-import java.awt.Button;
-import java.awt.Frame;
-import java.awt.List;
-import java.awt.TextField;
-import java.io.Serializable;
-import java.util.Hashtable;
 import java.util.Vector;
+import java.util.Hashtable;
+import java.lang.String;
+import java.awt.*;
+import java.io.*;
 
-public class Predict implements Serializable {
+/** A class for predicting values for objects supplied by the user.
+ *
+ * @author Simon Colton, started 6th September 2001
+ * @version 1.0 */
+
+public class Predict implements Serializable
+{
+    /** The objects of interest which have not been correctly classified (from
+     * those supplied to the theory formation process).
+     */
+
     public Vector given_outliers = new Vector();
+
+    /** The objects of interest which have not been correctly classified (from
+     * those not supplied to the theory formation process).
+     */
+
     public Vector not_given_outliers = new Vector();
+
+    /** The hashtable of prediction scores, with the concept to be predicted
+     * as the key.
+     */
+
     public Hashtable prediction_scores = new Hashtable();
+
+    /** Whether or not to use equivalent definitions for concepts.
+     */
+
     public boolean use_equivalences = true;
+
+    /** Whether or not to also calculate P(X|-(f(a_1,...,a_n))).
+     */
+
     public boolean use_negation = false;
+
+    /** The HR applet (so that the title can be set to keep the user updated about
+     * multiple predictions).
+     */
+
     public Frame main_frame = new Frame();
+
+    /** The vector of results from predict all for different step numbers.
+     */
+
     public Vector step_results = new Vector();
-    public double average_of_ranges = 0.0D;
+
+    /** The average of the ranges between most likely predicted and least
+     * likely predicted values
+     */
+
+    public double average_of_ranges = 0;
+
+    /** Whether or not multiple predictions are being made
+     */
+
     public boolean making_multiple_predictions = false;
+
+    /** The relations read in from the file.
+     */
+
     Vector relations = new Vector();
+
+    /** The number of concepts which were around when the last set of near conjectures
+     * were calculated.
+     */
+
     int previous_number_of_concepts = -1;
+
+    /** Which concepts have had their near conjectures calculated.
+     */
+
     Vector already_have_near_conjectures = new Vector();
+
+
+    /** How many predictions have been made (used as a counter).
+     */
+
     public int trial_number = 0;
+
+    /** The set of concepts read in from a file which will supply some of the information
+     * about the objects (with the rest to be predicted)
+     */
+
     public Vector read_in_concepts = new Vector();
 
-    public Predict() {
+    public void Predict()
+    {
     }
 
-    public void Predict() {
+    /** This is the top level for performing the predictions.
+     */
+
+    public Vector makePredictions(String method_name, String entity_name, Vector names, Vector values,
+                                  double min_percent, String entity_type, Vector concepts,
+                                  Vector names_buttons, Vector values_texts,
+                                  List explanation_list, int max_steps)
+    {
+        Vector output = new Vector();
+        average_of_ranges = 0;
+
+        // Remove additional rows //
+
+        for (int i=0; i<concepts.size(); i++)
+        {
+            Concept concept = (Concept)concepts.elementAt(i);
+            concept.additional_datatable.removeRow("px");
+            for (int j=0; j<concept.conjectured_equivalent_concepts.size(); j++)
+            {
+                Concept conjectured_equivalent_concept =
+                        (Concept)concept.conjectured_equivalent_concepts.elementAt(j);
+                conjectured_equivalent_concept.additional_datatable.removeRow("px");
+            }
+        }
+
+        if (!making_multiple_predictions)
+            explanation_list.removeAll();
+
+        Vector concepts_to_predict = new Vector();
+        Vector textfields_to_fill = new Vector();
+
+        // Get the concepts to predict //
+
+        for (int i=0; i<concepts.size(); i++)
+        {
+            Concept concept = (Concept)concepts.elementAt(i);
+            if (concept.is_user_given)
+            {
+                for (int j=0; j<names.size(); j++)
+                {
+                    String value = (String)values.elementAt(j);
+                    String concept_name = (String)names.elementAt(j);
+                    if (concept_name.equals(concept.name) && value.equals(""))
+                    {
+                        concepts_to_predict.addElement(concept);
+                        textfields_to_fill.addElement(values_texts.elementAt(j));
+                    }
+                }
+            }
+        }
+
+        // Update the user given concepts //
+
+        for (int i=0; i<concepts.size(); i++)
+        {
+            Concept concept = (Concept)concepts.elementAt(i);
+            if (concept.is_user_given)
+            {
+                for (int j=0; j<names.size(); j++)
+                {
+                    String concept_name = (String)names.elementAt(j);
+                    String value = (String)values.elementAt(j);
+                    if (concept_name.equals(concept.name) && !value.equals(""))
+                        concept.addAdditionalRow("px", value);
+                }
+            }
+        }
+
+        for (int i=0; i<concepts_to_predict.size(); i++)
+        {
+            Tuples scores = new Tuples();
+            Concept predict_concept = (Concept)concepts_to_predict.elementAt(i);
+            if (!making_multiple_predictions)
+                explanation_list.addItem("Predicting for "+predict_concept.name);
+
+            // At present, only works for the arity 1 and 2 cases //
+
+            Vector possible_values = new Vector();
+
+            Concept type_concept=null;
+            if (predict_concept.arity==2)
+            {
+                for (int j=0; j<concepts.size() && type_concept==null; j++)
+                {
+                    Concept tc = (Concept)concepts.elementAt(j);
+                    if (tc.name.equals(predict_concept.types.elementAt(predict_concept.arity-1)))
+                        type_concept = tc;
+                }
+                for (int j=0; j<type_concept.datatable.size(); j++)
+                    possible_values.addElement(((Row)type_concept.datatable.elementAt(j)).entity);
+            }
+
+            if (predict_concept.arity==1)
+            {
+                possible_values.removeAllElements();
+                possible_values.addElement("yes");
+                possible_values.addElement("no");
+            }
+
+            // Find the prediction concepts //
+
+            Vector positive_concepts_for_predicting = new Vector();
+            Vector negative_concepts_for_predicting = new Vector();
+            for (int j=0; j<concepts.size(); j++)
+            {
+                Concept concept = (Concept)concepts.elementAt(j);
+                if (!(concept==predict_concept) && concept.arity==1 &&
+                        ((String)concept.types.elementAt(0)).equals(predict_concept.types.elementAt(0)))
+                {
+                    boolean contains_bad_ancestor = false;
+                    for (int k=0; k<concepts_to_predict.size() && !contains_bad_ancestor; k++)
+                        if (concept.ancestor_ids.contains(((Concept)concepts_to_predict.elementAt(k)).id))
+                            contains_bad_ancestor = true;
+                    if (!contains_bad_ancestor && concept.calculateRow(concepts, "px").tuples.size()==1 &&
+                            (concept.step_number <= max_steps || max_steps < 0))
+                        positive_concepts_for_predicting.addElement(concept);
+                    if (!contains_bad_ancestor && concept.calculateRow(concepts, "px").tuples.size()==0 &&
+                            (concept.step_number <= max_steps || max_steps < 0))
+                        negative_concepts_for_predicting.addElement(concept);
+                    if (use_equivalences)
+                    {
+                        for (int k=0; k<concept.conjectured_equivalent_concepts.size(); k++)
+                        {
+                            Concept conjectured_equivalent_concept =
+                                    (Concept)concept.conjectured_equivalent_concepts.elementAt(k);
+                            contains_bad_ancestor = false;
+                            for (int l=0; l<concepts_to_predict.size() && !contains_bad_ancestor; l++)
+                                if (conjectured_equivalent_concept.ancestor_ids.contains(
+                                        ((Concept)concepts_to_predict.elementAt(l)).id))
+                                    contains_bad_ancestor = true;
+                            if (conjectured_equivalent_concept.calculateRow(concepts, "px").tuples.size()==1 &&
+                                    !contains_bad_ancestor &&
+                                    (conjectured_equivalent_concept.step_number <= max_steps || max_steps < 0))
+                            {
+                                positive_concepts_for_predicting.addElement(conjectured_equivalent_concept);
+                                if (concept.id.equals("a14"))
+                                    conjectured_equivalent_concept.id="lookie";
+                            }
+                            if (conjectured_equivalent_concept.calculateRow(concepts, "px").tuples.size()==0 &&
+                                    !contains_bad_ancestor &&
+                                    (conjectured_equivalent_concept.step_number <= max_steps || max_steps < 0))
+                                negative_concepts_for_predicting.addElement(conjectured_equivalent_concept);
+                        }
+                    }
+                }
+            }
+
+            Vector final_scores = new Vector();
+            for (int j=0; j<possible_values.size(); j++)
+            {
+                Vector positive_objects = new Vector();
+                String possible_value = (String)possible_values.elementAt(j);
+                for (int k=0; k<predict_concept.datatable.size(); k++)
+                {
+                    Row row = (Row)predict_concept.datatable.elementAt(k);
+                    if (!row.entity.equals(entity_name))
+                    {
+                        if (predict_concept.arity==1 && possible_value.equals("yes") && !row.tuples.isEmpty())
+                            positive_objects.addElement(row.entity);
+                        if (predict_concept.arity==1 && possible_value.equals("no") && row.tuples.isEmpty())
+                            positive_objects.addElement(row.entity);
+                        if (predict_concept.arity==2)
+                        {
+                            if (row.tuples.toString().indexOf("["+possible_value+"]")>=0)
+                                positive_objects.addElement(row.entity);
+                        }
+                    }
+                }
+
+                double final_score = 0;
+                double concepts_not_used = 0;
+
+                for (int k=0; k<positive_concepts_for_predicting.size(); k++)
+                {
+                    double num_predict_pos = 0;
+                    Concept positive_prediction_concept = (Concept)positive_concepts_for_predicting.elementAt(k);
+                    for (int l=0; l<positive_prediction_concept.datatable.size(); l++)
+                    {
+                        Row row = (Row)positive_prediction_concept.datatable.elementAt(l);
+                        if (!row.tuples.isEmpty() && !row.entity.equals(entity_name))
+                            num_predict_pos++;
+                    }
+
+                    // It could be that the only entity with this property is the one we're predicting for //
+
+                    if (num_predict_pos > 0)
+                    {
+                        double score = 0;
+                        for (int l=0; l<positive_objects.size(); l++)
+                        {
+                            String entity = (String)positive_objects.elementAt(l);
+                            if (!(positive_prediction_concept.datatable.rowWithEntity(entity)).tuples.isEmpty())
+                                score++;
+                        }
+                        double pcent = score/num_predict_pos;
+                        if (!making_multiple_predictions && (pcent>=min_percent || pcent<=(1-min_percent)))
+                        {
+                            Vector letters =
+                                    predict_concept.definition_writer.lettersForTypes(predict_concept.types,
+                                            "prolog", new Vector());
+                            String letter = (String)letters.elementAt(0)+",";
+                            explanation_list.addItem(positive_prediction_concept.id+". P("+
+                                    predict_concept.name+"("+letter+possible_value+") | "+
+                                    positive_prediction_concept.writeDefinition("prolog")+") = "+
+                                    Double.toString(pcent));
+                        }
+
+                        // Add the final score on only if it is above the minimum percent //
+
+                        if (pcent>=min_percent || pcent <= (1-min_percent))
+                            final_score = final_score + (score/num_predict_pos);
+                        else
+                            concepts_not_used++;
+                    }
+                    else
+                        concepts_not_used++;
+                }
+
+                if (use_negation)
+                {
+                    for (int k=0; k<negative_concepts_for_predicting.size(); k++)
+                    {
+                        double num_predict_pos = 0;
+                        Concept negative_prediction_concept = (Concept)negative_concepts_for_predicting.elementAt(k);
+                        for (int l=0; l<negative_prediction_concept.datatable.size(); l++)
+                        {
+                            Row row = (Row)negative_prediction_concept.datatable.elementAt(l);
+                            if (row.tuples.isEmpty() &&!row.entity.equals(entity_name))
+                                num_predict_pos++;
+                        }
+                        if (num_predict_pos > 0)
+                        {
+                            double score = 0;
+                            for (int l=0; l<positive_objects.size(); l++)
+                            {
+                                String entity = (String)positive_objects.elementAt(l);
+                                if (negative_prediction_concept.datatable.rowWithEntity(entity).tuples.isEmpty())
+                                    score++;
+                            }
+                            double pcent = score/num_predict_pos;
+                            if (!making_multiple_predictions && (pcent>=min_percent || pcent<=(1-min_percent)))
+                            {
+                                Vector letters =
+                                        predict_concept.definition_writer.lettersForTypes(predict_concept.types,
+                                                "prolog", new Vector());
+                                String letter = (String)letters.elementAt(0)+",";
+                                explanation_list.addItem(negative_prediction_concept.id+".P("+
+                                        predict_concept.name+"("+letter+possible_value+") | -("+
+                                        negative_prediction_concept.writeDefinition("prolog")+")) = "+
+                                        Double.toString(pcent));
+                            }
+
+                            // Add the final score on only if it is above the minimum percent //
+
+                            if (pcent>=min_percent || pcent <= (1-min_percent))
+                                final_score = final_score + (score/num_predict_pos);
+                            else
+                                concepts_not_used++;
+                        }
+                        else
+                            concepts_not_used++;
+                    }
+                }
+
+                if (use_negation)
+                    final_score = final_score/(positive_concepts_for_predicting.size()+
+                            negative_concepts_for_predicting.size()-concepts_not_used);
+                else
+                    final_score = final_score/(positive_concepts_for_predicting.size()-concepts_not_used);
+
+                final_scores.addElement(new Double(final_score));
+            }
+            double worst_score = 100;
+            double best_score = 0;
+            String best_value = "";
+            if (!making_multiple_predictions)
+                explanation_list.addItem(predict_concept.name,0);
+            int j=0;
+            for (j=0; j<final_scores.size(); j++)
+            {
+                Double final_score = (Double)final_scores.elementAt(j);
+                if (final_score.doubleValue() > best_score)
+                {
+                    best_score = final_score.doubleValue();
+                    best_value = (String)possible_values.elementAt(j);
+                }
+                if (final_score.doubleValue() < worst_score)
+                    worst_score = final_score.doubleValue();
+            }
+            if (making_multiple_predictions)
+                explanation_list.addItem(best_value);
+
+            for (j=0; j<final_scores.size(); j++)
+            {
+                Double final_score = (Double)final_scores.elementAt(j);
+                if (making_multiple_predictions)
+                    explanation_list.addItem((String)possible_values.elementAt(j)+"  ["+final_score.toString()+"]");
+                else
+                    explanation_list.addItem((String)possible_values.elementAt(j)+"  ["+final_score.toString()+"]",1+j);
+            }
+            if (making_multiple_predictions)
+                explanation_list.addItem("------------------------------------");
+            else
+            {
+                explanation_list.addItem("------------------------------------",1+j);
+                ((TextField)textfields_to_fill.elementAt(i)).setText(best_value);
+            }
+            output.addElement(best_value);
+            average_of_ranges = average_of_ranges + (best_score - worst_score);
+        }
+        double num_conc = (new Double(concepts_to_predict.size())).doubleValue();
+        average_of_ranges = average_of_ranges/num_conc;
+        return output;
     }
 
-    public Vector makePredictions(String var1, String var2, Vector var3, Vector var4, double var5, String var7, Vector var8, Vector var9, Vector var10, List var11, int var12) {
-        Vector var13 = new Vector();
-        this.average_of_ranges = 0.0D;
+    public void makeAllPredictions(String method_name, double min_percent, String entity_type, Vector concepts,
+                                   Vector names_buttons, Vector values_texts,
+                                   List explanation_list, int max_steps, boolean display_in_box)
+    {
+        Vector names = getNames(names_buttons);
+        Vector values = getValues(values_texts, names_buttons);
 
-        int var16;
-        Concept var17;
-        for(int var14 = 0; var14 < var8.size(); ++var14) {
-            Concept var15 = (Concept)var8.elementAt(var14);
-            var15.additional_datatable.removeRow("px");
-
-            for(var16 = 0; var16 < var15.conjectured_equivalent_concepts.size(); ++var16) {
-                var17 = (Concept)var15.conjectured_equivalent_concepts.elementAt(var16);
-                var17.additional_datatable.removeRow("px");
-            }
-        }
-
-        if (!this.making_multiple_predictions) {
-            var11.removeAll();
-        }
-
-        Vector var41 = new Vector();
-        Vector var42 = new Vector();
-
-        int var18;
-        String var19;
-        String var20;
-        for(var16 = 0; var16 < var8.size(); ++var16) {
-            var17 = (Concept)var8.elementAt(var16);
-            if (var17.is_user_given) {
-                for(var18 = 0; var18 < var3.size(); ++var18) {
-                    var19 = (String)var4.elementAt(var18);
-                    var20 = (String)var3.elementAt(var18);
-                    if (var20.equals(var17.name) && var19.equals("")) {
-                        var41.addElement(var17);
-                        var42.addElement(var10.elementAt(var18));
+        given_outliers = new Vector();
+        not_given_outliers = new Vector();
+        Vector concepts_to_predict = new Vector();
+        Vector concepts_to_clear_values_for = new Vector();
+        for (int i=0; i<concepts.size(); i++)
+        {
+            Concept concept = (Concept)concepts.elementAt(i);
+            if (concept.is_user_given)
+            {
+                for (int j=0; j<names.size(); j++)
+                {
+                    String value = (String)values.elementAt(j);
+                    String concept_name = (String)names.elementAt(j);
+                    if (concept_name.equals(concept.name) && value.equals(""))
+                    {
+                        concepts_to_predict.addElement(concept);
+                        concepts_to_clear_values_for.addElement(Integer.toString(j));
                     }
                 }
             }
         }
 
-        for(var16 = 0; var16 < var8.size(); ++var16) {
-            var17 = (Concept)var8.elementAt(var16);
-            if (var17.is_user_given) {
-                for(var18 = 0; var18 < var3.size(); ++var18) {
-                    var19 = (String)var3.elementAt(var18);
-                    var20 = (String)var4.elementAt(var18);
-                    if (var19.equals(var17.name) && !var20.equals("")) {
-                        var17.addAdditionalRow("px", var20);
-                    }
+        Concept given_entity_concept = new Concept();
+        if (!concepts_to_predict.isEmpty())
+            given_entity_concept = (Concept)concepts_to_predict.elementAt(0);
+
+        double total_average_of_ranges = 0;
+        explanation_list.removeAll();
+        making_multiple_predictions = true;
+
+        double[] not_given_scores = new double[concepts_to_predict.size()];
+        double[] given_scores = new double[concepts_to_predict.size()];
+        double given_average_of_ranges = 0;
+        double not_given_average_of_ranges = 0;
+
+        for (int i=0; i<concepts_to_predict.size(); i++)
+        {
+            not_given_scores[i] = 0;
+            given_scores[i] = 0;
+        }
+
+        Vector entities_to_predict_for = new Vector();
+        for (int i=0; i<read_in_concepts.size(); i++)
+        {
+            Concept concept = (Concept)read_in_concepts.elementAt(i);
+            if (concept.object_type.equals(entity_type) &&
+                    concept.is_object_of_interest_concept)
+            {
+                for (int j=0; j<concept.datatable.size(); j++)
+                {
+                    Row row = (Row)concept.datatable.elementAt(j);
+                    entities_to_predict_for.addElement(row.entity);
                 }
             }
         }
 
-        for(var16 = 0; var16 < var41.size(); ++var16) {
-            new Tuples();
-            Concept var44 = (Concept)var41.elementAt(var16);
-            if (!this.making_multiple_predictions) {
-                var11.addItem("Predicting for " + var44.name);
-            }
+        explanation_list.removeAll();
+        double num_given_entities = 0;
+        int total_given_correct = 0;
+        int total_not_given_correct = 0;
 
-            Vector var45 = new Vector();
-            Concept var46 = null;
-            if (var44.arity == 2) {
-                int var21;
-                for(var21 = 0; var21 < var8.size() && var46 == null; ++var21) {
-                    Concept var22 = (Concept)var8.elementAt(var21);
-                    if (var22.name.equals(var44.types.elementAt(var44.arity - 1))) {
-                        var46 = var22;
-                    }
-                }
-
-                for(var21 = 0; var21 < var46.datatable.size(); ++var21) {
-                    var45.addElement(((Row)var46.datatable.elementAt(var21)).entity);
-                }
-            }
-
-            if (var44.arity == 1) {
-                var45.removeAllElements();
-                var45.addElement("yes");
-                var45.addElement("no");
-            }
-
-            Vector var47 = new Vector();
-            Vector var48 = new Vector();
-
-            for(int var23 = 0; var23 < var8.size(); ++var23) {
-                Concept var24 = (Concept)var8.elementAt(var23);
-                if (var24 != var44 && var24.arity == 1 && ((String)var24.types.elementAt(0)).equals(var44.types.elementAt(0))) {
-                    boolean var25 = false;
-
-                    int var26;
-                    for(var26 = 0; var26 < var41.size() && !var25; ++var26) {
-                        if (var24.ancestor_ids.contains(((Concept)var41.elementAt(var26)).id)) {
-                            var25 = true;
-                        }
-                    }
-
-                    if (!var25 && var24.calculateRow(var8, "px").tuples.size() == 1 && (var24.step_number <= var12 || var12 < 0)) {
-                        var47.addElement(var24);
-                    }
-
-                    if (!var25 && var24.calculateRow(var8, "px").tuples.size() == 0 && (var24.step_number <= var12 || var12 < 0)) {
-                        var48.addElement(var24);
-                    }
-
-                    if (this.use_equivalences) {
-                        for(var26 = 0; var26 < var24.conjectured_equivalent_concepts.size(); ++var26) {
-                            Concept var27 = (Concept)var24.conjectured_equivalent_concepts.elementAt(var26);
-                            var25 = false;
-
-                            for(int var28 = 0; var28 < var41.size() && !var25; ++var28) {
-                                if (var27.ancestor_ids.contains(((Concept)var41.elementAt(var28)).id)) {
-                                    var25 = true;
-                                }
-                            }
-
-                            if (var27.calculateRow(var8, "px").tuples.size() == 1 && !var25 && (var27.step_number <= var12 || var12 < 0)) {
-                                var47.addElement(var27);
-                                if (var24.id.equals("a14")) {
-                                    var27.id = "lookie";
-                                }
-                            }
-
-                            if (var27.calculateRow(var8, "px").tuples.size() == 0 && !var25 && (var27.step_number <= var12 || var12 < 0)) {
-                                var48.addElement(var27);
+        for (int i=0; i<entities_to_predict_for.size(); i++)
+        {
+            values = new Vector();
+            String entity_to_predict_for = (String)entities_to_predict_for.elementAt(i);
+            explanation_list.addItem(entity_to_predict_for);
+            Vector should_be_values = new Vector();
+            for (int j=0; j<read_in_concepts.size(); j++)
+            {
+                Concept concept = (Concept)read_in_concepts.elementAt(j);
+                if (concept.object_type.equals(entity_type))
+                {
+                    Vector tuples = concept.datatable.rowWithEntity(entity_to_predict_for).tuples;
+                    for (int k=0; k<names.size(); k++)
+                    {
+                        String concept_name = (String)names.elementAt(k);
+                        if (concept_name.equals(concept.name))
+                        {
+                            if (!concepts_to_clear_values_for.contains(Integer.toString(k)))
+                                values.addElement(tuples.toString());
+                            else
+                            {
+                                values.addElement("");
+                                String should_be_value = tuples.toString();
+                                if (should_be_value.equals("[]"))
+                                    should_be_value="no";
+                                if (should_be_value.equals("[[]]"))
+                                    should_be_value="yes";
+                                if (!should_be_value.equals("yes") && !should_be_value.equals("no"))
+                                    should_be_value = should_be_value.substring(2,should_be_value.length()-2);
+                                should_be_values.addElement(should_be_value);
                             }
                         }
                     }
                 }
             }
 
-            Vector var49 = new Vector();
+            Vector predictions =
+                    makePredictions(method_name, entity_to_predict_for, names, values, min_percent, entity_type,
+                            concepts, names_buttons, values_texts, explanation_list, max_steps);
 
-            for(int var50 = 0; var50 < var45.size(); ++var50) {
-                Vector var52 = new Vector();
-                String var53 = (String)var45.elementAt(var50);
+            boolean is_given_entity = false;
+            if (given_entity_concept.datatable.hasEntity(entity_to_predict_for))
+            {
+                is_given_entity = true;
+                num_given_entities++;
+            }
 
-                for(int var54 = 0; var54 < var44.datatable.size(); ++var54) {
-                    Row var57 = (Row)var44.datatable.elementAt(var54);
-                    if (!var57.entity.equals(var2)) {
-                        if (var44.arity == 1 && var53.equals("yes") && !var57.tuples.isEmpty()) {
-                            var52.addElement(var57.entity);
-                        }
+            if (is_given_entity)
+                given_average_of_ranges = given_average_of_ranges + average_of_ranges;
+            else
+                not_given_average_of_ranges = not_given_average_of_ranges + average_of_ranges;
 
-                        if (var44.arity == 1 && var53.equals("no") && var57.tuples.isEmpty()) {
-                            var52.addElement(var57.entity);
-                        }
-
-                        if (var44.arity == 2 && var57.tuples.toString().indexOf("[" + var53 + "]") >= 0) {
-                            var52.addElement(var57.entity);
-                        }
+            for (int j=0; j<predictions.size(); j++)
+            {
+                String predicted_value = (String)predictions.elementAt(j);
+                if (predicted_value.equals((String)should_be_values.elementAt(j)))
+                {
+                    if (is_given_entity)
+                    {
+                        given_scores[j]++;
+                        total_given_correct++;
+                    }
+                    else
+                    {
+                        not_given_scores[j]++;
+                        total_not_given_correct++;
                     }
                 }
-
-                double var56 = 0.0D;
-                double var29 = 0.0D;
-
-                int var31;
-                double var32;
-                Concept var34;
-                int var35;
-                Row var36;
-                int var37;
-                String var38;
-                Vector var39;
-                String var40;
-                double var61;
-                double var62;
-                for(var31 = 0; var31 < var47.size(); ++var31) {
-                    var32 = 0.0D;
-                    var34 = (Concept)var47.elementAt(var31);
-
-                    for(var35 = 0; var35 < var34.datatable.size(); ++var35) {
-                        var36 = (Row)var34.datatable.elementAt(var35);
-                        if (!var36.tuples.isEmpty() && !var36.entity.equals(var2)) {
-                            ++var32;
-                        }
-                    }
-
-                    if (var32 <= 0.0D) {
-                        ++var29;
-                    } else {
-                        var61 = 0.0D;
-
-                        for(var37 = 0; var37 < var52.size(); ++var37) {
-                            var38 = (String)var52.elementAt(var37);
-                            if (!var34.datatable.rowWithEntity(var38).tuples.isEmpty()) {
-                                ++var61;
-                            }
-                        }
-
-                        var62 = var61 / var32;
-                        if (!this.making_multiple_predictions && (var62 >= var5 || var62 <= 1.0D - var5)) {
-                            var39 = var44.definition_writer.lettersForTypes(var44.types, "prolog", new Vector());
-                            var40 = (String)var39.elementAt(0) + ",";
-                            var11.addItem(var34.id + ". P(" + var44.name + "(" + var40 + var53 + ") | " + var34.writeDefinition("prolog") + ") = " + Double.toString(var62));
-                        }
-
-                        if (var62 < var5 && var62 > 1.0D - var5) {
-                            ++var29;
-                        } else {
-                            var56 += var61 / var32;
-                        }
-                    }
-                }
-
-                if (this.use_negation) {
-                    for(var31 = 0; var31 < var48.size(); ++var31) {
-                        var32 = 0.0D;
-                        var34 = (Concept)var48.elementAt(var31);
-
-                        for(var35 = 0; var35 < var34.datatable.size(); ++var35) {
-                            var36 = (Row)var34.datatable.elementAt(var35);
-                            if (var36.tuples.isEmpty() && !var36.entity.equals(var2)) {
-                                ++var32;
-                            }
-                        }
-
-                        if (var32 <= 0.0D) {
-                            ++var29;
-                        } else {
-                            var61 = 0.0D;
-
-                            for(var37 = 0; var37 < var52.size(); ++var37) {
-                                var38 = (String)var52.elementAt(var37);
-                                if (var34.datatable.rowWithEntity(var38).tuples.isEmpty()) {
-                                    ++var61;
-                                }
-                            }
-
-                            var62 = var61 / var32;
-                            if (!this.making_multiple_predictions && (var62 >= var5 || var62 <= 1.0D - var5)) {
-                                var39 = var44.definition_writer.lettersForTypes(var44.types, "prolog", new Vector());
-                                var40 = (String)var39.elementAt(0) + ",";
-                                var11.addItem(var34.id + ".P(" + var44.name + "(" + var40 + var53 + ") | -(" + var34.writeDefinition("prolog") + ")) = " + Double.toString(var62));
-                            }
-
-                            if (var62 < var5 && var62 > 1.0D - var5) {
-                                ++var29;
-                            } else {
-                                var56 += var61 / var32;
-                            }
-                        }
-                    }
-                }
-
-                if (this.use_negation) {
-                    var56 /= (double)(var47.size() + var48.size()) - var29;
-                } else {
-                    var56 /= (double)var47.size() - var29;
-                }
-
-                var49.addElement(new Double(var56));
-            }
-
-            double var51 = 100.0D;
-            double var55 = 0.0D;
-            String var58 = "";
-            if (!this.making_multiple_predictions) {
-                var11.addItem(var44.name, 0);
-            }
-
-            boolean var59 = false;
-
-            Double var30;
-            int var60;
-            for(var60 = 0; var60 < var49.size(); ++var60) {
-                var30 = (Double)var49.elementAt(var60);
-                if (var30 > var55) {
-                    var55 = var30;
-                    var58 = (String)var45.elementAt(var60);
-                }
-
-                if (var30 < var51) {
-                    var51 = var30;
+                else
+                {
+                    if (is_given_entity)
+                        given_outliers.addElement(entity_to_predict_for);
+                    else
+                        not_given_outliers.addElement(entity_to_predict_for);
                 }
             }
-
-            if (this.making_multiple_predictions) {
-                var11.addItem(var58);
-            }
-
-            for(var60 = 0; var60 < var49.size(); ++var60) {
-                var30 = (Double)var49.elementAt(var60);
-                if (this.making_multiple_predictions) {
-                    var11.addItem((String)var45.elementAt(var60) + "  [" + var30.toString() + "]");
-                } else {
-                    var11.addItem((String)var45.elementAt(var60) + "  [" + var30.toString() + "]", 1 + var60);
-                }
-            }
-
-            if (this.making_multiple_predictions) {
-                var11.addItem("------------------------------------");
-            } else {
-                var11.addItem("------------------------------------", 1 + var60);
-                ((TextField)var42.elementAt(var16)).setText(var58);
-            }
-
-            var13.addElement(var58);
-            this.average_of_ranges += var55 - var51;
+            main_frame.setTitle(Integer.toString(i+1)+"/"+Integer.toString(entities_to_predict_for.size())+"["+
+                    Integer.toString(total_not_given_correct)+","+Integer.toString(not_given_outliers.size())+"]["+
+                    Integer.toString(total_given_correct)+","+Integer.toString(given_outliers.size())+"]");
         }
 
-        double var43 = new Double((double)var41.size());
-        this.average_of_ranges /= var43;
-        return var13;
+        for (int i=0; i<concepts_to_predict.size(); i++)
+        {
+            String p = (String)concepts_to_clear_values_for.elementAt(i);
+            int pos = (new Integer(p)).intValue();
+            TextField tf = (TextField)values_texts.elementAt(pos);
+            Double s = new Double(entities_to_predict_for.size()-num_given_entities);
+            double not_given_percent = not_given_scores[i]/s.doubleValue();
+            double given_percent = given_scores[i]/num_given_entities;
+            String given_percent_string = Double.toString(given_percent*100);
+            String not_given_percent_string = Double.toString(not_given_percent*100);
+            if (given_percent_string.length()>=5)
+                given_percent_string = given_percent_string.substring(0,5);
+            if (not_given_percent_string.length()>=5)
+                not_given_percent_string = not_given_percent_string.substring(0,5);
+            String given_range_average_string = Double.toString(given_average_of_ranges);
+            String not_given_range_average_string = Double.toString(not_given_average_of_ranges);
+            if (given_range_average_string.length()>=5)
+                given_range_average_string = given_range_average_string.substring(0,5);
+            if (not_given_range_average_string.length()>=5)
+                not_given_range_average_string = not_given_range_average_string.substring(0,5);
+            if (display_in_box)
+                tf.setText(not_given_percent_string + "%, " + given_percent_string+"%, "+
+                        not_given_range_average_string+", "+given_range_average_string);
+            else
+                tf.setText("");
+            Concept concept_to_predict = ((Concept)concepts_to_predict.elementAt(i));
+            explanation_list.addItem("Prediction for " + concept_to_predict.id + "(" + concept_to_predict.name +")");
+            explanation_list.addItem("Prediction accuracy for those not supplied: " + not_given_percent_string + "%", 1);
+            explanation_list.addItem("Prediction accuracy for those supplied: " + given_percent_string+"%", 2);
+            Hashtable results = new Hashtable();
+            results.put("concept.id", concept_to_predict.id);
+            results.put("concept.name", concept_to_predict.name);
+            results.put("steps for concepts", new Integer(max_steps));
+            results.put("percent correct for given", given_percent_string);
+            results.put("percent correct for not given", not_given_percent_string);
+            results.put("given outliers", given_outliers);
+            results.put("not given outliers", not_given_outliers);
+            step_results.addElement(results);
+            System.out.println("steps: " + Integer.toString(max_steps) + " = " + given_percent_string + " " + not_given_percent_string);
+        }
+        making_multiple_predictions = false;
+        explanation_list.addItem("given outliers:"+given_outliers.toString(),0);
+        explanation_list.addItem("not given outliers:"+not_given_outliers.toString(),0);
     }
 
-    public void makeAllPredictions(String var1, double var2, String var4, Vector var5, Vector var6, Vector var7, List var8, int var9, boolean var10) {
-        Vector var11 = this.getNames(var6);
-        Vector var12 = this.getValues(var7, var6);
-        this.given_outliers = new Vector();
-        this.not_given_outliers = new Vector();
-        Vector var13 = new Vector();
-        Vector var14 = new Vector();
 
-        for(int var15 = 0; var15 < var5.size(); ++var15) {
-            Concept var16 = (Concept)var5.elementAt(var15);
-            if (var16.is_user_given) {
-                for(int var17 = 0; var17 < var11.size(); ++var17) {
-                    String var18 = (String)var12.elementAt(var17);
-                    String var19 = (String)var11.elementAt(var17);
-                    if (var19.equals(var16.name) && var18.equals("")) {
-                        var13.addElement(var16);
-                        var14.addElement(Integer.toString(var17));
-                    }
-                }
-            }
+    public void makeIncrementalPredictions(String method_name, double min_percent, String entity_type, Vector concepts,
+                                           Vector names_buttons, Vector values_texts,
+                                           List explanation_list, int increment_steps,
+                                           int total_steps)
+    {
+        step_results.clear();
+        for (int i=0; i<=total_steps; i=i+increment_steps)
+        {
+            makeAllPredictions(method_name, min_percent, entity_type, concepts,
+                    names_buttons, values_texts, explanation_list, i, false);
         }
+        makeAllPredictions(method_name, min_percent, entity_type, concepts,
+                names_buttons, values_texts, explanation_list, total_steps, false);
 
-        Concept var44 = new Concept();
-        if (!var13.isEmpty()) {
-            var44 = (Concept)var13.elementAt(0);
-        }
-
-        double var45 = 0.0D;
-        var8.removeAll();
-        this.making_multiple_predictions = true;
-        double[] var46 = new double[var13.size()];
-        double[] var47 = new double[var13.size()];
-        double var20 = 0.0D;
-        double var22 = 0.0D;
-
-        for(int var24 = 0; var24 < var13.size(); ++var24) {
-            var46[var24] = 0.0D;
-            var47[var24] = 0.0D;
-        }
-
-        Vector var48 = new Vector();
-
-        int var27;
-        for(int var25 = 0; var25 < this.read_in_concepts.size(); ++var25) {
-            Concept var26 = (Concept)this.read_in_concepts.elementAt(var25);
-            if (var26.object_type.equals(var4) && var26.is_object_of_interest_concept) {
-                for(var27 = 0; var27 < var26.datatable.size(); ++var27) {
-                    Row var28 = (Row)var26.datatable.elementAt(var27);
-                    var48.addElement(var28.entity);
-                }
-            }
-        }
-
-        var8.removeAll();
-        double var49 = 0.0D;
-        var27 = 0;
-        int var50 = 0;
-
-        int var29;
-        String var30;
-        for(var29 = 0; var29 < var48.size(); ++var29) {
-            var12 = new Vector();
-            var30 = (String)var48.elementAt(var29);
-            var8.addItem(var30);
-            Vector var31 = new Vector();
-
-            for(int var32 = 0; var32 < this.read_in_concepts.size(); ++var32) {
-                Concept var33 = (Concept)this.read_in_concepts.elementAt(var32);
-                if (var33.object_type.equals(var4)) {
-                    Tuples var34 = var33.datatable.rowWithEntity(var30).tuples;
-
-                    for(int var35 = 0; var35 < var11.size(); ++var35) {
-                        String var36 = (String)var11.elementAt(var35);
-                        if (var36.equals(var33.name)) {
-                            if (!var14.contains(Integer.toString(var35))) {
-                                var12.addElement(var34.toString());
-                            } else {
-                                var12.addElement("");
-                                String var37 = var34.toString();
-                                if (var37.equals("[]")) {
-                                    var37 = "no";
-                                }
-
-                                if (var37.equals("[[]]")) {
-                                    var37 = "yes";
-                                }
-
-                                if (!var37.equals("yes") && !var37.equals("no")) {
-                                    var37 = var37.substring(2, var37.length() - 2);
-                                }
-
-                                var31.addElement(var37);
-                            }
-                        }
-                    }
-                }
-            }
-
-            Vector var52 = this.makePredictions(var1, var30, var11, var12, var2, var4, var5, var6, var7, var8, var9);
-            boolean var54 = false;
-            if (var44.datatable.hasEntity(var30)) {
-                var54 = true;
-                ++var49;
-            }
-
-            if (var54) {
-                var20 += this.average_of_ranges;
-            } else {
-                var22 += this.average_of_ranges;
-            }
-
-            for(int var56 = 0; var56 < var52.size(); ++var56) {
-                String var58 = (String)var52.elementAt(var56);
-                if (var58.equals((String)var31.elementAt(var56))) {
-                    if (var54) {
-                        ++var47[var56];
-                        ++var27;
-                    } else {
-                        ++var46[var56];
-                        ++var50;
-                    }
-                } else if (var54) {
-                    this.given_outliers.addElement(var30);
-                } else {
-                    this.not_given_outliers.addElement(var30);
-                }
-            }
-
-            this.main_frame.setTitle(Integer.toString(var29 + 1) + "/" + Integer.toString(var48.size()) + "[" + Integer.toString(var50) + "," + Integer.toString(this.not_given_outliers.size()) + "][" + Integer.toString(var27) + "," + Integer.toString(this.given_outliers.size()) + "]");
-        }
-
-        for(var29 = 0; var29 < var13.size(); ++var29) {
-            var30 = (String)var14.elementAt(var29);
-            int var51 = new Integer(var30);
-            TextField var53 = (TextField)var7.elementAt(var51);
-            Double var55 = new Double((double)var48.size() - var49);
-            double var57 = var46[var29] / var55;
-            double var59 = var47[var29] / var49;
-            String var38 = Double.toString(var59 * 100.0D);
-            String var39 = Double.toString(var57 * 100.0D);
-            if (var38.length() >= 5) {
-                var38 = var38.substring(0, 5);
-            }
-
-            if (var39.length() >= 5) {
-                var39 = var39.substring(0, 5);
-            }
-
-            String var40 = Double.toString(var20);
-            String var41 = Double.toString(var22);
-            if (var40.length() >= 5) {
-                var40 = var40.substring(0, 5);
-            }
-
-            if (var41.length() >= 5) {
-                var41 = var41.substring(0, 5);
-            }
-
-            if (var10) {
-                var53.setText(var39 + "%, " + var38 + "%, " + var41 + ", " + var40);
-            } else {
-                var53.setText("");
-            }
-
-            Concept var42 = (Concept)var13.elementAt(var29);
-            var8.addItem("Prediction for " + var42.id + "(" + var42.name + ")");
-            var8.addItem("Prediction accuracy for those not supplied: " + var39 + "%", 1);
-            var8.addItem("Prediction accuracy for those supplied: " + var38 + "%", 2);
-            Hashtable var43 = new Hashtable();
-            var43.put("concept.id", var42.id);
-            var43.put("concept.name", var42.name);
-            var43.put("steps for concepts", new Integer(var9));
-            var43.put("percent correct for given", var38);
-            var43.put("percent correct for not given", var39);
-            var43.put("given outliers", this.given_outliers);
-            var43.put("not given outliers", this.not_given_outliers);
-            this.step_results.addElement(var43);
-            System.out.println("steps: " + Integer.toString(var9) + " = " + var38 + " " + var39);
-        }
-
-        this.making_multiple_predictions = false;
-        var8.addItem("given outliers:" + this.given_outliers.toString(), 0);
-        var8.addItem("not given outliers:" + this.not_given_outliers.toString(), 0);
     }
 
-    public void makeIncrementalPredictions(String var1, double var2, String var4, Vector var5, Vector var6, Vector var7, List var8, int var9, int var10) {
-        this.step_results.clear();
+    /** Extracts the labels on a vector of buttons.
+     */
 
-        for(int var11 = 0; var11 <= var10; var11 += var9) {
-            this.makeAllPredictions(var1, var2, var4, var5, var6, var7, var8, var11, false);
+    public Vector getNames(Vector buttons)
+    {
+        Vector output = new Vector();
+        for (int i=0; i<buttons.size(); i++)
+        {
+            Button button = (Button)buttons.elementAt(i);
+            if (!(button.getLabel().equals("")))
+                output.addElement(button.getLabel());
         }
-
-        this.makeAllPredictions(var1, var2, var4, var5, var6, var7, var8, var10, false);
+        return output;
     }
 
-    public Vector getNames(Vector var1) {
-        Vector var2 = new Vector();
+    /** Extracts the texts in a vector of textfields.
+     */
 
-        for(int var3 = 0; var3 < var1.size(); ++var3) {
-            Button var4 = (Button)var1.elementAt(var3);
-            if (!var4.getLabel().equals("")) {
-                var2.addElement(var4.getLabel());
-            }
+    public Vector getValues(Vector textfields, Vector buttons)
+    {
+        Vector output = new Vector();
+        for (int i=0; i<textfields.size(); i++)
+        {
+            Button button = (Button)buttons.elementAt(i);
+            TextField textfield = (TextField)textfields.elementAt(i);
+            if (!(button.getLabel().equals("")))
+                output.addElement(textfield.getText());
         }
-
-        return var2;
-    }
-
-    public Vector getValues(Vector var1, Vector var2) {
-        Vector var3 = new Vector();
-
-        for(int var4 = 0; var4 < var1.size(); ++var4) {
-            Button var5 = (Button)var2.elementAt(var4);
-            TextField var6 = (TextField)var1.elementAt(var4);
-            if (!var5.getLabel().equals("")) {
-                var3.addElement(var6.getText());
-            }
-        }
-
-        return var3;
+        return output;
     }
 }

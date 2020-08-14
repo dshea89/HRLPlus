@@ -1,144 +1,155 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.Serializable;
 import java.util.Vector;
+import java.util.Hashtable;
+import java.lang.String;
+import java.awt.TextField;
+import java.io.Serializable;
 
-public class NearEquivalence extends Conjecture implements Serializable {
+/** A class representing an equivalence conjecture (if-and-only-if) in the theory.
+ * @author Simon Colton, started 28th April 2002
+ * @version 1.0
+ * @see Conjecture
+ */
+
+public class NearEquivalence extends Conjecture implements Serializable
+{
+    /** The left hand concept in this near_equivalence.
+     */
+
     public Concept lh_concept = new Concept();
+
+    /** The right hand concept in this near_equivalence.
+     */
+
     public Concept rh_concept = new Concept();
-    public double score = 0.0D;
 
-    public NearEquivalence() {
+    /** The percentage (as a decimal) of entities which match in this
+     * near equivalence conjecture.
+     */
+
+    public double score = 0;
+
+    /** The simple constructor for near equivalences.
+     */
+
+    public NearEquivalence()
+    {
     }
 
-    public NearEquivalence(Concept var1, Concept var2, Vector var3, double var4) {
-        this.lh_concept = var1;
-        this.rh_concept = var2;
-        this.counterexamples = var3;
-        this.score = var4;
+    /** The default constructor for near equivalences.
+     */
+
+    public NearEquivalence(Concept given_lh_concept, Concept given_rh_concept,
+                           Vector given_counterexamples, double given_score)
+    {
+        lh_concept = given_lh_concept;
+        rh_concept = given_rh_concept;
+        counterexamples = given_counterexamples;
+        score = given_score;
     }
 
-    public String writeConjecture(String var1) {
-        Vector var2 = this.lh_concept.definition_writer.lettersForTypes(this.lh_concept.types, var1, new Vector());
-        String var3 = this.lh_concept.writeDefinition(var1);
-        String var4 = this.rh_concept.writeDefinition(var1);
-        if (var1.equals("ascii")) {
-            return this.writeAsciiConjecture(var2, var3, var4);
-        } else if (var1.equals("otter")) {
-            return this.writeOtterConjecture(var2, var3, var4);
-        } else if (var1.equals("tptp")) {
-            return this.writeTPTPConjecture(var2, var3, var4);
-        } else {
-            return var1.equals("prolog") ? this.writePrologConjecture(var2, var3, var4) : "";
-        }
+
+    /** Writes the conjecture as a string in the given language.
+     */
+
+    public String writeConjecture(String language)
+    {
+        Vector letters = lh_concept.definition_writer.lettersForTypes(lh_concept.types,language,new Vector());
+        String lh_string = lh_concept.writeDefinition(language);
+        String rh_string = rh_concept.writeDefinition(language);
+        if (language.equals("ascii"))
+            return writeAsciiConjecture(letters, lh_string, rh_string);
+        if (language.equals("otter"))
+            return writeOtterConjecture(letters, lh_string, rh_string);
+        if (language.equals("tptp"))
+            return writeTPTPConjecture(letters, lh_string, rh_string);
+        if (language.equals("prolog"))
+            return writePrologConjecture(letters, lh_string, rh_string);
+        return "";
     }
 
-    private String writeTPTPConjecture(Vector var1, String var2, String var3) {
-        if (var2.equals("") && var3.equals("")) {
+    private String writeTPTPConjecture(Vector letters, String lh_string, String rh_string)
+    {
+        if (lh_string.equals("") && rh_string.equals(""))
             return "";
-        } else {
-            String var4 = "[";
-
-            for(int var5 = 1; var5 < var1.size() - 1; ++var5) {
-                var4 = var4 + (String)var1.elementAt(var5) + ",";
-            }
-
-            if (var1.size() > 1) {
-                var4 = var4 + (String)var1.elementAt(var1.size() - 1);
-            }
-
-            var4 = var4 + "]";
-            String var7 = "";
-            boolean var6 = false;
-            if (var2.trim().equals("") || var2.trim().equals("()") || var2.trim().equals("(())")) {
-                if (var4.equals("[]")) {
-                    var7 = "input_formula(conjecture" + this.id + ",conjecture,(\n     (" + var3 + "))).";
-                } else {
-                    var7 = "input_formula(conjecture" + this.id + ",conjecture,(\n     ! " + var4 + " : \n      (" + var3 + "))).";
-                }
-
-                var6 = true;
-            }
-
-            if (var3.trim().equals("") || var3.trim().equals("()") || var3.trim().equals("(())")) {
-                if (var4.equals("[]")) {
-                    var7 = "input_formula(conjecture" + this.id + ",conjecture,(\n     (" + var2 + "))).";
-                } else {
-                    var7 = "input_formula(conjecture" + this.id + ",conjecture,(\n     ! " + var4 + " : \n      (" + var2 + "))).";
-                }
-
-                var6 = true;
-            }
-
-            if (!var6) {
-                if (var4.equals("[]")) {
-                    var7 = "input_formula(conjecture" + this.id + ",conjecture,(\n     ((" + var2 + ")) \n       <=> (" + var3 + "))).";
-                } else {
-                    var7 = "input_formula(conjecture" + this.id + ",conjecture,(\n     ! " + var4 + " : \n      ((" + var2 + " )\n       <=> (" + var3 + ")))).";
-                }
-            }
-
-            return var7;
-        }
-    }
-
-    private String writeAsciiConjecture(Vector var1, String var2, String var3) {
-        String var4 = " for all ";
-
-        for(int var5 = 0; var5 < var1.size(); ++var5) {
-            var4 = var4 + (String)var1.elementAt(var5) + " ";
+        String letters_string = "[";
+        for (int i=1; i<letters.size()-1; i++)
+            letters_string=letters_string + (String)letters.elementAt(i)+",";
+        if (letters.size()>1)
+            letters_string=letters_string+(String)letters.elementAt(letters.size()-1);
+        letters_string=letters_string + "]";
+        String output = "";
+        boolean printed_with_an_empty_side = false;
+        if (lh_string.trim().equals("") || lh_string.trim().equals("()") || lh_string.trim().equals("(())"))
+        {
+            if (letters_string.equals("[]"))
+                output = "input_formula(conjecture"+id+",conjecture,(\n     ("+rh_string+"))).";
+            else
+                output = "input_formula(conjecture"+id+",conjecture,(\n     ! "+letters_string+
+                        " : \n      ("+rh_string+"))).";
+            printed_with_an_empty_side = true;
         }
 
-        return var4 + ": " + var2 + " <~> " + var3;
-    }
-
-    private String writePrologConjecture(Vector var1, String var2, String var3) {
-        String var4 = " for all ";
-
-        for(int var5 = 0; var5 < var1.size(); ++var5) {
-            var4 = var4 + (String)var1.elementAt(var5) + " ";
+        if (rh_string.trim().equals("") || rh_string.trim().equals("()") || rh_string.trim().equals("(())"))
+        {
+            if (letters_string.equals("[]"))
+                output = "input_formula(conjecture"+id+",conjecture,(\n     ("+lh_string+"))).";
+            else
+                output = "input_formula(conjecture"+id+",conjecture,(\n     ! "+letters_string+
+                        " : \n      ("+lh_string+"))).";
+            printed_with_an_empty_side = true;
         }
 
-        return var4 + ": " + var2 + " <~> " + var3;
+        if (!printed_with_an_empty_side)
+        {
+            if (letters_string.equals("[]"))
+                output = "input_formula(conjecture"+id+",conjecture,(\n     (("+lh_string+")) \n       <=> ("+rh_string+"))).";
+            else
+                output = "input_formula(conjecture"+id+",conjecture,(\n     ! "+letters_string+
+                        " : \n      (("+lh_string+" )\n       <=> ("+rh_string+")))).";
+        }
+        return output;
     }
 
-    private String writeOtterConjecture(Vector var1, String var2, String var3) {
-        String var4 = "";
-        if (var2.equals("") && var3.equals("")) {
+    private String writeAsciiConjecture(Vector letters, String lh_string, String rh_string)
+    {
+        String output = " for all ";
+        for (int i=0; i<letters.size(); i++)
+            output = output + (String)letters.elementAt(i) + " ";
+        return output + ": " + lh_string + " <~> " + rh_string;
+    }
+
+    private String writePrologConjecture(Vector letters, String lh_string, String rh_string)
+    {
+        String output = " for all ";
+        for (int i=0; i<letters.size(); i++)
+            output = output + (String)letters.elementAt(i) + " ";
+        return output + ": " + lh_string + " <~> " + rh_string;
+    }
+
+    private String writeOtterConjecture(Vector letters, String lh_string, String rh_string)
+    {
+        String output = "";
+        if (lh_string.equals("") && rh_string.equals(""))
             return "";
-        } else if (var3.equals("")) {
-            return this.writeOtterConjecture(var1, var3, var2);
-        } else {
-            if (var1.size() > 1 || this.use_entity_letter) {
-                var4 = var4 + "all ";
-            }
-
-            byte var5 = 1;
-            if (this.use_entity_letter) {
-                var5 = 0;
-            }
-
-            for(int var6 = var5; var6 < var1.size(); ++var6) {
-                var4 = var4 + (String)var1.elementAt(var6) + " ";
-            }
-
-            if (var1.size() > 1 || this.use_entity_letter) {
-                var4 = var4 + "(";
-            }
-
-            if (!var2.equals("") && !var3.equals("")) {
-                var4 = var4 + "((" + var2 + ") <~> (" + var3 + "))";
-            }
-
-            if (var2.equals("")) {
-                var4 = var4 + "(" + var3 + ")";
-            }
-
-            if (var1.size() > 1 || this.use_entity_letter) {
-                var4 = var4 + ")";
-            }
-
-            return var4;
-        }
+        if (rh_string.equals(""))
+            return writeOtterConjecture(letters, rh_string, lh_string);
+        if (letters.size()>1 || use_entity_letter)
+            output = output + "all ";
+        int start_pos = 1;
+        if (use_entity_letter)
+            start_pos = 0;
+        for (int i=start_pos; i<letters.size(); i++)
+            output = output + (String)letters.elementAt(i) + " ";
+        if (letters.size()>1 || use_entity_letter)
+            output = output + "(";
+        if (!lh_string.equals("") && !rh_string.equals(""))
+            output = output + "((" + lh_string + ") <~> (" + rh_string + "))";
+        if (lh_string.equals(""))
+            output = output + "(" + rh_string + ")";
+        if (letters.size()>1 || use_entity_letter)
+            output = output + ")";
+        return output;
     }
 }

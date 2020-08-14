@@ -1,26 +1,39 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.Serializable;
+import java.lang.String;
+import java.io.*;
 
-public class Report extends PseudoCodeUser implements Serializable {
-    public Report(String var1) {
-        try {
-            BufferedReader var2 = new BufferedReader(new FileReader(var1));
+/** A class for individual reports.
+ *
+ * @author Simon Colton, started 28th June 2002.
+ * @version 1.0 */
 
-            for(String var3 = var2.readLine(); var3 != null; var3 = var2.readLine()) {
-                this.pseudo_code_lines.addElement(var3);
+public class Report extends PseudoCodeUser implements Serializable
+{
+    /** This constructs the report from the given file.
+     */
+
+    public Report(String filename)
+    {
+        try
+        {
+            BufferedReader in = new BufferedReader(new FileReader(filename));
+            String s = in.readLine();
+            while (!(s==null))
+            {
+                pseudo_code_lines.addElement(s);
+                s = in.readLine();
             }
-
-            var2.close();
-        } catch (Exception var4) {
-            ;
+            in.close();
         }
-
+        catch(Exception e){}
     }
 
-    public void runReport() {
-        this.pseudo_code_interpreter.runPseudoCode(this.pseudo_code_lines);
+    /** This runs the report.
+     */
+
+    public void runReport()
+    {
+        pseudo_code_interpreter.runPseudoCode(pseudo_code_lines);
     }
 }

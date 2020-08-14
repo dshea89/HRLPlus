@@ -1,54 +1,94 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.Serializable;
-import java.util.Hashtable;
 import java.util.Vector;
+import java.util.Hashtable;
+import java.lang.String;
+import java.io.*;
 
-public class Timer implements Serializable {
+/** A class for timing how long certain processes take within HR,
+ * and for logging the steps undertaken.
+ *
+ * @author Simon Colton, started 13th January 2001
+ * @version 1.0 */
+
+public class Timer implements Serializable
+{
+    /** The hashtable of stopwatches.
+     */
+
     public Hashtable stopwatches = new Hashtable();
+
+    /** The process which is currently being timed.
+     */
+
     public String currently_timing = "";
+
+    /** The vector of times so far.
+     */
+
     public Vector times = new Vector();
+
+    /** The vector of names of processes.
+     */
+
     public Vector names = new Vector();
+
+    /** The vector of last times recorded.
+     */
+
     public Vector last_times = new Vector();
 
-    public Timer() {
-    }
+    /** This stops timing the current process and starts timing the new
+     * process.
+     */
 
-    public void addTo(String var1) {
-        long var2 = new Long(System.currentTimeMillis());
-        int var4 = this.names.indexOf(var1);
-        if (var4 == -1) {
-            this.names.addElement(var1);
-            this.times.addElement(new Long(0L));
-            this.last_times.addElement(new Long(var2));
+    public void addTo(String process_name)
+    {
+        long time = (new Long(System.currentTimeMillis())).longValue();
+        int ind = names.indexOf(process_name);
+        if (ind==-1)
+        {
+            names.addElement(process_name);
+            times.addElement(new Long(0));
+            last_times.addElement(new Long(time));
         }
-
-        if (var4 > -1) {
-            this.last_times.setElementAt(new Long(var2), var4);
+        if(ind>-1)
+            last_times.setElementAt(new Long(time),ind);
+        if (!currently_timing.equals(""))
+        {
+            int last_index = names.indexOf(currently_timing);
+            long last_time = ((Long)last_times.elementAt(names.indexOf(currently_timing))).longValue();
+            long this_duration = time - last_time;
+            long current_total = ((Long)times.elementAt(last_index)).longValue();
+            Long new_duration = new Long(this_duration + current_total);
+            times.setElementAt(new_duration, last_index);
         }
-
-        if (!this.currently_timing.equals("")) {
-            int var5 = this.names.indexOf(this.currently_timing);
-            long var6 = (Long)this.last_times.elementAt(this.names.indexOf(this.currently_timing));
-            long var8 = var2 - var6;
-            long var10 = (Long)this.times.elementAt(var5);
-            Long var12 = new Long(var8 + var10);
-            this.times.setElementAt(var12, var5);
-        }
-
-        this.currently_timing = var1;
+        currently_timing = process_name;
     }
 
-    public void startStopWatch(String var1) {
-        this.stopwatches.put(var1, new Long(System.currentTimeMillis()));
+    /** Starts a new stopwatch.
+     */
+
+    public void startStopWatch(String stopwatch_name)
+    {
+        stopwatches.put(stopwatch_name, new Long(System.currentTimeMillis()));
     }
 
-    public void stopStopWatch(String var1) {
-        this.stopwatches.remove(var1);
+    /** Stops a stopwatch (removes it from the list being timed).
+     */
+
+    public void stopStopWatch(String stopwatch_name)
+    {
+        stopwatches.remove(stopwatch_name);
     }
 
-    public long millisecondsPassed(String var1) {
-        Long var2 = (Long)this.stopwatches.get(var1);
-        return System.currentTimeMillis() - var2;
+    /** Finds how many milliseconds have elapsed since the given stopwatch
+     * was started.
+     */
+
+    public long millisecondsPassed(String stopwatch_name)
+    {
+        Long timestarted = (Long)stopwatches.get(stopwatch_name);
+        return (System.currentTimeMillis() - timestarted.longValue());
     }
 }

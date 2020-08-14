@@ -1,129 +1,194 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.io.Serializable;
-import java.util.Date;
-import java.util.Hashtable;
 import java.util.Vector;
+import java.util.Hashtable;
+import java.lang.String;
+import java.awt.TextArea;
+import java.awt.event.*;
+import java.io.*;
+import java.util.Date;
 import javax.swing.JEditorPane;
 
-public class ReportGenerator implements Serializable {
+/** A class for handling the output of various aspects of the theory
+ * to files, to the screen (GUI) and to the standard out.
+ *
+ * @author Simon Colton, started 15th October 2001
+ * @version 1.0 */
+
+public class ReportGenerator implements Serializable
+{
+    /** The text output to the screen.
+     */
+
     public String output_text = "";
+
+    /** The output file which is being written to.
+     */
+
     public PrintWriter output_file = null;
+
+    /** The name of the directory where all the report files are.
+     */
+
     public String input_files_directory = "";
+
+    /** The on-screen text area.
+     */
+
     public JEditorPane report_output_text = new JEditorPane();
+
+    /** The command line arguments to give to the individual reports.
+     */
+
     public Vector command_line_arguments = new Vector();
+
+    /** The vector of objects to report over. Note that this is actually
+     * set by the report pseudo-code.
+     */
+
     public Vector objects_to_report = new Vector();
+
+    /** The sort field. Note that this is actually
+     * set by the report pseudo-code.
+     */
+
     public String sort_key = "";
-    public double prune_less_than = 0.0D;
+
+    /** The value below which objects in the report will not be reported,
+     * which can be reset by a report.
+     */
+
+    public double prune_less_than = 0;
+
+    /** A counter, which can be reset by a report.
+     */
+
     public int counter = 0;
+
+    /** The old value (set by the report).
+     */
+
     public String old_value = "";
+
+    /** The number of runs_through the reporting cycle (can be set by the report
+     * and utilised by the report).
+     */
+
     public int number_of_runs_through = 1;
 
-    public ReportGenerator() {
-    }
+    /** This executes the reports.
+     */
 
-    public void runReports(Theory var1, String[] var2) {
-        this.output_text = "";
-        this.number_of_runs_through = 1;
-
-        for(int var3 = 0; var3 < var2.length; ++var3) {
-            this.sort_key = "";
-            this.objects_to_report = new Vector();
-            this.old_value = "";
-            Report var4 = new Report(this.input_files_directory + var2[var3]);
-
-            for(int var5 = 0; var5 < this.number_of_runs_through; ++var5) {
-                var4.pseudo_code_interpreter.local_alias_hashtable.put("theory", var1);
-                var4.pseudo_code_interpreter.local_alias_hashtable.put("stage", "start");
-                var4.pseudo_code_interpreter.local_alias_hashtable.put("screen", this.report_output_text);
-                var4.pseudo_code_interpreter.local_alias_hashtable.put("this", this);
-                var4.pseudo_code_interpreter.local_alias_hashtable.put("run_through", new Integer(var5));
-                var4.runReport();
-                this.counter = 0;
-                SortableVector var6 = new SortableVector();
-                var6.prune_less_than = this.prune_less_than;
-
-                int var7;
-                for(var7 = 0; var7 < this.objects_to_report.size(); ++var7) {
-                    if (!this.sort_key.equals("")) {
-                        var6.addElement(this.objects_to_report.elementAt(var7), this.sort_key);
-                    } else {
-                        var6.addElement(this.objects_to_report.elementAt(var7));
-                    }
+    public void runReports(Theory theory, String report_names[])
+    {
+        output_text = "";
+        number_of_runs_through = 1;
+        for (int i=0; i<report_names.length; i++)
+        {
+            sort_key = "";
+            objects_to_report = new Vector();
+            old_value = "";
+            Report report = new Report(input_files_directory + report_names[i]);
+            for (int run_through = 0; run_through<number_of_runs_through; run_through++)
+            {
+                report.pseudo_code_interpreter.local_alias_hashtable.put("theory", theory);
+                report.pseudo_code_interpreter.local_alias_hashtable.put("stage", "start");
+                report.pseudo_code_interpreter.local_alias_hashtable.put("screen", report_output_text);
+                report.pseudo_code_interpreter.local_alias_hashtable.put("this", this);
+                report.pseudo_code_interpreter.local_alias_hashtable.put("run_through", new Integer(run_through));
+                report.runReport();
+                counter = 0;
+                SortableVector sorted_objects = new SortableVector();
+                sorted_objects.prune_less_than = prune_less_than;
+                for (int j=0; j<objects_to_report.size(); j++)
+                {
+                    if (!sort_key.equals(""))
+                        sorted_objects.addElement(objects_to_report.elementAt(j), sort_key);
+                    else
+                        sorted_objects.addElement(objects_to_report.elementAt(j));
                 }
 
-                for(var7 = 0; var7 < var6.size(); ++var7) {
-                    var4.pseudo_code_interpreter.local_alias_hashtable = new Hashtable();
-                    var4.pseudo_code_interpreter.local_alias_hashtable.put("run_through", new Integer(var5));
-                    var4.pseudo_code_interpreter.local_alias_hashtable.put("screen", this.report_output_text);
-                    var4.pseudo_code_interpreter.local_alias_hashtable.put("counter", Integer.toString(this.counter));
-                    var4.pseudo_code_interpreter.local_alias_hashtable.put("stage", "main");
-                    var4.pseudo_code_interpreter.local_alias_hashtable.put("theory", var1);
-                    var4.pseudo_code_interpreter.local_alias_hashtable.put("object", var6.elementAt(var7));
-                    var4.pseudo_code_interpreter.local_alias_hashtable.put("old_value", this.old_value);
-                    var4.pseudo_code_interpreter.local_alias_hashtable.put("this", this);
-                    var4.runReport();
-                    ++this.counter;
+                for (int j=0; j<sorted_objects.size(); j++)
+                {
+                    report.pseudo_code_interpreter.local_alias_hashtable = new Hashtable();
+                    report.pseudo_code_interpreter.local_alias_hashtable.put("run_through", new Integer(run_through));
+                    report.pseudo_code_interpreter.local_alias_hashtable.put("screen", report_output_text);
+                    report.pseudo_code_interpreter.local_alias_hashtable.put("counter", Integer.toString(counter));
+                    report.pseudo_code_interpreter.local_alias_hashtable.put("stage", "main");
+                    report.pseudo_code_interpreter.local_alias_hashtable.put("theory", theory);
+                    report.pseudo_code_interpreter.local_alias_hashtable.put("object", sorted_objects.elementAt(j));
+                    report.pseudo_code_interpreter.local_alias_hashtable.put("old_value", old_value);
+                    report.pseudo_code_interpreter.local_alias_hashtable.put("this", this);
+                    report.runReport();
+                    counter++;
                 }
 
-                var4.pseudo_code_interpreter.local_alias_hashtable.put("this", this);
-                var4.pseudo_code_interpreter.local_alias_hashtable.put("run_through", new Integer(var5));
-                var4.pseudo_code_interpreter.local_alias_hashtable.put("theory", var1);
-                var4.pseudo_code_interpreter.local_alias_hashtable.put("screen", this.report_output_text);
-                var4.pseudo_code_interpreter.local_alias_hashtable.put("stage", "end");
-                var4.runReport();
+                report.pseudo_code_interpreter.local_alias_hashtable.put("this", this);
+                report.pseudo_code_interpreter.local_alias_hashtable.put("run_through", new Integer(run_through));
+                report.pseudo_code_interpreter.local_alias_hashtable.put("theory", theory);
+                report.pseudo_code_interpreter.local_alias_hashtable.put("screen", report_output_text);
+                report.pseudo_code_interpreter.local_alias_hashtable.put("stage", "end");
+                report.runReport();
             }
         }
-
-        this.report_output_text.setText(this.output_text);
-        this.report_output_text.setCaretPosition(0);
+        report_output_text.setText(output_text);
+        report_output_text.setCaretPosition(0);
     }
 
-    public void writeToScreen(String var1) {
-        this.output_text = this.output_text + var1;
+    public void writeToScreen(String s)
+    {
+        output_text = output_text + s;
     }
 
-    public void writeToFile(String var1) {
-        this.output_file.write(var1);
+    public void writeToFile(String s)
+    {
+        output_file.write(s);
     }
 
-    public void writeToScreenAndFile(String var1) {
-        this.output_file.write(var1);
-        this.output_text = this.output_text + var1;
+    public void writeToScreenAndFile(String s)
+    {
+        output_file.write(s);
+        output_text = output_text + s;
     }
 
-    public void openFileForWriting(String var1) {
-        try {
-            this.output_file = new PrintWriter(new BufferedWriter(new FileWriter(var1, false)));
-        } catch (Exception var3) {
-            this.writeToScreen("cannot open file: " + var1);
+    public void openFileForWriting(String fn)
+    {
+        try
+        {
+            output_file = new PrintWriter(new BufferedWriter(new FileWriter(fn, false)));
         }
-
-    }
-
-    public void openFileForAppend(String var1) {
-        try {
-            this.output_file = new PrintWriter(new BufferedWriter(new FileWriter(var1, true)));
-        } catch (Exception var3) {
-            this.writeToScreen("cannot open file: " + var1);
+        catch(Exception e)
+        {
+            writeToScreen("cannot open file: " + fn);
         }
-
     }
 
-    public void closeFile() {
-        this.output_file.close();
+    public void openFileForAppend(String fn)
+    {
+        try
+        {
+            output_file = new PrintWriter(new BufferedWriter(new FileWriter(fn, true)));
+        }
+        catch(Exception e)
+        {
+            writeToScreen("cannot open file: " + fn);
+        }
     }
 
-    public void clearScreen() {
-        this.report_output_text.setText("");
+    public void closeFile()
+    {
+        output_file.close();
     }
 
-    public String getDate() {
-        Date var1 = new Date();
-        String var2 = var1.toString();
-        return var2.substring(0, var2.lastIndexOf(":") + 3);
+    public void clearScreen()
+    {
+        report_output_text.setText("");
+    }
+
+    public String getDate()
+    {
+        Date d = new Date();
+        String output = d.toString();
+        return output.substring(0, output.lastIndexOf(":")+3);
     }
 }

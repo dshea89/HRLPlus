@@ -1,221 +1,290 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Serializable;
-import java.net.InetAddress;
-import java.net.Socket;
-import java.util.Hashtable;
-import java.util.Vector;
+import java.io.*;
+import java.net.*;
+import java.util.*;
 
-/**
- * A Java class for the access of MathWeb services.
+/** A Java class for the access of MathWeb services.
+ * @author J"urgen Zimmer and Simon Colton, started 1st October 2001
+ * @version 1.0
  */
-public class MathWebHandler implements Serializable {
-    /**
-     * Whether or not the results from all the Mathweb provers is required (if not, just the result from the first is supplied).
+
+public class MathWebHandler implements Serializable
+{
+    /** Whether or not the results from all the Mathweb
+     * provers is required (if not, just the result from
+     * the first is supplied).
      */
+
     public boolean require_all = false;
 
     private InputStream in;
     private OutputStream out;
     private Socket mathweb_socket;
 
-    /**
-     * The simple constructor
+    /** The simple constructor
      */
-    public MathWebHandler() {
+
+    public MathWebHandler()
+    {
     }
 
-    /**
-     * Constructor requiring an InetAddress and a port number
+    /** Constructor requiring an InetAddress and a port number
      */
+
     public MathWebHandler(InetAddress host, int mathweb_port) {
+        super();
         try {
-            this.mathweb_socket = new Socket(host, mathweb_port);
-            this.in = this.mathweb_socket.getInputStream();
-            this.out = this.mathweb_socket.getOutputStream();
-            String var3 = null;
+            mathweb_socket = new Socket(host, mathweb_port);
 
-            for(int var4 = 0; var4 < 10; ++var4) {
-                var3 = this.readToken();
+            in = mathweb_socket.getInputStream();
+            out = mathweb_socket.getOutputStream();
+            String token = null;
+            for (int i=0; i<10; i++)
+            {
+                token = readToken();
             }
-        } catch (IOException var5) {
-            System.out.println(var5);
         }
-
+        catch (IOException e) {System.out.println(e);}
     }
 
-    public InputStream getInputStream() {
+    // If some application wants to install its own listener on the
+    // inputstream it can get it the input stream here. The application
+    // should then use only asynchronous method calls
+
+    public InputStream getInputStream()
+    {
         return this.in;
     }
 
-    public String getService(String serviceName, String mode) {
-        String var3 = "enter('" + serviceName + "'" + this.getOptionalArgString("mode", mode) + ")";
-        Object var4 = this.sendMessage(var3, true);
-        return var4 instanceof String ? (String)var4 : null;
+    public String getService(String ServiceName, String mode) {
+        String message =
+                "enter('"+ServiceName+"'"+
+                        getOptionalArgString("mode", mode)+
+                        ")";
+
+        Object result = sendMessage(message, true);
+
+        if (result instanceof String)
+            return (String) result;
+        else
+            return null;
     }
 
-    private String getOptionalArgString(String var1, Object var2) {
-        return var2 == null ? "" : " " + var1 + ": " + var2;
+    private String getOptionalArgString(String feature, Object value)
+    {
+        if (value == null)
+            return "";
+        else
+            return " "+feature+": "+value;
     }
 
-    public Object applyMethod(String service, String method, String id, Integer timeout) {
-        String var5 = "applyMethod('" + service + "' " + method + this.getOptionalArgString("id", id) + this.getOptionalArgString("timeout", timeout) + ")";
-        boolean var6 = true;
-        if (id != null) {
-            var6 = false;
-        }
-
-        return this.sendMessage(var5, var6);
+    public Object applyMethod(String service, String message, String id, Integer timeout)
+    {
+        String real_message = "applyMethod('"+service+"' "+message+
+                getOptionalArgString("id", id) +
+                getOptionalArgString("timeout", timeout) + ")";
+        boolean synchronous = true;
+        if (id != null)
+            synchronous = false;
+        return sendMessage(real_message, synchronous);
     }
 
-    private Object sendMessage(String var1, boolean var2) {
-        byte[] var3 = var1.getBytes();
+    private Object sendMessage(String message, boolean synchronous)
+    {
+        byte[] bytes = message.getBytes();
 
         try {
-            this.out.write(var3);
+            this.out.write(bytes);
             this.out.write(128);
             this.out.flush();
-        } catch (IOException var5) {
-            ;
         }
-
-        return var2 ? this.readResult() : new Boolean(var2);
+        catch (IOException e) {
+            //      System.out.println("exc: " + e);
+        }
+        if (synchronous == true)
+            return readResult();
+        else
+            return new Boolean(synchronous);
     }
 
-    private Object readResult() {
-        String var1 = this.readToken();
-        if (var1.equals("end-of-record")) {
+    private Object readResult()
+    {
+        String token = readToken();
+
+        if (token.equals("end-of-record"))
+        {
             return null;
-        } else if (var1.equals("end-of-list")) {
+        }
+        if (token.equals("end-of-list"))
+        {
             return null;
-        } else if (var1.equals("string")) {
-            var1 = this.readToken();
-            return var1;
-        } else {
-            Hashtable var2;
-            Vector var3;
-            if (!var1.equals("record") && !var1.equals("record")) {
-                if (!var1.equals("list") && !var1.equals("ls")) {
-                    if (var1.equals("error")) {
-                        var1 = this.readToken();
-                        System.out.println("error: " + var1);
-                        return var1;
-                    } else {
-                        System.out.println("No method to read result " + var1);
-                        return null;
-                    }
-                } else {
-                    var2 = null;
-                    var3 = new Vector();
-                    boolean var6 = false;
+        }
+        else if (token.equals("string"))
+        {
+            token = readToken();
+            return token;
+        }
+        else if (token.equals("record") || token.equals("record"))
+        {
+            Hashtable table = new Hashtable();
+            String key = null;
+            Object value = null;
 
-                    do {
-                        Object var5 = this.readResult();
-                        if (var5 != null) {
-                            if (var5 instanceof String) {
-                                if (((String)var5).equals("end-of-list")) {
-                                    var6 = true;
-                                } else {
-                                    var3.addElement(var5);
-                                }
-                            } else {
-                                var3.addElement(var5);
-                            }
-                        } else {
-                            var6 = true;
-                        }
-                    } while(!var6);
-
-                    return var3;
-                }
-            } else {
-                var2 = new Hashtable();
-                var3 = null;
-                String var4 = null;
-
-                for(var1 = this.readToken(); !var1.equals("end-of-record"); var1 = this.readToken()) {
-                    var4 = this.readToken();
-                    var2.put(var1, var4);
-                }
-
-                return var2;
+            token = readToken();
+            while (! token.equals("end-of-record"))
+            {
+                key = token;
+                value = readToken();
+                table.put(key, value);
+                token = readToken();
             }
+            return table;
+        }
+        else if (token.equals("list") || token.equals("ls"))
+        {
+            Object res = null;
+            Vector list = new Vector();
+            boolean end = false;
+            do {
+                res = readResult();
+                if (res != null)
+                {
+                    if (res instanceof String)
+                    {
+                        if (((String) res).equals("end-of-list"))
+                            end = true;
+                        else
+                        {
+                            list.addElement(res);
+                        }
+                    }
+                    else
+                    {
+                        list.addElement(res);
+                    }
+                }
+                else end = true;
+            }
+            while (!end);
+            return list;
+        }
+
+        else if (token.equals("error"))
+        {
+            token = readToken();
+            System.out.println("error: "+token);
+            return token;
+        }
+        else
+        {
+            System.out.println("No method to read result " + token);
+            return null;
         }
     }
 
-    private String readToken() {
-        boolean var1 = false;
-        byte[] var2 = new byte[1024];
+    private String readToken()
+    {
+        int c=0;
+        byte b[] = new byte[1024];
 
-        int var10;
-        try {
-            var10 = this.in.read();
-        } catch (IOException var9) {
+        try
+        {
+            c = this.in.read();
+        }
+
+        catch (IOException e)
+        {
             return "";
         }
 
-        int var3 = 0;
-        String var4 = "";
+        int i=0;
+        String output = "";
+        String add_on;
 
-        String var5;
-        while(var10 != 128) {
-            if (var3 < 1024) {
-                var2[var3] = (byte)var10;
-                ++var3;
-            } else {
-                var5 = new String(var2);
-                var4 = var4 + var5;
-                var3 = 0;
+        while (c != 128)
+        {
+            if (i<1024)
+            {
+                b[i]=(byte)c;
+                i++;
             }
-
-            try {
-                var10 = this.in.read();
-            } catch (IOException var8) {
-                var10 = 128;
+            else
+            {
+                add_on = new String(b);
+                output = output + add_on;
+                i=0;
+            }
+            try
+            {
+                c = this.in.read();
+            }
+            catch (IOException e)
+            {
+                c = 128;
             }
         }
-
-        if (var3 < 1025) {
-            byte[] var6 = new byte[var3];
-
-            for(int var7 = 0; var7 < var3; ++var7) {
-                var6[var7] = var2[var7];
-            }
-
-            var5 = new String(var6);
-            var4 = var4 + var5;
+        if (i<1025)
+        {
+            byte rest[] = new byte[i];
+            for (int e=0; e<i; e++) rest[e]=b[e];
+            add_on = new String(rest);
+            output = output + add_on;
         }
 
-        return var4;
+        return output;
     }
 
-    public String leaveService(String service) {
-        String var2 = "leave('" + service + "')";
-        Object var3 = this.sendMessage(var2, true);
-        return var3 instanceof String ? (String)var3 : null;
+    public String leaveService(String service)
+    {
+        String message = "leave('"+service+"')";
+        Object result = sendMessage(message, true);
+        if (result instanceof String)
+            return (String) result;
+        else
+            return null;
     }
 
-    public static void main(String[] args) {
-        try {
-            if (args != null && args.length == 4 && "--mathweb_service".equals(args[0])) {
-                String var2 = args[1];
-                int var3 = Integer.parseInt(args[2]);
-                int var4 = Integer.parseInt(args[3]);
-                InetAddress var6 = InetAddress.getByName(var2);
-                new Socket(var6, var3);
-                MathWebHandler var5 = new MathWebHandler(var6, var4);
-                String var8 = "prove(\"set(auto).\nformula_list(usable).\nall a (a * id = a).\n-(all a (a * id = a)).\nend_of_list.\")";
-                String var9 = var5.getService("OTTER", (String)null);
-                var5.applyMethod(var9, var8, (String)null, (Integer)null);
-                var5.leaveService(var9);
-            } else {
+    public static void main (String[] args)
+    {
+        try
+        {
+            String os_type;
+            String hostname;
+            int inout_port;
+            int mathweb_port;
+            MathWebHandler mw;
+
+            if ((args != null) && (args.length == 4) && ("--mathweb_service".equals(args[0])))
+            {
+                hostname = args[1];
+                inout_port = Integer.parseInt(args[2]);
+                mathweb_port  = Integer.parseInt(args[3]);
+
+                InetAddress host = InetAddress.getByName(hostname);
+
+                Socket inout= new Socket(host, inout_port);
+
+                mw = new MathWebHandler(host, mathweb_port);
+
+                String prove = "prove(\""+
+                        "set(auto).\nformula_list(usable).\nall a (a * id = a).\n-(all a (a * id = a)).\nend_of_list."+
+                        "\")";
+
+                String otter = mw.getService("OTTER", null);
+                Object result = mw.applyMethod(otter, prove, null, null);
+                mw.leaveService(otter);
+
+            }
+            else
+            {
                 System.out.println("usage: java MathWeb --mathweb_service HostName InoutPort ServicePort");
             }
-        } catch (Exception var11) {
-            System.out.println("exc: " + var11);
+
+        }
+        catch (Exception e)
+        {
+            System.out.println("exc: " + e);
         }
 
     }

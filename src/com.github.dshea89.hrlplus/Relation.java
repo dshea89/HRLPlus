@@ -1,85 +1,149 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.Serializable;
 import java.util.Vector;
+import java.lang.String;
+import java.io.Serializable;
 
-public class Relation implements Serializable {
+/**
+ * A class representing a relation between objects and subobjects in the theory.
+ *
+ * @author Simon Colton, started 11th December 1999.
+ * @version 1.0
+ * @see Concept
+ * @see Definition
+ */
+
+public class Relation implements Serializable
+{
+    /** The set of function columns for this relation. These are pairs of vectors of
+     * function columns such as [0,1],[2] which says that 0,1 variables are input and
+     * variable 2 is output.
+     */
+
     public Vector function_columns = new Vector();
+
+    /** The set of definitions which are associated with this relation. The definitions
+     * may be different ways of writing the same relation in the same language, or may
+     * come from different languages, such as ASCII and LaTeX.
+     * @see Definition
+     */
+
     public Vector definitions = new Vector();
+
+    /** The name of this relation.
+     */
+
     public String name = "";
+
+    /** Indicates whether the relation represents the objects of interest, such as graphs,
+     * integers, groups, etc. Default is false.
+     */
+
     public boolean is_object_of_interest = false;
 
-    public Relation() {
+    /** Creates a new relation.
+     */
+
+    public Relation()
+    {
     }
 
-    public boolean equals(Relation var1) {
-        return var1.name.equals(this.name);
+    /** Checks whether the given relation equals this one.
+     */
+
+    public boolean equals(Relation other)
+    {
+        if (other.name.equals(name))
+            return true;
+        return false;
     }
 
-    public Relation(Vector var1) {
-        if (!var1.isEmpty()) {
-            for(int var2 = 0; var2 < var1.size(); ++var2) {
-                String var3 = (String)var1.elementAt(var2);
-                this.addFunctionColumns(var3);
+    /** Creates a new relation with the given columns as possible output
+     * columns if viewed as a function.
+     */
+
+    public Relation(Vector function_columns)
+    {
+        if (!function_columns.isEmpty())
+        {
+            for (int i=0; i<function_columns.size(); i++)
+            {
+                String function_column_string = (String)function_columns.elementAt(i);
+                addFunctionColumns(function_column_string);
             }
         }
-
     }
 
-    public void addDefinition(String var1, String var2) {
-        Definition var3 = new Definition(var1, var2);
-        this.definitions.addElement(var3);
+    /** Adds a definition to the list_of_definitions.
+     * see Definition
+     */
+
+    public void addDefinition(String input_text, String language)
+    {
+        Definition definition = new Definition(input_text, language);
+        definitions.addElement(definition);
     }
 
-    public void addDefinition(String var1, String var2, String var3) {
-        Definition var4 = new Definition(var1, var2, var3);
-        this.definitions.addElement(var4);
+    /** Adds a definition to the list_of_definitions.
+     * see Definition
+     */
+
+    public void addDefinition(String letters, String input_text, String language)
+    {
+        Definition definition = new Definition(letters, input_text, language);
+        definitions.addElement(definition);
     }
 
-    public Definition getDefinition(String var1) {
-        for(int var2 = 0; var2 < this.definitions.size(); ++var2) {
-            Definition var3 = (Definition)this.definitions.elementAt(var2);
-            if (var3.language.equals(var1)) {
-                return var3;
-            }
+    /** Returns the first definition of the given language for this relation, or an empty
+     * definition if there  are no such definitions.
+     */
+
+    public Definition getDefinition(String language)
+    {
+        for (int i=0; i<definitions.size(); i++)
+        {
+            Definition definition = (Definition)definitions.elementAt(i);
+            if (definition.language.equals(language))
+                return definition;
         }
-
-        if (this.definitions.size() > 0) {
-            return (Definition)this.definitions.elementAt(0);
-        } else {
-            return new Definition("", var1);
-        }
+        if (definitions.size()>0)
+            return (Definition)definitions.elementAt(0);
+        return (new Definition("",language));
     }
 
-    public void addFunctionColumns(String var1) {
-        Vector var2 = new Vector();
-        Vector var3 = new Vector();
-        int var4 = 0;
-        String var5 = "";
+    /** This takes strings of the form "x,y,z-a,b,c" and says that this concept can
+     * be thought of as a function with input columns xyz and output columns abc.
+     */
 
-        Vector var6;
-        for(var6 = var2; var4 < var1.length(); ++var4) {
-            String var7 = var1.substring(var4, var4 + 1);
-            if (var7.equals(",")) {
-                var6.addElement(var5);
-                var5 = "";
+    public void addFunctionColumns(String s)
+    {
+        Vector input_columns = new Vector();
+        Vector output_columns = new Vector();
+        int pos = 0;
+        String num = "";
+        Vector add_vector = input_columns;
+        while (pos < s.length())
+        {
+            String add_bit = s.substring(pos,pos+1);
+            if (add_bit.equals(","))
+            {
+                add_vector.addElement(num);
+                num="";
             }
-
-            if (var7.equals("=")) {
-                var6.addElement(var5);
-                var5 = "";
-                var6 = var3;
+            if (add_bit.equals("="))
+            {
+                add_vector.addElement(num);
+                num="";
+                add_vector = output_columns;
             }
-
-            if (!var7.equals("=") && !var7.equals(",")) {
-                var5 = var5 + var7;
-            }
+            if (!add_bit.equals("=") && !add_bit.equals(","))
+                num=num+add_bit;
+            pos++;
         }
-
-        var6.addElement(var5);
-        Vector var8 = new Vector();
-        var8.addElement(var2);
-        var8.addElement(var3);
-        this.function_columns.addElement(var8);
+        add_vector.addElement(num);
+        Vector fc = new Vector();
+        fc.addElement(input_columns);
+        fc.addElement(output_columns);
+        function_columns.addElement(fc);
     }
 }

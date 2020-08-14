@@ -1,229 +1,233 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.Serializable;
-import java.util.Hashtable;
 import java.util.Vector;
+import java.util.Hashtable;
+import java.lang.String;
+import java.io.Serializable;
+
+/** A class for HR to prove implicates itself using previously proved prime
+ * implicates, in a forward chaining fashion.
+ *
+ * @author Simon Colton, started 18th July 2002
+ * @version 1.0 */
 
 // Despite Java warnings that this class is unused, it is invoked via Java Reflection from the Other Provers table
 @SuppressWarnings("unused")
-public class PIProver extends Prover implements Serializable {
+public class PIProver extends Prover implements Serializable
+{
+    /** The maximum branching number for when HR puts together its own proofs.
+     */
+
     public int branches = 0;
 
-    public PIProver() {
-    }
+    /** This uses forward chaining to attempt to prove the given implicate conjecture
+     * using the set of prime implicates also supplied.
+     */
 
-    public boolean prove(Conjecture conjecture, Theory theory) {
-        if (!(conjecture instanceof Implicate)) {
+    public boolean prove(Conjecture conjecture, Theory theory)
+    {
+        if (!(conjecture instanceof Implicate))
             return false;
-        } else {
-            Implicate var3 = (Implicate) conjecture;
-            Vector var4 = theory.prime_implicates;
-            this.branches = 0;
-            Hashtable var5 = new Hashtable();
-            new Vector();
-            Vector var7 = (Vector)var3.premise_concept.specifications.clone();
-            int var8 = var7.size();
-            int var9 = 0;
-            boolean var10 = false;
-            Vector var11 = new Vector();
-
-            int var12;
-            Vector var13;
-            Vector var16;
-            Vector var17;
-            for(var12 = 0; var8 != var9 && !var10; var9 = var7.size()) {
-                ++var12;
-                var8 = var7.size();
-                var13 = new Vector();
-
-                int var14;
-                for(var14 = 0; var14 < var4.size(); ++var14) {
-                    Implicate var15 = (Implicate)var4.elementAt(var14);
-                    if (var15 != var3 && this.containsSpecs(var7, var15.premise_concept.specifications)) {
-                        var16 = (Vector)var5.get(var15.goal);
-                        if (var16 == null) {
-                            var17 = new Vector();
-                            var17.addElement(var15);
-                            var5.put(var15.goal, var17);
-                        } else if (!var16.contains(var15)) {
-                            var16.addElement(var15);
-                        }
-
-                        if (var15.goal != var3.goal) {
-                            var13.addElement(var15.goal);
-                        }
-
-                        if (var15.goal == var3.goal) {
-                            var10 = true;
-                        }
-
-                        if (!var11.contains(var15)) {
-                            var11.addElement(var15);
-                        }
+        Implicate implicate = (Implicate)conjecture;
+        Vector pis = theory.prime_implicates;
+        branches = 0;
+        Hashtable pis_for_specs = new Hashtable();
+        Vector paths = new Vector();
+        Vector lh_specs = (Vector)implicate.premise_concept.specifications.clone();
+        int old_size = lh_specs.size();
+        int new_size = 0;
+        boolean proved = false;
+        Vector pis_used = new Vector();
+        int cycle_num = 0;
+        while (old_size!=new_size && !proved)
+        {
+            cycle_num ++;
+            old_size = lh_specs.size();
+            Vector additional_lh_specs = new Vector();
+            for (int i=0; i<pis.size(); i++)
+            {
+                Implicate pi = (Implicate)pis.elementAt(i);
+                if (pi!=implicate &&
+                        containsSpecs(lh_specs, pi.premise_concept.specifications))
+                {
+                    Vector pis_for_spec = (Vector)pis_for_specs.get(pi.goal);
+                    if (pis_for_spec==null)
+                    {
+                        Vector dummy_vector = new Vector();
+                        dummy_vector.addElement(pi);
+                        pis_for_specs.put(pi.goal, dummy_vector);
                     }
-                }
-
-                for(var14 = 0; var14 < var13.size(); ++var14) {
-                    if (!var7.contains(var13.elementAt(var14))) {
-                        var7.addElement(var13.elementAt(var14));
+                    else
+                    {
+                        if (!pis_for_spec.contains(pi))
+                            pis_for_spec.addElement(pi);
                     }
+                    if (pi.goal!=implicate.goal)
+                    {
+                        additional_lh_specs.addElement(pi.goal);
+                    }
+                    if (pi.goal==implicate.goal)
+                        proved = true;
+                    if (!pis_used.contains(pi))
+                        pis_used.addElement(pi);
                 }
             }
+            for (int i=0; i<additional_lh_specs.size(); i++)
+            {
+                if (!lh_specs.contains(additional_lh_specs.elementAt(i)))
+                    lh_specs.addElement(additional_lh_specs.elementAt(i));
+            }
+            new_size = lh_specs.size();
+        }
+        if (!proved)
+            return false;
 
-            if (!var10) {
-                return false;
-            } else {
-                var13 = new Vector();
-                Vector var20 = this.getPisForGoal(var3.goal, var5);
+        Vector proofs = new Vector();
+        Vector pis_for_goal = getPisForGoal(implicate.goal, pis_for_specs);
+        for (int i=0; i<pis_for_goal.size(); i++)
+        {
+            Vector proof = new Vector();
+            proof.addElement("after here");
+            proof.addElement(pis_for_goal.elementAt(i));
+            proofs.addElement(proof);
+        }
 
-                for(int var21 = 0; var21 < var20.size(); ++var21) {
-                    var16 = new Vector();
-                    var16.addElement("after here");
-                    var16.addElement(var20.elementAt(var21));
-                    var13.addElement(var16);
-                }
+        Vector final_proofs = new Vector();
+        for (int i=0; i<proofs.size(); i++)
+        {
+            Vector proof = (Vector)proofs.elementAt(i);
+            Vector new_proofs = expandProof(implicate, proof, pis_for_specs, cycle_num);
+            for (int j=0; j<new_proofs.size(); j++)
+                final_proofs.addElement(new_proofs.elementAt(j));
+        }
 
-                Vector var22 = new Vector();
-
-                int var23;
-                for(var23 = 0; var23 < var13.size(); ++var23) {
-                    var17 = (Vector)var13.elementAt(var23);
-                    Vector var18 = this.expandProof(var3, var17, var5, var12);
-
-                    for(int var19 = 0; var19 < var18.size(); ++var19) {
-                        var22.addElement(var18.elementAt(var19));
-                    }
-                }
-
-                var3.proof = "";
-
-                for(var23 = 0; var23 < var22.size(); ++var23) {
-                    var3.proof = var3.proof + "\n\n" + var3.writeConjecture("otter") + "\n---------------\n";
-                    var17 = (Vector)var22.elementAt(var23);
-
-                    for(int var24 = 0; var24 < var17.size(); ++var24) {
-                        Implicate var25 = (Implicate)var17.elementAt(var24);
-                        var3.proof = var3.proof + "(" + var25.id + ") " + var25.writeConjecture("otter") + "\n";
-                    }
-                }
-
-                return true;
+        implicate.proof = "";
+        for (int i=0; i<final_proofs.size(); i++)
+        {
+            implicate.proof = implicate.proof + "\n\n" + implicate.writeConjecture("otter") + "\n---------------\n";
+            Vector proof = (Vector)final_proofs.elementAt(i);
+            for (int j=0; j<proof.size(); j++)
+            {
+                Implicate proof_imp = (Implicate)proof.elementAt(j);
+                implicate.proof = implicate.proof + "(" + proof_imp.id + ") " + proof_imp.writeConjecture("otter")+"\n";
             }
         }
+        return true;
     }
 
-    public Vector expandProof(Implicate var1, Vector var2, Hashtable var3, int var4) {
-        ++this.branches;
-        Vector var5 = new Vector();
-        --var4;
-        boolean var6 = false;
-        boolean var7 = false;
+    public Vector expandProof(Implicate original_implicate, Vector proof, Hashtable h_table, int cycle_num)
+    {
+        branches++;
+        Vector output = new Vector();
+        cycle_num--;
 
-        int var24;
-        for(var24 = 0; var24 < var2.size() && !var6; ++var24) {
-            Object var8 = var2.elementAt(var24);
-            if (var8 instanceof String) {
-                var6 = true;
-                var2.removeElementAt(var24);
+        boolean start_now = false;
+        int start_pos=0;
+
+        for (start_pos=0; start_pos<proof.size() && !start_now; start_pos++)
+        {
+            Object obj = proof.elementAt(start_pos);
+            if (obj instanceof String)
+            {
+                start_now = true;
+                proof.removeElementAt(start_pos);
             }
         }
-
-        if (var4 == -1) {
-            return var5;
-        } else {
-            Vector var25 = new Vector();
-            Vector var9 = (Vector)var2.clone();
-            var25.addElement(var9);
-
-            int var10;
-            for(var10 = var24 - 1; var10 < var2.size(); ++var10) {
-                Implicate var11 = (Implicate)var2.elementAt(var10);
-
-                for(int var12 = 0; var12 < var11.premise_concept.specifications.size(); ++var12) {
-                    Vector var13 = new Vector();
-                    Specification var14 = (Specification)var11.premise_concept.specifications.elementAt(var12);
-                    new Vector();
-                    int var16;
-                    Vector var17;
-                    if (var1.premise_concept.specifications.contains(var14)) {
-                        for(var16 = 0; var16 < var25.size(); ++var16) {
-                            var17 = (Vector)var25.elementAt(var16);
-                            var13.addElement(var17);
-                        }
-                    } else {
-                        if (!var9.contains("after here")) {
-                            var9.addElement("after here");
-                        }
-
-                        Vector var15 = this.getPisForGoal(var14, var3);
-
-                        for(var16 = 0; var16 < var25.size(); ++var16) {
-                            var17 = (Vector)var25.elementAt(var16);
-
-                            for(int var18 = 0; var18 < var15.size(); ++var18) {
-                                Implicate var19 = (Implicate)var15.elementAt(var18);
-                                Vector var20 = (Vector)var17.clone();
-                                Vector var21 = new Vector();
-
-                                for(int var22 = 0; var22 < var20.size(); ++var22) {
-                                    Object var23 = var20.elementAt(var22);
-                                    if (var23 instanceof Implicate) {
-                                        var21.addElement(((Implicate)var23).goal);
-                                    }
-                                }
-
-                                if (!var20.contains(var19) && !var21.contains(var14)) {
-                                    var20.addElement(var19);
-                                    var13.addElement(var20);
-                                }
+        if (cycle_num==-1)
+        {
+            return output;
+        }
+        Vector new_proofs = new Vector();
+        Vector first_proof = (Vector)proof.clone();
+        new_proofs.addElement(first_proof);
+        for (int i=start_pos - 1; i<proof.size(); i++)
+        {
+            Implicate pi = (Implicate)proof.elementAt(i);
+            for (int j=0; j<pi.premise_concept.specifications.size(); j++)
+            {
+                Vector temp_new_proofs = new Vector();
+                Specification goal_spec = (Specification)pi.premise_concept.specifications.elementAt(j);
+                Vector pis_for_goal = new Vector();
+                if (!original_implicate.premise_concept.specifications.contains(goal_spec))
+                {
+                    if (!first_proof.contains("after here"))
+                        first_proof.addElement("after here");
+                    pis_for_goal = getPisForGoal(goal_spec, h_table);
+                    for (int k=0; k < new_proofs.size(); k++)
+                    {
+                        Vector old_proof = (Vector)new_proofs.elementAt(k);
+                        for (int l=0; l < pis_for_goal.size(); l++)
+                        {
+                            Implicate pi_for_goal = (Implicate)pis_for_goal.elementAt(l);
+                            Vector new_proof = (Vector)old_proof.clone();
+                            Vector goals_added = new Vector();
+                            for (int m=0; m<new_proof.size(); m++)
+                            {
+                                Object proof_line = new_proof.elementAt(m);
+                                if (proof_line instanceof Implicate)
+                                    goals_added.addElement(((Implicate)proof_line).goal);
+                            }
+                            if (!new_proof.contains(pi_for_goal) && !goals_added.contains(goal_spec))
+                            {
+                                new_proof.addElement(pi_for_goal);
+                                temp_new_proofs.addElement(new_proof);
                             }
                         }
                     }
-
-                    var25 = var13;
                 }
-            }
-
-            for(var10 = 0; var10 < var25.size(); ++var10) {
-                Vector var26 = (Vector)var25.elementAt(var10);
-                if (var26.contains("after here")) {
-                    Vector var27 = this.expandProof(var1, var26, var3, var4);
-
-                    for(int var28 = 0; var28 < var27.size(); ++var28) {
-                        var5.addElement(var27.elementAt(var28));
+                else
+                {
+                    for (int k=0; k < new_proofs.size(); k++)
+                    {
+                        Vector old_proof = (Vector)new_proofs.elementAt(k);
+                        temp_new_proofs.addElement(old_proof);
                     }
-                } else {
-                    var5.addElement(var26);
                 }
+                new_proofs = temp_new_proofs;
             }
-
-            return var5;
         }
+
+        for (int i=0; i<new_proofs.size(); i++)
+        {
+            Vector add_proof = (Vector)new_proofs.elementAt(i);
+            if (add_proof.contains("after here"))
+            {
+                Vector expanded_proofs = expandProof(original_implicate, add_proof, h_table, cycle_num);
+                for (int j=0; j<expanded_proofs.size(); j++)
+                    output.addElement(expanded_proofs.elementAt(j));
+            }
+            else
+            {
+                output.addElement(add_proof);
+            }
+        }
+        return output;
     }
 
-    private Vector getPisForGoal(Specification var1, Hashtable var2) {
-        Vector var3 = new Vector();
-        Vector var4 = (Vector)var2.get(var1);
-        if (var4 != null) {
-            for(int var5 = 0; var5 < var4.size(); ++var5) {
-                Implicate var6 = (Implicate)var4.elementAt(var5);
-                var3.addElement(var6);
+    private Vector getPisForGoal(Specification goal_spec, Hashtable h_table)
+    {
+        Vector output = new Vector();
+        Vector pis_for_goal = (Vector)h_table.get(goal_spec);
+        if (pis_for_goal!=null)
+        {
+            for (int i=0; i<pis_for_goal.size(); i++)
+            {
+                Implicate pi_for_goal = (Implicate)pis_for_goal.elementAt(i);
+                output.addElement(pi_for_goal);
             }
         }
-
-        return var3;
+        return output;
     }
 
-    private boolean containsSpecs(Vector var1, Vector var2) {
-        boolean var3 = true;
-
-        for(int var4 = 0; var4 < var2.size() && var3; ++var4) {
-            Specification var5 = (Specification)var2.elementAt(var4);
-            if (!var1.contains(var5)) {
-                var3 = false;
-            }
+    private boolean containsSpecs(Vector containing_specs, Vector contained_specs)
+    {
+        boolean output = true;
+        for (int i=0; i<contained_specs.size() && output; i++)
+        {
+            Specification spec = (Specification)contained_specs.elementAt(i);
+            if (!containing_specs.contains(spec))
+                output = false;
         }
-
-        return var3;
+        return output;
     }
 }

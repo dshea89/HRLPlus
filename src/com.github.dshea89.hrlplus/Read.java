@@ -1,341 +1,382 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.Serializable;
 import java.util.Vector;
+import java.lang.String;
+import java.io.*;
 
-public class Read implements Serializable {
+/** A class for reading input files in HR's format
+ *
+ * @author Simon Colton, started 29th August 2001
+ * @version 1.0 */
+
+public class Read implements Serializable
+{
     public UserFunctions user_functions = new UserFunctions();
 
-    public Read() {
-    }
-
-    public Vector defaultDetails(String var1) {
+    public Vector defaultDetails(String domain_name)
+    {
         return new Vector();
     }
 
-    public Vector readFile(String var1, String var2) {
-        Vector var3 = new Vector();
-        Vector var4 = new Vector();
-        Vector var5 = new Vector();
-        Vector var6 = new Vector();
-        Vector var7 = new Vector();
-        Vector var8 = new Vector();
-        Vector var9 = new Vector();
-        var3.addElement(var4);
-        var3.addElement(var5);
-        var3.addElement(var6);
-        var3.addElement(var7);
-        var3.addElement(var8);
-        var3.addElement(var9);
-        Vector var10 = new Vector();
-        Vector var11 = new Vector();
-        Vector var12 = new Vector();
+    public Vector readFile(String domain_file_name, String replace_algebra_with)
+    {
+        Vector output = new Vector();
+        Vector concepts = new Vector();
+        Vector objects_of_interest = new Vector();
+        Vector axioms = new Vector();
+        Vector specifications = new Vector();
+        Vector object_types = new Vector();
+        Vector relations = new Vector();
+        //Vector proof_schemes = new Vector();//alisonp
+        output.addElement(concepts);
+        output.addElement(objects_of_interest);
+        output.addElement(axioms);
+        output.addElement(specifications);
+        output.addElement(object_types);
+        output.addElement(relations);
+        // output.addElement(proof_schemes);//alisonp
 
-        int var16;
-        try {
-            BufferedReader var13 = new BufferedReader(new FileReader(var1));
-            String var14 = var13.readLine();
-            if (!var2.equals("")) {
-                for(int var15 = 0; var15 < var14.length() - 7; ++var15) {
-                    if (var14.substring(var15, var15 + 7).equals("algebra")) {
-                        var14 = var14.substring(0, var15) + var2 + var14.substring(var15 + 7, var14.length());
+        Vector concept_vector = new Vector();
+        Vector concept_vectors = new Vector();
+        Vector definition_letters_vector = new Vector();
+
+        /* Read the blocks of text in from the file into seperate vectors,
+         * one for each concept */
+
+        try
+        {
+            BufferedReader in = new BufferedReader(new FileReader(domain_file_name));
+            String s = in.readLine();
+            if (!replace_algebra_with.equals(""))
+            {
+                for (int i=0; i<s.length()-7; i++)
+                {
+                    if (s.substring(i, i+7).equals("algebra"))
+                        s = s.substring(0,i) + replace_algebra_with + s.substring(i+7, s.length());
+                }
+            }
+            Vector definitions_vector = new Vector();
+            while (!(s==null))
+            {
+                if (s.trim().equals(""))
+                {
+                    if (!concept_vector.isEmpty())
+                    {
+                        concept_vector.insertElementAt(definitions_vector.clone(),2);
+                        definitions_vector = new Vector();
+                        concept_vectors.addElement(concept_vector.clone());
+                    }
+                    concept_vector = new Vector();
+                }
+                else
+                {
+                    if (!s.substring(0,1).equals("%"))
+                    {
+                        if (s.indexOf(":\"\"")>=0 || s.indexOf("@")>=0)
+                            definitions_vector.addElement(s);
+                        else
+                            concept_vector.addElement(s);
+                    }
+                }
+                s = in.readLine();
+                if (!replace_algebra_with.equals(""))
+                {
+                    for (int i=0; i<s.length()-6; i++)
+                    {
+                        if (s.substring(i, i+7).equals("algebra"))
+                            s = s.substring(0,i) + replace_algebra_with + s.substring(i+7, s.length());
                     }
                 }
             }
-
-            Vector var29 = new Vector();
-
-            label359:
-            while(true) {
-                do {
-                    if (var14 == null) {
-                        if (!var10.isEmpty()) {
-                            var10.insertElementAt(var29.clone(), 2);
-                            new Vector();
-                            var11.addElement(var10.clone());
-                        }
-
-                        var13.close();
-                        break label359;
-                    }
-
-                    if (var14.trim().equals("")) {
-                        if (!var10.isEmpty()) {
-                            var10.insertElementAt(var29.clone(), 2);
-                            var29 = new Vector();
-                            var11.addElement(var10.clone());
-                        }
-
-                        var10 = new Vector();
-                    } else if (!var14.substring(0, 1).equals("%")) {
-                        if (var14.indexOf(":\"\"") < 0 && var14.indexOf("@") < 0) {
-                            var10.addElement(var14);
-                        } else {
-                            var29.addElement(var14);
-                        }
-                    }
-
-                    var14 = var13.readLine();
-                } while(var2.equals(""));
-
-                for(var16 = 0; var16 < var14.length() - 6; ++var16) {
-                    if (var14.substring(var16, var16 + 7).equals("algebra")) {
-                        var14 = var14.substring(0, var16) + var2 + var14.substring(var16 + 7, var14.length());
-                    }
-                }
+            if (!concept_vector.isEmpty())
+            {
+                concept_vector.insertElementAt(definitions_vector.clone(),2);
+                definitions_vector = new Vector();
+                concept_vectors.addElement(concept_vector.clone());
             }
-        } catch (Exception var26) {
-            ;
+            in.close();
         }
+        catch (Exception ex){}
 
-        int var17;
-        int var18;
-        String var19;
-        int var20;
-        String var21;
-        String var22;
-        int var27;
-        Concept var28;
-        String var30;
-        String var31;
-        Vector var36;
-        for(var27 = 0; var27 < var11.size(); ++var27) {
-            var10 = (Vector)var11.elementAt(var27);
-            var28 = new Concept();
-            var4.addElement(var28);
-            var30 = (String)var10.elementAt(1);
-            var28.name = var30.substring(0, var30.indexOf("("));
-            var28.id = (String)var10.elementAt(0);
-            var28.ancestor_ids.addElement(var28.id);
-            var28.arity = 1;
-            var28.is_user_given = true;
-            var28.complexity = 1;
+        /* Put the skeleton concepts together and find the specifications
+         * and objects of interest */
 
-            for(var31 = var30.substring(var30.indexOf("(") + 1, var30.indexOf(")")); var31.indexOf(",") >= 0; var31 = var31.substring(0, var17) + var31.substring(var17 + 1, var31.length())) {
-                ++var28.arity;
-                var17 = var31.indexOf(",");
+        for (int i=0; i<concept_vectors.size(); i++)
+        {
+            concept_vector = (Vector)concept_vectors.elementAt(i);
+            Concept new_concept = new Concept();
+            concepts.addElement(new_concept);
+
+            String concept_name = (String)concept_vector.elementAt(1);
+            new_concept.name = concept_name.substring(0,concept_name.indexOf("("));
+            new_concept.id = (String)concept_vector.elementAt(0);
+            new_concept.ancestor_ids.addElement(new_concept.id);
+            new_concept.arity = 1;
+            new_concept.is_user_given = true;
+            new_concept.complexity = 1;
+
+            String definition_letters =
+                    concept_name.substring(concept_name.indexOf("(")+1,concept_name.indexOf(")"));
+
+            /* Get the letters in the definition and update the arity */
+
+            while (definition_letters.indexOf(",")>=0)
+            {
+                new_concept.arity++;
+                int pos = definition_letters.indexOf(",");
+                definition_letters =
+                        definition_letters.substring(0,pos)+definition_letters.substring(pos+1,definition_letters.length());
+            }
+            definition_letters_vector.addElement(definition_letters);
+
+            /* Get the function statements (and while there, see if this is an object of interest concept) */
+            /* Also, check to see whether this concept is live (has Java code attached) */
+
+            new_concept.is_java_enabled = false;
+            new_concept.is_object_of_interest_concept = true;
+            Vector function_vector = new Vector();
+            for (int j=3; j<concept_vector.size(); j++)
+            {
+                String line = (String)concept_vector.elementAt(j);
+                if (line.indexOf("function:")==0)
+                    function_vector.addElement(line.substring(line.indexOf(" ")+1,line.length()).trim());
+                if (line.indexOf("->")>=0)
+                    new_concept.is_object_of_interest_concept = false;
+                if (line.indexOf("Code")==0 ||
+                        line.indexOf("code")==0)
+                    new_concept.is_java_enabled = true;
             }
 
-            var12.addElement(var31);
-            var28.is_java_enabled = false;
-            var28.is_object_of_interest_concept = true;
-            Vector var32 = new Vector();
+            /* Put together the new relation */
 
-            for(var18 = 3; var18 < var10.size(); ++var18) {
-                var19 = (String)var10.elementAt(var18);
-                if (var19.indexOf("function:") == 0) {
-                    var32.addElement(var19.substring(var19.indexOf(" ") + 1, var19.length()).trim());
-                }
+            Relation new_relation = new Relation(function_vector);
+            Vector definitions_vector = (Vector)concept_vector.elementAt(2);
 
-                if (var19.indexOf("->") >= 0) {
-                    var28.is_object_of_interest_concept = false;
-                }
-
-                if (var19.indexOf("Code") == 0 || var19.indexOf("code") == 0) {
-                    var28.is_java_enabled = true;
-                }
+            for (int j=0; j<definitions_vector.size(); j++)
+            {
+                String def_line = (String)definitions_vector.elementAt(j);
+                String language = def_line.substring(0,def_line.indexOf(":"));
+                String def = def_line.substring(def_line.indexOf(":")+1,def_line.length());
+                if (def.trim().equals("\"\""))
+                    def = "";
+                new_relation.addDefinition(definition_letters, def, language);
             }
+            new_relation.name = new_concept.name;
+            relations.addElement(new_relation);
 
-            Relation var34 = new Relation(var32);
-            var36 = (Vector)var10.elementAt(2);
+            /* Extract the objects of interest */
 
-            for(var20 = 0; var20 < var36.size(); ++var20) {
-                var21 = (String)var36.elementAt(var20);
-                var22 = var21.substring(0, var21.indexOf(":"));
-                String var23 = var21.substring(var21.indexOf(":") + 1, var21.length());
-                if (var23.trim().equals("\"\"")) {
-                    var23 = "";
-                }
-
-                var34.addDefinition(var31, var23, var22);
-            }
-
-            var34.name = var28.name;
-            var9.addElement(var34);
-            if (var28.is_object_of_interest_concept) {
-                var8.addElement(var28.name);
-
-                for(var20 = 3; var20 < var10.size(); ++var20) {
-                    var21 = (String)var10.elementAt(var20);
-                    if (var21.indexOf("function:") < 0 && var21.indexOf("->") < 0) {
-                        while(var21.indexOf(").") >= 0) {
-                            var22 = var21.substring(var21.indexOf("(") + 1, var21.indexOf(")."));
-                            var5.addElement(var28.name + ":" + var22);
-                            var21 = var21.substring(var21.indexOf(").") + 2, var21.length());
+            if (new_concept.is_object_of_interest_concept)
+            {
+                object_types.addElement(new_concept.name);
+                for (int j=3; j<concept_vector.size(); j++)
+                {
+                    String line = (String)concept_vector.elementAt(j);
+                    if (line.indexOf("function:")<0 && line.indexOf("->")<0)
+                    {
+                        while (line.indexOf(").")>=0)
+                        {
+                            String object_of_interest = line.substring(line.indexOf("(")+1,line.indexOf(")."));
+                            objects_of_interest.addElement(new_concept.name+":"+object_of_interest);
+                            line = line.substring(line.indexOf(").")+2,line.length());
                         }
-                    }
-                }
-            }
-        }
-
-        for(var27 = 0; var27 < var4.size(); ++var27) {
-            var28 = (Concept)var4.elementAt(var27);
-            var10 = (Vector)var11.elementAt(var27);
-            var30 = (String)var12.elementAt(var27);
-
-            for(var16 = 0; var16 < var28.arity; ++var16) {
-                var28.types.addElement("bad");
-            }
-
-            var31 = "";
-            String var35;
-            int var37;
-            String var38;
-            if (var28.is_object_of_interest_concept) {
-                var31 = var28.name;
-                var28.types.setElementAt(var28.name, 0);
-            } else {
-                for(var17 = 3; var17 < var10.size(); ++var17) {
-                    var35 = (String)var10.elementAt(var17);
-                    if (var35.indexOf("->") >= 0) {
-                        for(var37 = 0; var37 < var30.length(); ++var37) {
-                            var38 = "(" + var30.substring(var37, var37 + 1) + ")";
-                            if (var35.indexOf(var38) > 0) {
-                                var21 = var35.substring(var35.indexOf("->") + 3, var35.lastIndexOf("("));
-                                if (var37 == 0) {
-                                    var31 = var21;
-                                }
-
-                                var28.types.setElementAt(var21, var37);
-                            }
-
-                            var21 = "(" + var30.substring(0, 1) + "," + var30.substring(var37, var37 + 1) + ")";
-                            if (var35.lastIndexOf(var21) > var35.indexOf("->")) {
-                                var22 = var35.substring(var35.indexOf("->") + 3, var35.lastIndexOf("("));
-                                if (var28.types.elementAt(var37).equals("bad")) {
-                                    var28.types.setElementAt(var22, var37);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (var28.types.size() == 2 && ((String)var28.types.elementAt(1)).equals("bad")) {
-                var28.types.setElementAt(var28.name, 1);
-            }
-
-            var28.domain = (String)var28.types.elementAt(0);
-            var28.object_type = (String)var28.types.elementAt(0);
-            var28.user_functions = this.user_functions;
-            Datatable var33 = new Datatable();
-
-            for(var18 = 0; var18 < var5.size(); ++var18) {
-                var19 = (String)var5.elementAt(var18);
-                if (var19.indexOf(var31 + ":") == 0) {
-                    var38 = var19.substring(var19.indexOf(":") + 1, var19.length());
-                    var33.addEmptyRow(var38);
-                }
-            }
-
-            if (!var28.is_java_enabled) {
-                for(var18 = 3; var18 < var10.size(); ++var18) {
-                    var19 = (String)var10.elementAt(var18);
-                    if (var19.indexOf("function:") < 0 && var19.indexOf("->") < 0) {
-                        while(var19.indexOf(").") >= 0) {
-                            var38 = var19.substring(var19.indexOf("(") + 1, var19.indexOf(")."));
-                            var19 = var19.substring(var19.indexOf(").") + 2, var19.length());
-
-                            Vector var40;
-                            for(var40 = new Vector(); var38.indexOf(",") > 0; var38 = var38.substring(var38.indexOf(",") + 1, var38.length())) {
-                                var40.addElement(var38.substring(0, var38.indexOf(",")));
-                            }
-
-                            if (!var38.equals("")) {
-                                var40.addElement(var38);
-                            }
-
-                            if (var40.size() > 1) {
-                                var33.addTuple(var40);
-                            } else {
-                                Row var42 = var33.rowWithEntity((String)var40.elementAt(0));
-                                var42.tuples.addElement(new Vector());
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (var28.is_java_enabled) {
-                for(var18 = 0; var18 < var33.size(); ++var18) {
-                    Row var39 = (Row)var33.elementAt(var18);
-                    var39.tuples = this.user_functions.calculateTuples(var28.id, var39.entity);
-                }
-            }
-
-            var33.sort();
-            var28.datatable = var33;
-            var28.datatable.setNumberOfTuples();
-
-            int var43;
-            for(var18 = 3; var18 < var10.size(); ++var18) {
-                var19 = (String)var10.elementAt(var18);
-                if (var19.indexOf("->") >= 0) {
-                    var38 = var19.substring(var19.lastIndexOf("(") + 1, var19.lastIndexOf(")"));
-                    var21 = "[";
-
-                    int var44;
-                    for(var43 = 0; var43 < var38.length(); ++var43) {
-                        var44 = var30.indexOf(var38.substring(var43, var43 + 1));
-                        if (var44 >= 0) {
-                            if (!var21.equals("[")) {
-                                var21 = var21 + ",";
-                            }
-
-                            var21 = var21 + Integer.toString(var44);
-                        }
-                    }
-
-                    var21 = var21 + "]";
-                    var22 = var19.substring(var19.indexOf("->") + 3, var19.lastIndexOf("("));
-
-                    for(var44 = 0; var44 < var9.size(); ++var44) {
-                        Relation var24 = (Relation)var9.elementAt(var44);
-                        if (var24.name.equals(var22)) {
-                            Specification var25 = new Specification(var21, var24);
-                            var28.specifications.addElement(var25);
-                            var7.addElement(var25);
-                        }
-                    }
-                }
-            }
-
-            var35 = "[";
-
-            for(var37 = 0; var37 < var28.arity; ++var37) {
-                var35 = var35 + Integer.toString(var37) + ",";
-            }
-
-            var35 = var35.substring(0, var35.length() - 1) + "]";
-
-            Specification var45;
-            for(var37 = 0; var37 < var9.size(); ++var37) {
-                Relation var41 = (Relation)var9.elementAt(var37);
-                if (var41.name.equals(var28.name)) {
-                    var45 = new Specification(var35, var41);
-                    var28.specifications.addElement(var45);
-                    var7.addElement(var45);
-                }
-            }
-
-            var28.setSkolemisedRepresentation();
-            var36 = new Vector();
-
-            for(var20 = 0; var20 < var28.specifications.size(); ++var20) {
-                var45 = (Specification)var28.specifications.elementAt(var20);
-
-                for(var43 = 0; var43 < var45.functions.size(); ++var43) {
-                    Function var46 = (Function)var45.functions.elementAt(var43);
-                    if (!var36.contains(var46.writeFunction())) {
-                        var28.functions.addElement(var46);
-                        var36.addElement(var46.writeFunction());
                     }
                 }
             }
         }
 
-        return var3;
+        /* Now go through and fill in the details of the concepts */
+
+        for (int i=0; i<concepts.size(); i++)
+        {
+            Concept concept = (Concept)concepts.elementAt(i);
+            concept_vector = (Vector)concept_vectors.elementAt(i);
+
+            String definition_letters = (String)definition_letters_vector.elementAt(i);
+
+            /* First find out the name of the object of interest concept in this concept */
+            /* And find the types while we're there */
+
+            for (int j=0; j<concept.arity; j++)
+                concept.types.addElement("bad");
+            String object_of_interest_name = "";
+            if (concept.is_object_of_interest_concept)
+            {
+                object_of_interest_name = concept.name;
+                concept.types.setElementAt(concept.name,0);
+            }
+            else
+            {
+                for (int j=3; j<concept_vector.size(); j++)
+                {
+                    String line = (String)concept_vector.elementAt(j);
+                    if (line.indexOf("->")>=0)
+                    {
+                        for (int k=0; k<definition_letters.length(); k++)
+                        {
+                            String single_check = "("+definition_letters.substring(k,k+1)+")";
+                            if (line.indexOf(single_check) > 0)
+                            {
+                                String type = line.substring(line.indexOf("->")+3,line.lastIndexOf("("));
+                                if (k==0)
+                                    object_of_interest_name = type;
+                                concept.types.setElementAt(type,k);
+                            }
+                            String pair_check = "(" + definition_letters.substring(0,1) + "," +
+                                    definition_letters.substring(k,k+1)+")";
+                            if (line.lastIndexOf(pair_check) > line.indexOf("->"))
+                            {
+                                String type = line.substring(line.indexOf("->")+3,line.lastIndexOf("("));
+                                if (concept.types.elementAt(k).equals("bad"))
+                                    concept.types.setElementAt(type,k);
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (concept.types.size()==2 && ((String)concept.types.elementAt(1)).equals("bad"))
+                concept.types.setElementAt(concept.name,1);
+
+            concept.domain = (String)concept.types.elementAt(0);
+            concept.object_type = (String)concept.types.elementAt(0);
+            concept.user_functions = user_functions;
+
+            /* Construct an empty datatable */
+
+            Datatable new_datatable = new Datatable();
+
+            for (int j=0; j<objects_of_interest.size(); j++)
+            {
+                String object_of_interest = (String)objects_of_interest.elementAt(j);
+                if (object_of_interest.indexOf(object_of_interest_name+":")==0)
+                {
+                    String entity =
+                            object_of_interest.substring(object_of_interest.indexOf(":")+1,object_of_interest.length());
+                    new_datatable.addEmptyRow(entity);
+                }
+            }
+
+            /* Fill in the datatable */
+
+            if (!concept.is_java_enabled)
+            {
+                for (int j=3; j<concept_vector.size(); j++)
+                {
+                    String line = (String)concept_vector.elementAt(j);
+                    if (line.indexOf("function:")<0 && line.indexOf("->")<0)
+                    {
+                        while (line.indexOf(").")>=0)
+                        {
+                            String values = line.substring(line.indexOf("(")+1,line.indexOf(")."));
+                            line = line.substring(line.indexOf(").")+2,line.length());
+                            Vector tuple = new Vector();
+                            while (values.indexOf(",")>0)
+                            {
+                                tuple.addElement(values.substring(0,values.indexOf(",")));
+                                values = values.substring(values.indexOf(",")+1,values.length());
+                            }
+                            if (!values.equals(""))
+                                tuple.addElement(values);
+                            if (tuple.size()>1)
+                                new_datatable.addTuple(tuple);
+                            else
+                            {
+                                Row row = new_datatable.rowWithEntity((String)tuple.elementAt(0));
+                                row.tuples.addElement(new Vector());
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (concept.is_java_enabled)
+            {
+                for (int j=0; j<new_datatable.size(); j++)
+                {
+                    Row row = (Row)new_datatable.elementAt(j);
+                    row.tuples = user_functions.calculateTuples(concept.id, row.entity);
+                }
+            }
+
+            new_datatable.sort();
+            concept.datatable = new_datatable;
+            concept.datatable.setNumberOfTuples();
+
+            /* Now make the specifications of the concept */
+
+            for (int j=3; j<concept_vector.size(); j++)
+            {
+                String line = (String)concept_vector.elementAt(j);
+                if (line.indexOf("->")>=0)
+                {
+                    String letters_in_use =
+                            line.substring(line.lastIndexOf("(")+1,line.lastIndexOf(")"));
+                    String permutation = "[";
+                    for (int k=0; k<letters_in_use.length(); k++)
+                    {
+                        int pos = definition_letters.indexOf(letters_in_use.substring(k,k+1));
+                        if (pos >= 0)
+                        {
+                            if (!permutation.equals("["))
+                                permutation = permutation + ",";
+                            permutation = permutation + Integer.toString(pos);
+                        }
+                    }
+                    permutation = permutation + "]";
+                    String relation_name =
+                            line.substring(line.indexOf("->")+3,line.lastIndexOf("("));
+                    for (int k=0; k<relations.size(); k++)
+                    {
+                        Relation relation = (Relation)relations.elementAt(k);
+                        if (relation.name.equals(relation_name))
+                        {
+                            Specification new_specification = new Specification(permutation,relation);
+                            concept.specifications.addElement(new_specification);
+                            specifications.addElement(new_specification);
+                        }
+                    }
+                }
+            }
+
+            /* Add in the concept's own specification */
+
+            String permutation = "[";
+            for (int j=0; j<concept.arity; j++)
+                permutation = permutation + Integer.toString(j)+",";
+            permutation = permutation.substring(0,permutation.length()-1)+"]";
+            for (int j=0; j<relations.size(); j++)
+            {
+                Relation relation = (Relation)relations.elementAt(j);
+                if (relation.name.equals(concept.name))
+                {
+                    Specification new_specification = new Specification(permutation,relation);
+                    concept.specifications.addElement(new_specification);
+                    specifications.addElement(new_specification);
+                }
+            }
+
+            /* Set the skolemised representation of the concept */
+
+            concept.setSkolemisedRepresentation();
+
+            /* Determine the functions in the concept */
+
+            Vector temp_strings = new Vector();
+            for (int j=0; j<concept.specifications.size(); j++)
+            {
+                Specification specification = (Specification)concept.specifications.elementAt(j);
+                for (int k=0; k<specification.functions.size(); k++)
+                {
+                    Function function = (Function)specification.functions.elementAt(k);
+                    if (!temp_strings.contains(function.writeFunction()))
+                    {
+                        concept.functions.addElement(function);
+                        temp_strings.addElement(function.writeFunction());
+                    }
+                }
+            }
+        }
+        return output;
     }
 }

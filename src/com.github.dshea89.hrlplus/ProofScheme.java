@@ -1,142 +1,194 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.Serializable;
 import java.util.Vector;
+import java.util.Hashtable;
+import java.util.Enumeration;
+import java.lang.String;
+import java.io.Serializable;
 
-public class ProofScheme extends TheoryConstituent implements Serializable {
+/** A class representing a mathematical proof in the theory. It consists of [...]
+ * @author Alison Pease, started 20th October 2003
+ * @version 1.0
+ */
+
+public class ProofScheme extends TheoryConstituent implements Serializable
+{
     Conjecture conj = new Conjecture();
     Vector proof_vector = new Vector();
     String proof_tree = new String();
+
+    /** Whether the proof_scheme has been produced using Lakatos
+     * methods, and if so which one.
+     */
+
     public String lakatos_method = "no";
 
-    public ProofScheme() {
+
+    /** Simple constructor*/
+    public ProofScheme()
+    {
     }
 
-    public ProofScheme(Conjecture var1, Vector var2) {
-        this.conj = var1;
-        this.proof_vector = var2;
+    /** Constructor given the vector */
+    public ProofScheme(Conjecture conj, Vector v)
+    {
+        this.conj = conj;
+        this.proof_vector = v;
     }
 
-    public ProofScheme(Theory var1, String var2) {
-        String var3 = var2.substring(1, var2.indexOf("=") - 1);
-        this.conj = this.constructConjecture(var1, var3);
-        this.proof_vector = this.proof_vector;
-        String var4 = var2.substring(var2.indexOf("=") + 1, var2.length());
-        String var5 = this.omitBrackets(var4);
-        boolean var7 = false;
-        int var6 = -1;
+    public ProofScheme(Theory theory, String conjs_to_force)
+    {
+        String global_conj = conjs_to_force.substring(1,conjs_to_force.indexOf("=")-1);
+        this.conj = constructConjecture(theory,global_conj);
+        this.proof_vector = proof_vector;
 
-        while(var6 < var5.length()) {
-            new String();
-            int var10 = var5.indexOf(",", var6 + 1);
-            String var8;
-            Conjecture var9;
-            if (var10 <= 0) {
-                var8 = var5.substring(var6 + 1);
-                var9 = this.constructConjecture(var1, var8);
-                this.proof_vector.addElement(var9);
+        String local_conj_string = conjs_to_force.substring(conjs_to_force.indexOf("=")+1,conjs_to_force.length());
+        String string_without_brackets = omitBrackets(local_conj_string);
+        int index;
+        int next_index =0;
+
+        for(index=-1;index<string_without_brackets.length();)
+        {
+            String conj = new String();
+
+            next_index = string_without_brackets.indexOf(",",index+1);
+            if(next_index>0)
+                conj = string_without_brackets.substring(index+1,next_index);
+            else
+            {
+                conj = string_without_brackets.substring(index+1);
+                Conjecture conj_to_add = constructConjecture(theory,conj);
+                proof_vector.addElement(conj_to_add);
                 break;
             }
-
-            var8 = var5.substring(var6 + 1, var10);
-            var9 = this.constructConjecture(var1, var8);
-            var6 = var10;
-            this.proof_vector.addElement(var9);
+            Conjecture conj_to_add = constructConjecture(theory,conj);
+            index = next_index;
+            proof_vector.addElement(conj_to_add);
         }
 
+
+
+        /**
+         int index;
+         for(index=0;index<conjs_to_force.indexOf("]")-1;)
+         {
+         int next_index = conjs_to_force.indexOf(":",index+1);
+         String conj = conjs_to_force.substring(index+1,next_index);
+         Conjecture conj_to_add = constructConjecture(theory,conj);
+         proof_vector.addElement(conj_to_add);
+         index = next_index;
+         }
+         */
     }
 
-    public String omitBrackets(String var1) {
-        String var3 = new String();
 
-        for(int var2 = 0; var2 < var1.length(); ++var2) {
-            char var4 = var1.charAt(var2);
-            if (var4 == '{' | var4 == '}') {
-                var3 = var3;
-            } else if (var4 == '=') {
-                var3 = var3.substring(0, var3.length() - 1);
-                var3 = var3 + ",";
-            } else {
-                var3 = var3 + var4;
+
+    /** Given a string, returns the same string without {, }, or <=
+     */
+    public String omitBrackets(String string)
+    {
+        int index;
+        String output = new String();
+        for(index=0;index<string.length();index++)
+        {
+            char c = string.charAt(index);
+
+            if(c=='{' | c=='}')
+                output = output;
+            else
+            if(c=='=')
+            {
+                output = output.substring(0,output.length()-1);
+                output = output + ",";
             }
+            else
+                output = output + c;
         }
-
-        return var3;
+        return output;
     }
 
-    public Conjecture constructConjecture(Theory var1, String var2) {
-        Concept var3 = new Concept();
-        Concept var4 = new Concept();
-        int var8;
-        Concept var9;
-        int var10;
-        String var11;
-        String var12;
-        if (var2.indexOf("<") > 0) {
-            var10 = var2.indexOf("<");
-            var11 = var2.substring(0, var10);
-            var12 = var2.substring(var10 + 3);
 
-            for(var8 = 0; var8 < var1.concepts.size(); ++var8) {
-                var9 = (Concept)var1.concepts.elementAt(var8);
-                if (var9.id.equals(var11)) {
-                    var3 = var9;
-                }
 
-                if (var9.id.equals(var12)) {
-                    var4 = var9;
-                }
+
+    public Conjecture constructConjecture(Theory theory, String conj_string)
+    {
+        Concept concept1 = new Concept();
+        Concept concept2 = new Concept();
+
+        if(conj_string.indexOf("<")>0)
+        {
+            int index = conj_string.indexOf("<");
+            String concept1_id = conj_string.substring(0,index);
+            String concept2_id = conj_string.substring(index+3);
+
+            for(int i=0;i<theory.concepts.size();i++)
+            {
+                Concept concept = (Concept)theory.concepts.elementAt(i);
+
+                if(concept.id.equals(concept1_id))
+                    concept1 = concept;
+                if(concept.id.equals(concept2_id))
+                    concept2 = concept;
             }
+            return (new Equivalence(concept1, concept2,"lemma_in_proof"));
 
-            return new Equivalence(var3, var4, "lemma_in_proof");
-        } else if (var2.indexOf("-") > 0) {
-            var10 = var2.indexOf("-");
-            var11 = var2.substring(0, var10);
-            var12 = var2.substring(var10 + 2);
+        }
+        else
+        if(conj_string.indexOf("-")>0)
+        {
+            int index = conj_string.indexOf("-");
+            String concept1_id = conj_string.substring(0,index);
+            String concept2_id = conj_string.substring(index+2);
+            for(int i=0;i<theory.concepts.size();i++)
+            {
+                Concept concept = (Concept)theory.concepts.elementAt(i);
 
-            for(var8 = 0; var8 < var1.concepts.size(); ++var8) {
-                var9 = (Concept)var1.concepts.elementAt(var8);
-                if (var9.id.equals(var11)) {
-                    var3 = var9;
-                }
-
-                if (var9.id.equals(var12)) {
-                    var4 = var9;
-                }
+                if(concept.id.equals(concept1_id))
+                    concept1 = concept;
+                if(concept.id.equals(concept2_id))
+                    concept2 = concept;
             }
-
-            return new Implication(var3, var4, "lemma_in_proof");
-        } else {
+            return (new Implication(concept1, concept2,"lemma_in_proof"));
+        }
+        else
+        {
             System.out.println("got a nonexists");
-            String var5 = var2;
+            String concept1_id = conj_string;
+            for(int i=0;i<theory.concepts.size();i++)
+            {
+                Concept concept = (Concept)theory.concepts.elementAt(i);
 
-            for(int var6 = 0; var6 < var1.concepts.size(); ++var6) {
-                Concept var7 = (Concept)var1.concepts.elementAt(var6);
-                if (var7.id.equals(var5)) {
-                    var3 = var7;
-                }
+                if(concept.id.equals(concept1_id))
+                    concept1 = concept;
+
             }
+            return (new NonExists(concept1,"lemma_in_proof"));
 
-            return new NonExists(var3, "lemma_in_proof");
         }
     }
 
-    public String writeProofScheme() {
-        String var1 = new String();
-        var1 = var1 + "     **************         ";
-        var1 = var1 + "\nproofscheme.conj is " + this.conj.writeConjecture();
-        var1 = var1 + "\nproofscheme.proof_vector is:";
-
-        for(int var2 = 0; var2 < this.proof_vector.size(); ++var2) {
-            Conjecture var3 = (Conjecture)this.proof_vector.elementAt(var2);
-            var1 = var1 + "\n(" + var2 + ") " + var3.writeConjecture();
+    /** print out the proofscheme */
+    public String writeProofScheme()
+    {
+        String output = new String();
+        output = output + "     **************         ";
+        output = output + "\nproofscheme.conj is " + this.conj.writeConjecture();
+        output = output + "\nproofscheme.proof_vector is:";
+        for(int i=0;i<this.proof_vector.size();i++)
+        {
+            Conjecture current_conj = (Conjecture)this.proof_vector.elementAt(i);
+            output = output + "\n("+i+") " +current_conj.writeConjecture();
         }
-
-        var1 = var1 + "\n     **************         ";
-        return var1;
+        output = output + "\n     **************         ";
+        return output;
     }
 
-    public boolean isEmpty() {
-        return this.conj.writeConjecture().equals("") && this.proof_vector.isEmpty();
+    public boolean isEmpty()
+    {
+        if(this.conj.writeConjecture().equals("") && this.proof_vector.isEmpty())
+            return true;
+
+        else
+            return false;
     }
 }

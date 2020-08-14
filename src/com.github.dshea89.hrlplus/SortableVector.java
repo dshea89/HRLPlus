@@ -1,115 +1,128 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.Serializable;
 import java.util.Vector;
+import java.io.Serializable;
 
-public class SortableVector extends Vector implements Serializable {
-    double prune_less_than = 0.0D;
+public class SortableVector extends Vector implements Serializable
+{
+    double prune_less_than = 0;
     Reflection reflect = new Reflection();
     boolean sort_items = true;
     Vector values = new Vector();
 
-    public SortableVector() {
+    public SortableVector()
+    {
     }
 
-    public void addElement(Object var1, String var2) {
-        if (var2 != null && !var2.equals("")) {
-            try {
-                String var3 = this.reflect.getValue(var1, var2).toString();
-                Double var4 = new Double(var3);
-                double var5 = var4;
-                if (var5 < this.prune_less_than) {
-                    return;
-                }
-
-                for(int var7 = 0; var7 < this.values.size(); ++var7) {
-                    Double var8 = (Double)this.values.elementAt(var7);
-                    if (var8 < var5) {
-                        super.insertElementAt(var1, var7);
-                        this.values.insertElementAt(var4, var7);
-                        return;
-                    }
-                }
-
-                super.addElement(var1);
-                this.values.addElement(var4);
-            } catch (Exception var9) {
-                super.addElement(var1);
-            }
-
-        } else {
-            super.addElement(var1);
+    public void addElement(Object obj, String sort_field)
+    {
+        if (sort_field==null || sort_field.equals(""))
+        {
+            super.addElement(obj);
+            return;
         }
-    }
-
-    public void addElement(Object var1, int var2) {
-        Double var3 = new Double((double)var2);
-        double var4 = var3;
-        if (var4 >= this.prune_less_than) {
-            for(int var6 = 0; var6 < this.values.size(); ++var6) {
-                Double var7 = (Double)this.values.elementAt(var6);
-                if (var7 < var4) {
-                    super.insertElementAt(var1, var6);
-                    this.values.insertElementAt(var3, var6);
+        try
+        {
+            String value = reflect.getValue(obj, sort_field).toString();
+            Double new_value = new Double(value);
+            double d = new_value.doubleValue();
+            if (d<prune_less_than)
+                return;
+            for (int i=0; i<values.size(); i++)
+            {
+                Double old_value = (Double)values.elementAt(i);
+                if (old_value.doubleValue() < d)
+                {
+                    super.insertElementAt(obj, i);
+                    values.insertElementAt(new_value, i);
                     return;
                 }
             }
-
-            super.addElement(var1);
-            this.values.addElement(var3);
+            super.addElement(obj);
+            values.addElement(new_value);
+        }
+        catch(Exception e)
+        {
+            super.addElement(obj);
         }
     }
 
-    public void addElement(Object var1, double var2) {
-        Double var4 = new Double(var2);
-        if (var2 >= this.prune_less_than) {
-            for(int var5 = 0; var5 < this.values.size(); ++var5) {
-                Double var6 = (Double)this.values.elementAt(var5);
-                if (var6 < var2) {
-                    super.insertElementAt(var1, var5);
-                    this.values.insertElementAt(var4, var5);
-                    return;
-                }
+    public void addElement(Object obj, int value)
+    {
+        Double new_value = new Double(value);
+        double d = new_value.doubleValue();
+        if (d<prune_less_than)
+            return;
+        for (int i=0; i<values.size(); i++)
+        {
+            Double old_value = (Double)values.elementAt(i);
+            if (old_value.doubleValue() < d)
+            {
+                super.insertElementAt(obj, i);
+                values.insertElementAt(new_value, i);
+                return;
             }
-
-            super.addElement(var1);
-            this.values.addElement(var4);
         }
+        super.addElement(obj);
+        values.addElement(new_value);
+        return;
     }
 
-    public void addElement(Object var1, Long var2) {
-        Double var3 = new Double((double)var2);
-        double var4 = var3;
-        if (var4 >= this.prune_less_than) {
-            for(int var6 = 0; var6 < this.values.size(); ++var6) {
-                Double var7 = (Double)this.values.elementAt(var6);
-                if (var7 < var4) {
-                    super.insertElementAt(var1, var6);
-                    this.values.insertElementAt(var3, var6);
-                    return;
-                }
+    public void addElement(Object obj, double d)
+    {
+        Double new_value = new Double(d);
+        if (d<prune_less_than)
+            return;
+        for (int i=0; i<values.size(); i++)
+        {
+            Double old_value = (Double)values.elementAt(i);
+            if (old_value.doubleValue() < d)
+            {
+                super.insertElementAt(obj, i);
+                values.insertElementAt(new_value, i);
+                return;
             }
-
-            super.addElement(var1);
-            this.values.addElement(var3);
         }
+        super.addElement(obj);
+        values.addElement(new_value);
+        return;
     }
 
-    public void reSortBy(String var1) {
-        Vector var2 = (Vector)this.clone();
-        this.removeAllElements();
-
-        for(int var3 = 0; var3 < var2.size(); ++var3) {
-            this.addElement(var2.elementAt(var3), var1);
+    public void addElement(Object obj, Long l)
+    {
+        Double new_value = new Double(l.longValue());
+        double d = new_value.doubleValue();
+        if (d<prune_less_than)
+            return;
+        for (int i=0; i<values.size(); i++)
+        {
+            Double old_value = (Double)values.elementAt(i);
+            if (old_value.doubleValue() < d)
+            {
+                super.insertElementAt(obj, i);
+                values.insertElementAt(new_value, i);
+                return;
+            }
         }
-
+        super.addElement(obj);
+        values.addElement(new_value);
+        return;
     }
 
-    public void reverse() {
-        for(int var1 = 0; var1 < this.size(); ++var1) {
-            this.insertElementAt(this.lastElement(), var1);
-            this.removeElementAt(this.size() - 1);
-        }
+    public void reSortBy(String sort_field)
+    {
+        Vector copy = (Vector)clone();
+        removeAllElements();
+        for (int i=0; i<copy.size(); i++)
+            addElement(copy.elementAt(i), sort_field);
+    }
 
+    public void reverse()
+    {
+        for (int i=0; i<size(); i++)
+        {
+            insertElementAt(lastElement(), i);
+            removeElementAt(size()-1);
+        }
     }
 }

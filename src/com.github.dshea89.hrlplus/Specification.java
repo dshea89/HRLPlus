@@ -1,380 +1,489 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.Serializable;
 import java.util.Vector;
+import java.lang.String;
+import java.io.Serializable;
 
-public class Specification implements Serializable {
+/** A class representing the specification of a relation within a concept. It details how
+ * the relation is applied to the objects in the concept.
+ */
+
+public class Specification implements Serializable
+{
+    /** Whether or not this specification is an instantiation of an entity, e.g., a=4.
+     */
+
     public boolean is_single_entity = false;
+
+    /** Whether or not this is a set of instantiations of an entity, e.g,, a=4 or a=5.
+     */
+
     public boolean is_entity_instantiations = false;
+
+    /** The number of this specification. The specifications in every concept and
+     * every multiple specification are ordered so that it is easier to compare them.
+     */
+
     public int id_number = 0;
+
+    /** The set of function details for this specification.
+     * @see Function
+     */
+
     public Vector functions = new Vector();
+
+    /** Whether this is a forall, exists, disjunct, split or negate type specification.
+     */
+
     public String type = "";
+
+    /** The set of columns which need to be added back in to enable the previous
+     * specifications to be written out.
+     */
+
     public Vector multiple_variable_columns = new Vector();
+
+    /** In multiple specifications, there will be some columns
+     * (variables) which are not used in any of the previous
+     * specifications, which this vector holds. This is required to make
+     * multiple specifications work.
+     */
+
     public Vector redundant_columns = new Vector();
+
+    /** The types of the variables which need to be added back in for multiple
+     * specifications.
+     */
+
     public Vector multiple_types = new Vector();
+
+    /** The set of previous specifications (if any) by which the quantified variables
+     * are related.
+     */
+
     public Vector previous_specifications = new Vector();
+
+    /** The set of fixed values which are going to be added in instead of variables.
+     * These come about whenever the split production rule is used.
+     */
+
     public Vector fixed_values = new Vector();
+
+    /** The relations which holds within the specification. eg. P(a,b). Note that at present
+     * this will contain only one relation, but has been left as a vector for future developments.
+     */
+
     public Vector relations = new Vector();
+
+    /** The way in which the variables are to be permuted before applying the relation.
+     * For example, given variables [a,b,c] and permutation [2,1] with relation P(a,b)
+     * then this specification says that P(c,b) must hold.
+     */
+
     public Vector permutation = new Vector();
+
+    /** In specifications of the forall type, there is a left hand and a right hand
+     * side. This marks where the right hand starts.
+     */
+
     public int rh_starts = 0;
 
-    public Specification() {
+    /** A simple constructor.
+     */
+
+    public Specification()
+    {
     }
 
-    public Specification(String var1) {
-        this.type = var1;
+    /** A constructor which also sets the type of the specification.
+     */
+
+    public Specification(String t)
+    {
+        type = t;
     }
 
-    public Specification(String var1, Relation var2) {
-        this.permutation = this.getVector(var1);
-        this.addRelation(this.permutation, var2);
+    /** A constructor which also sets the relations and the permutation.
+     */
+
+    public Specification(String perm, Relation relation)
+    {
+        permutation = getVector(perm);
+        addRelation(permutation, relation);
     }
 
-    public boolean isEntityInstantiations() {
-        if (this.is_entity_instantiations) {
+    /** This check whether this specification is a set of entity instantiations,
+     * e.g, a=4 or a=5.
+     */
+
+    public boolean isEntityInstantiations()
+    {
+        if (is_entity_instantiations)
             return true;
-        } else if (this.type.equals("")) {
-            return this.is_single_entity;
-        } else {
-            boolean var1 = false;
+        if (type.equals(""))
+            return is_single_entity;
+        boolean output = false;
+        for (int i=0; i<previous_specifications.size() && !output; i++)
+        {
+            Specification previous_spec = (Specification)previous_specifications.elementAt(i);
+            output = previous_spec.is_entity_instantiations;
+        }
+        return output;
+    }
 
-            for(int var2 = 0; var2 < this.previous_specifications.size() && !var1; ++var2) {
-                Specification var3 = (Specification)this.previous_specifications.elementAt(var2);
-                var1 = var3.is_entity_instantiations;
+    public void addRelation(Vector permutation, Relation relation)
+    {
+        relations.addElement(relation);
+        for (int i=0; i<relation.function_columns.size(); i++)
+        {
+            Vector fc = (Vector)relation.function_columns.elementAt(i);
+            Vector lh = (Vector)fc.elementAt(0);
+            Vector rh = (Vector)fc.elementAt(1);
+            Vector new_lh = new Vector();
+            for (int j=0; j<lh.size(); j++)
+            {
+                String col = (String)lh.elementAt(j);
+                int pos = (new Integer(col)).intValue();
+                String new_pos = (String)permutation.elementAt(pos);
+                new_lh.addElement(new_pos);
             }
-
-            return var1;
+            Vector new_rh = new Vector();
+            for (int j=0; j<rh.size(); j++)
+            {
+                String col = (String)rh.elementAt(j);
+                int pos = (new Integer(col)).intValue();
+                String new_pos = (String)permutation.elementAt(pos);
+                new_rh.addElement(new_pos);
+            }
+            Function function = new Function(relation.name, new_lh, new_rh);
+            functions.addElement(function);
         }
     }
 
-    public void addRelation(Vector var1, Relation var2) {
-        this.relations.addElement(var2);
+    /** This returns a specification which is a clone of the present one.
+     * Note that relations is not cloned (only a copy of pointers is cloned).
+     * Also, previous specifications is not cloned.
+     */
 
-        for(int var3 = 0; var3 < var2.function_columns.size(); ++var3) {
-            Vector var4 = (Vector)var2.function_columns.elementAt(var3);
-            Vector var5 = (Vector)var4.elementAt(0);
-            Vector var6 = (Vector)var4.elementAt(1);
-            Vector var7 = new Vector();
+    public Specification copy()
+    {
+        Specification output = new Specification();
+        output.id_number = id_number;
+        output.relations = relations;
+        output.permutation = (Vector)permutation.clone();
+        output.type = type;
+        output.fixed_values = (Vector)fixed_values.clone();
+        output.multiple_variable_columns = (Vector)multiple_variable_columns.clone();
+        output.multiple_types = (Vector)multiple_types.clone();
+        output.previous_specifications = (Vector)previous_specifications.clone();
+        output.redundant_columns = (Vector)redundant_columns.clone();
+        output.functions = (Vector)functions.clone();
+        output.rh_starts = rh_starts;
+        return output;
+    }
 
-            for(int var8 = 0; var8 < var5.size(); ++var8) {
-                String var9 = (String)var5.elementAt(var8);
-                int var10 = new Integer(var9);
-                String var11 = (String)var1.elementAt(var10);
-                var7.addElement(var11);
-            }
+    /** This tests whether this specification has the same permutation, relations,
+     * quantification and negation state as the given specifications.
+     */
 
-            Vector var13 = new Vector();
+    public boolean equals(Specification other)
+    {
+        // First check the types are the same.
 
-            for(int var14 = 0; var14 < var6.size(); ++var14) {
-                String var16 = (String)var6.elementAt(var14);
-                int var17 = new Integer(var16);
-                String var12 = (String)var1.elementAt(var17);
-                var13.addElement(var12);
-            }
+        if (!type.equals(other.type))
+            return false;
 
-            Function var15 = new Function(var2.name, var7, var13);
-            this.functions.addElement(var15);
+        if (!(rh_starts==other.rh_starts))
+            return false;
+
+        // Next check whether all the associated vectors of strings are the same.
+
+        if (!compareStringVectors(permutation,other.permutation))
+            return false;
+        if (!compareStringVectors(multiple_variable_columns,other.multiple_variable_columns))
+            return false;
+        if (!compareStringVectors(multiple_types,other.multiple_types))
+            return false;
+        if (!compareStringVectors(redundant_columns,other.redundant_columns))
+            return false;
+        if (!compareStringVectors(fixed_values,other.fixed_values))
+            return false;
+
+        boolean output = true;
+
+        // Next check that the sets of relations are the same.
+
+        if (relations.size()!=other.relations.size()) return false;
+        int i=0;
+        while (i<relations.size() && output)
+        {
+            Relation relation = (Relation)relations.elementAt(i);
+            Relation other_relation = (Relation)other.relations.elementAt(i);
+            if (!relation.equals(other_relation)) output=false;
+            i++;
         }
+        if (!output) return false;
 
+        // Finally check that the previous specifications are the same. This works
+        // by calling equals recursively.
+
+        i=0;
+        if (previous_specifications.size()!=other.previous_specifications.size())
+            return false;
+        while (i<previous_specifications.size() && output)
+        {
+            if (!((Specification)previous_specifications.elementAt(i)).
+                    equals((Specification)other.previous_specifications.elementAt(i)))
+                output = false;
+            i++;
+        }
+        return output;
     }
 
-    public Specification copy() {
-        Specification var1 = new Specification();
-        var1.id_number = this.id_number;
-        var1.relations = this.relations;
-        var1.permutation = (Vector)this.permutation.clone();
-        var1.type = this.type;
-        var1.fixed_values = (Vector)this.fixed_values.clone();
-        var1.multiple_variable_columns = (Vector)this.multiple_variable_columns.clone();
-        var1.multiple_types = (Vector)this.multiple_types.clone();
-        var1.previous_specifications = (Vector)this.previous_specifications.clone();
-        var1.redundant_columns = (Vector)this.redundant_columns.clone();
-        var1.functions = (Vector)this.functions.clone();
-        var1.rh_starts = this.rh_starts;
-        return var1;
-    }
-
-    public boolean equals(Specification var1) {
-        if (!this.type.equals(var1.type)) {
-            return false;
-        } else if (this.rh_starts != var1.rh_starts) {
-            return false;
-        } else if (!this.compareStringVectors(this.permutation, var1.permutation)) {
-            return false;
-        } else if (!this.compareStringVectors(this.multiple_variable_columns, var1.multiple_variable_columns)) {
-            return false;
-        } else if (!this.compareStringVectors(this.multiple_types, var1.multiple_types)) {
-            return false;
-        } else if (!this.compareStringVectors(this.redundant_columns, var1.redundant_columns)) {
-            return false;
-        } else if (!this.compareStringVectors(this.fixed_values, var1.fixed_values)) {
-            return false;
-        } else {
-            boolean var2 = true;
-            if (this.relations.size() != var1.relations.size()) {
+    private boolean compareStringVectors(Vector vector1, Vector vector2)
+    {
+        if (vector1.size()!=vector2.size()) return false;
+        int i=0;
+        while (i<vector1.size())
+        {
+            if (!((String)vector1.elementAt(i)).equals((String)vector2.elementAt(i)))
                 return false;
-            } else {
-                int var3;
-                for(var3 = 0; var3 < this.relations.size() && var2; ++var3) {
-                    Relation var4 = (Relation)this.relations.elementAt(var3);
-                    Relation var5 = (Relation)var1.relations.elementAt(var3);
-                    if (!var4.equals(var5)) {
-                        var2 = false;
-                    }
-                }
+            i++;
+        }
+        return true;
+    }
 
-                if (!var2) {
-                    return false;
-                } else {
-                    var3 = 0;
-                    if (this.previous_specifications.size() != var1.previous_specifications.size()) {
-                        return false;
-                    } else {
-                        for(; var3 < this.previous_specifications.size() && var2; ++var3) {
-                            if (!((Specification)this.previous_specifications.elementAt(var3)).equals((Specification)var1.previous_specifications.elementAt(var3))) {
-                                var2 = false;
-                            }
-                        }
+    /** Checks whether the specification is a quantification or not.
+     */
 
-                        return var2;
-                    }
-                }
+    public boolean isMultiple()
+    {
+        if (type.equals("")) return false;
+        return true;
+    }
+
+    /** This will permute the letters given to it and write the first definition for the
+     * specification. Note that it must have all the quantified letters also.
+     */
+
+    public String writeDefinition(String language, Vector letters)
+    {
+        String output = "";
+        Vector permuted_letters = permute(letters);
+        Relation relation = (Relation)relations.elementAt(0);
+        Definition definition = relation.getDefinition(language);
+        output = definition.write(permuted_letters);
+        return output;
+    }
+
+    // This permutes the letters to fit the relation.
+
+    private Vector permute(Vector input_vector)
+    {
+        Vector output = new Vector();
+        for (int i=0;i<permutation.size();i++)
+        {
+            int position = ((new Integer((String)permutation.elementAt(i))).intValue());
+            output.addElement(input_vector.elementAt(position));
+        }    return output;
+    }
+
+    /** Checks whether the specification involves any of the given
+     * columns. This just involves checking whether the permutation contains any
+     * of the columns in the given vector.  */
+
+    public boolean involvesColumns(Vector columns)
+    {
+        boolean output = false;
+        int pos = 0;
+        while (!output && pos < permutation.size())
+        {
+            String column = (String)permutation.elementAt(pos);
+            if (columns.contains(column))
+                output = true;
+            pos++;
+        }
+        return output;
+    }
+
+    private Vector getVector(String s)
+    {
+        Vector output = new Vector();
+        String add_in = "";
+        for (int i=1;i<s.length()-1;i++)
+        {
+            String letter = s.substring(i,i+1);
+            if (letter.equals(","))
+            {
+                output.addElement(add_in);
+                add_in = "";
             }
+            else
+                add_in = add_in + letter;
         }
+        output.addElement(add_in);
+        return output;
     }
 
-    private boolean compareStringVectors(Vector var1, Vector var2) {
-        if (var1.size() != var2.size()) {
-            return false;
-        } else {
-            for(int var3 = 0; var3 < var1.size(); ++var3) {
-                if (!((String)var1.elementAt(var3)).equals((String)var2.elementAt(var3))) {
-                    return false;
-                }
-            }
+    /** This will write the specification without permuting the letters - it will
+     * also choose the letters as a, b, c, d, etc.
+     */
 
-            return true;
-        }
-    }
-
-    public boolean isMultiple() {
-        return !this.type.equals("");
-    }
-
-    public String writeDefinition(String var1, Vector var2) {
-        String var3 = "";
-        Vector var4 = this.permute(var2);
-        Relation var5 = (Relation)this.relations.elementAt(0);
-        Definition var6 = var5.getDefinition(var1);
-        var3 = var6.write(var4);
-        return var3;
-    }
-
-    private Vector permute(Vector var1) {
-        Vector var2 = new Vector();
-
-        for(int var3 = 0; var3 < this.permutation.size(); ++var3) {
-            int var4 = new Integer((String)this.permutation.elementAt(var3));
-            var2.addElement(var1.elementAt(var4));
-        }
-
-        return var2;
-    }
-
-    public boolean involvesColumns(Vector var1) {
-        boolean var2 = false;
-
-        for(int var3 = 0; !var2 && var3 < this.permutation.size(); ++var3) {
-            String var4 = (String)this.permutation.elementAt(var3);
-            if (var1.contains(var4)) {
-                var2 = true;
-            }
-        }
-
-        return var2;
-    }
-
-    private Vector getVector(String var1) {
-        Vector var2 = new Vector();
-        String var3 = "";
-
-        for(int var4 = 1; var4 < var1.length() - 1; ++var4) {
-            String var5 = var1.substring(var4, var4 + 1);
-            if (var5.equals(",")) {
-                var2.addElement(var3);
-                var3 = "";
-            } else {
-                var3 = var3 + var5;
-            }
-        }
-
-        var2.addElement(var3);
-        return var2;
-    }
-
-    public String writeSpec() {
-        Vector var1 = new Vector();
-        var1.addElement("a");
-        var1.addElement("b");
-        var1.addElement("c");
-        var1.addElement("d");
-        var1.addElement("e");
-        var1.addElement("f");
-        var1.addElement("g");
-        if (this.relations.isEmpty()) {
+    public String writeSpec()
+    {
+        Vector letters = new Vector();
+        letters.addElement("a");
+        letters.addElement("b");
+        letters.addElement("c");
+        letters.addElement("d");
+        letters.addElement("e");
+        letters.addElement("f");
+        letters.addElement("g");
+        if (relations.isEmpty())
             return "no relations";
-        } else {
-            Relation var2 = (Relation)this.relations.elementAt(0);
-            if (var2.definitions.isEmpty()) {
-                return "no definitions in relation 1";
-            } else {
-                Definition var3 = (Definition)var2.definitions.elementAt(0);
-                return var3.write(var1);
-            }
-        }
+        Relation rel = (Relation)relations.elementAt(0);
+        if (rel.definitions.isEmpty())
+            return "no definitions in relation 1";
+        Definition def = (Definition)rel.definitions.elementAt(0);
+        return def.write(letters);
     }
 
-    public boolean isNegationOf(Specification var1) {
-        if (!this.type.equals("negate")) {
+    /** Whether or not this is a negation of the given specification.
+     */
+
+    public boolean isNegationOf(Specification other)
+    {
+        if (!type.equals("negate"))
             return false;
-        } else if (this.previous_specifications.size() == 0) {
+        if (previous_specifications.size()==0)
             return false;
-        } else {
-            Specification var2 = (Specification)this.previous_specifications.elementAt(0);
-            return var1 == var2;
-        }
+        Specification previous = (Specification)previous_specifications.elementAt(0);
+        return (other==previous);
     }
 
-    public String fullDetails() {
-        return this.fullDetails("");
+    /** Returns a string of the details of this specification
+     */
+
+    public String fullDetails()
+    {
+        return fullDetails("");
     }
 
-    private String fullDetails(String var1) {
-        String var2 = "";
-        var2 = var1 + this.id_number + "  (" + this.type + ")" + " " + this.toString() + "\n" + var1 + this.writeSpec() + "\n";
-        var2 = var2 + var1 + "multiple_variable_columns=" + this.multiple_variable_columns.toString() + "\n";
-        var2 = var2 + var1 + "redundant_columns=" + this.redundant_columns.toString() + "\n";
-        var2 = var2 + var1 + "multiple_types=" + this.multiple_types.toString() + "\n";
-        var2 = var2 + var1 + "fixed_values=" + this.fixed_values.toString() + "\n";
-        var2 = var2 + var1 + "permutation=" + this.permutation.toString() + "\n";
-        var2 = var2 + var1 + "rh_starts=" + Integer.toString(this.rh_starts) + "\n";
-        var2 = var2 + var1 + "is_single_entity=" + (new Boolean(this.is_single_entity)).toString() + "\n";
-        var2 = var2 + var1 + "is_entity_instantiations=" + (new Boolean(this.is_entity_instantiations)).toString() + "\n";
-
-        int var3;
-        for(var3 = 0; var3 < this.functions.size(); ++var3) {
-            var2 = var2 + var1 + "function: " + ((Function)this.functions.elementAt(var3)).writeFunction() + "\n";
-        }
-
-        if (this.isMultiple()) {
-            var1 = var1 + "   ";
-
-            for(var3 = 0; var3 < this.previous_specifications.size(); ++var3) {
-                Specification var4 = (Specification)this.previous_specifications.elementAt(var3);
-                var2 = var2 + "\n" + var4.fullDetails(var1);
+    private String fullDetails(String indent)
+    {
+        String output = "";
+        output = indent+id_number+"  ("+type+")"+" "+toString()+"\n"+indent+writeSpec()+"\n";
+        output = output + indent + "multiple_variable_columns="+multiple_variable_columns.toString()+"\n";
+        output = output + indent + "redundant_columns="+redundant_columns.toString()+"\n";
+        output = output + indent + "multiple_types="+multiple_types.toString()+"\n";
+        output = output + indent + "fixed_values="+fixed_values.toString()+"\n";
+        output = output + indent + "permutation="+permutation.toString()+"\n";
+        output = output + indent + "rh_starts="+Integer.toString(rh_starts)+"\n";
+        output = output + indent + "is_single_entity="+(new Boolean(is_single_entity)).toString()+"\n";
+        output = output + indent + "is_entity_instantiations="+(new Boolean(is_entity_instantiations)).toString()+"\n";
+        for (int i=0; i<functions.size(); i++)
+            output = output + indent + "function: "+((Function)functions.elementAt(i)).writeFunction()+"\n";
+        if (isMultiple())
+        {
+            indent = indent + "   ";
+            for (int i=0; i<previous_specifications.size(); i++)
+            {
+                Specification spec = (Specification)previous_specifications.elementAt(i);
+                output = output + "\n" + spec.fullDetails(indent);
             }
         }
-
-        return var2;
+        return output;
     }
 
-    public Vector columns_used_at_base() {
-        if (!this.isMultiple()) {
-            return this.permutation;
-        } else {
-            Vector var1 = new Vector();
+    /** Which columns have been used at the base (i.e. not used via the multiple
+     * specifications).
+     */
 
-            for(int var2 = 0; var2 < this.previous_specifications.size(); ++var2) {
-                Specification var3 = (Specification)this.previous_specifications.elementAt(var2);
-                Vector var4 = var3.columns_used_at_base();
-
-                for(int var5 = 0; var5 < var4.size(); ++var5) {
-                    if (!var1.contains((String)var4.elementAt(var5))) {
-                        var1.addElement((String)var4.elementAt(var5));
-                    }
-                }
-            }
-
-            return var1;
+    public Vector columns_used_at_base()
+    {
+        if (!isMultiple())
+            return permutation;
+        Vector output = new Vector();
+        for (int i=0; i<previous_specifications.size(); i++)
+        {
+            Specification spec = (Specification)previous_specifications.elementAt(i);
+            Vector old_columns = spec.columns_used_at_base();
+            for (int j=0; j<old_columns.size(); j++)
+                if (!output.contains((String)old_columns.elementAt(j)))
+                    output.addElement((String)old_columns.elementAt(j));
         }
+        return output;
     }
 
-    public Vector skolemisedRepresentation() {
-        Vector var1 = new Vector();
-        Vector var3;
-        if (this.type.equals("forall") || this.type.equals("negate") || this.type.equals("size") || this.type.equals("disjunct")) {
-            String var2 = Integer.toString(this.id_number);
-            var3 = new Vector();
-            var3.addElement(var2);
-            var3.addElement((Vector)this.permutation.clone());
-            var3.trimToSize();
-            var1.addElement(var3);
+    public Vector skolemisedRepresentation()
+    {
+        Vector output = new Vector();
+        if (type.equals("forall") || type.equals("negate") || type.equals("size") || type.equals("disjunct"))
+        {
+            String rel_name = Integer.toString(id_number);
+            Vector skol_rep = new Vector();
+            skol_rep.addElement(rel_name);
+            skol_rep.addElement((Vector)permutation.clone());
+            skol_rep.trimToSize();
+            output.addElement(skol_rep);
         }
-
-        if (this.type.equals("exists") || this.type.equals("split")) {
-            for(int var13 = 0; var13 < this.previous_specifications.size(); ++var13) {
-                Specification var15 = (Specification)this.previous_specifications.elementAt(var13);
-                Vector var4 = var15.skolemisedRepresentation();
-
-                for(int var5 = 0; var5 < var4.size(); ++var5) {
-                    Vector var6 = (Vector)var4.elementAt(var5);
-                    String var7 = (String)var6.elementAt(0);
-                    Vector var8 = (Vector)var6.elementAt(1);
-                    Vector var9 = (Vector)this.permutation.clone();
-
-                    int var10;
-                    String var11;
-                    int var12;
-                    for(var10 = 0; var10 < this.multiple_variable_columns.size(); ++var10) {
-                        var11 = "!" + Integer.toString(this.id_number) + "_" + Integer.toString(var10) + "!";
-                        if (this.type.equals("split")) {
-                            var11 = ":" + (String)this.fixed_values.elementAt(var10) + ":";
-                        }
-
-                        var12 = new Integer((String)this.multiple_variable_columns.elementAt(var10));
-                        if (var12 >= var9.size()) {
-                            var9.addElement(var11);
-                        } else {
-                            var9.insertElementAt(var11, var12);
+        if (type.equals("exists") || type.equals("split"))
+        {
+            for (int i=0; i<previous_specifications.size(); i++)
+            {
+                Specification prev_spec = (Specification)previous_specifications.elementAt(i);
+                Vector prev_skol_reps = prev_spec.skolemisedRepresentation();
+                for (int j=0; j<prev_skol_reps.size(); j++)
+                {
+                    Vector prev_skol_rep = (Vector)prev_skol_reps.elementAt(j);
+                    String rel_name = (String)prev_skol_rep.elementAt(0);
+                    Vector cols = (Vector)prev_skol_rep.elementAt(1);
+                    Vector new_perm = (Vector)permutation.clone();
+                    for (int k=0; k<multiple_variable_columns.size(); k++)
+                    {
+                        String change_string = "!" + Integer.toString(id_number) + "_" + Integer.toString(k) + "!";
+                        if (type.equals("split"))
+                            change_string = ":" + (String)fixed_values.elementAt(k) + ":";
+                        int pos = (new Integer((String)multiple_variable_columns.elementAt(k))).intValue();
+                        if (pos>=new_perm.size())
+                            new_perm.addElement(change_string);
+                        else
+                            new_perm.insertElementAt(change_string, pos);
+                    }
+                    for (int k=0; k<redundant_columns.size(); k++)
+                    {
+                        int pos = (new Integer((String)redundant_columns.elementAt(k))).intValue();
+                        if (pos>=new_perm.size())
+                            new_perm.addElement("@r@");
+                        else
+                            new_perm.insertElementAt("@r@", pos);
+                    }
+                    for (int k=0; k<cols.size(); k++)
+                    {
+                        String pos_string = (String)cols.elementAt(k);
+                        if (!pos_string.substring(0,1).equals(":") &&
+                                !pos_string.substring(0,1).equals("!"))
+                        {
+                            int pos = (new Integer(pos_string)).intValue();
+                            cols.setElementAt(new_perm.elementAt(pos),k);
                         }
                     }
-
-                    for(var10 = 0; var10 < this.redundant_columns.size(); ++var10) {
-                        int var16 = new Integer((String)this.redundant_columns.elementAt(var10));
-                        if (var16 >= var9.size()) {
-                            var9.addElement("@r@");
-                        } else {
-                            var9.insertElementAt("@r@", var16);
-                        }
-                    }
-
-                    for(var10 = 0; var10 < var8.size(); ++var10) {
-                        var11 = (String)var8.elementAt(var10);
-                        if (!var11.substring(0, 1).equals(":") && !var11.substring(0, 1).equals("!")) {
-                            var12 = new Integer(var11);
-                            var8.setElementAt(var9.elementAt(var12), var10);
-                        }
-                    }
-
-                    var1.addElement(var6);
+                    output.addElement(prev_skol_rep);
                 }
             }
         }
-
-        if (this.relations.isEmpty()) {
-            return var1;
-        } else {
-            Relation var14 = (Relation)this.relations.elementAt(0);
-            if (this.type.equals("")) {
-                var3 = new Vector();
-                var3.addElement(var14.name);
-                var3.addElement((Vector)this.permutation.clone());
-                var3.trimToSize();
-                var1.addElement(var3);
-            }
-
-            var1.trimToSize();
-            return var1;
+        if (relations.isEmpty())
+            return output;
+        Relation rel = (Relation)relations.elementAt(0);
+        if (type.equals(""))
+        {
+            Vector skol_rep = new Vector();
+            skol_rep.addElement(rel.name);
+            skol_rep.addElement((Vector)permutation.clone());
+            skol_rep.trimToSize();
+            output.addElement(skol_rep);
         }
+        output.trimToSize();
+        return output;
     }
 }

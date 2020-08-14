@@ -1,301 +1,311 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.Serializable;
 import java.util.Vector;
+import java.lang.String;
+import java.io.Serializable;
 
-/**
- * A superclass for Puzzle objects.
- */
-public class Puzzle implements Serializable {
-    /**
-     * The starting number of the puzzle (when it's a next in sequence using a function,
-     * e.g. f(3), f(4), f(5), [solver needs to be told that the sequence starts with the function applied to 3.
+/** A superclass for Puzzle objects.
+ *
+ * @author Simon Colton, started 24th December 2001
+ * @version 1.0 */
+
+public class Puzzle implements Serializable
+{
+    /** The starting number of the puzzle (when it's a next in sequence
+     * using a function, e.g. f(3), f(4), f(5), [solver needs to be told that the
+     * sequence starts with the function applied to 3.
      */
+
     public String starting_number = "";
 
-    /**
-     * The tuple of choices for the puzzle.
+    /** The tuple of choices for the puzzle.
      */
+
     public Vector choices = new Vector();
 
-    /**
-     * The answer for the puzzle.
+    /** The answer for the puzzle.
      */
+
     public String answer = "";
 
-    /**
-     * The concept embedded in this puzzle.
+    /** The concept embedded in this puzzle.
      */
+
     public Concept embedded_concept = new Concept();
 
-    /**
-     * The overall interestingness of this puzzle.
+    /** The overall interestingness of this puzzle.
      */
-    public double interestingness = 0.0D;
 
-    /**
-     * The disguise measure of this puzzle.
-     */
-    public double disguise = 0.0D;
+    public double interestingness = 0;
 
-    /**
-     * The disguising concepts of this puzzle.
+    /** The disguise measure of this puzzle.
      */
+
+    public double disguise = 0;
+
+    /** The disguising concepts of this puzzle.
+     */
+
     public Vector disguising_concepts = new Vector();
 
-    /**
-     * The type of puzzle ("ooo" = odd one out, "nis" = next in sequence, "analogy" = analogy).
+    /** The type of puzzle ("ooo" = odd one out, "nis" = next in sequence, "analogy" = analogy).
      */
+
     public String type = "";
 
-    /**
-     * If this is an analogy puzzle, then the triple of clues is required. e.g., a is to b as c is to.... (a,b,c) is the triple.
+
+    /** If this is an analogy puzzle, then the triple of clues is required.
+     * e.g., a is to b as c is to.... (a,b,c) is the triple.
      */
+
     public Vector analogy_triple = new Vector();
 
-    /**
-     * If this is a next-in-sequence puzzle, then these are the initial integers.
+    /** If this is a next-in-sequence puzzle, then these are the initial integers.
      */
+
     public Vector integer_sequence = new Vector();
 
-    /**
-     * The simple constructor
+    /** The simple constructor
      */
-    public Puzzle() {
+
+    public Puzzle()
+    {
     }
 
-    /**
-     * The constructor for puzzles.
+    /** The constructor for puzzles.
      */
-    public Puzzle(Vector choices_in, String answer_entity, Concept concept, String puzzle_type) {
-        this.choices = (Vector)choices_in.clone();
-        this.answer = answer_entity;
-        this.embedded_concept = concept;
-        this.type = puzzle_type;
+
+    public Puzzle(Vector choices_in, String answer_entity, Concept concept, String puzzle_type)
+    {
+        choices = (Vector)choices_in.clone();
+        answer = answer_entity;
+        embedded_concept = concept;
+        type = puzzle_type;
     }
 
-    public void randomizeOrder() {
-        Vector var1 = (Vector)this.choices.clone();
-        this.choices.removeAllElements();
-
-        while(!var1.isEmpty()) {
-            long var2 = Math.round(Math.random() * (double)(var1.size() - 1));
-            int var4 = new Integer(Long.toString(var2));
-            this.choices.addElement(var1.elementAt(var4));
-            var1.removeElementAt(var4);
+    public void randomizeOrder()
+    {
+        Vector choices_copy = (Vector)choices.clone();
+        choices.removeAllElements();
+        while (!choices_copy.isEmpty())
+        {
+            long pos = Math.round((Math.random()*(choices_copy.size()-1)));
+            int posint = (new Integer(Long.toString(pos))).intValue();
+            choices.addElement(choices_copy.elementAt(posint));
+            choices_copy.removeElementAt(posint);
         }
-
     }
 
-    public Object chooseRandom(Vector choices) {
-        long var2 = Math.round(Math.random() * (double)(choices.size() - 1));
-        int var4 = new Integer(Long.toString(var2));
-        Object var5 = choices.elementAt(var4);
-        choices.removeElementAt(var4);
-        return var5;
+    public Object chooseRandom(Vector choices)
+    {
+        long pos = Math.round((Math.random()*(choices.size()-1)));
+        int posint = (new Integer(Long.toString(pos))).intValue();
+        Object output = choices.elementAt(posint);
+        choices.removeElementAt(posint);
+        return output;
     }
 
-    public String writeAnswer() {
-        String var1 = "";
-        var1 = this.embedded_concept.id + ". " + this.embedded_concept.writeDefinitionWithStartLetters("ascii");
-        if (this.type.equals("nis") && !this.starting_number.equals("")) {
-            var1 = var1 + "\nStarting with n=" + this.starting_number;
-        }
-
-        return var1;
+    public String writeAnswer()
+    {
+        String output = "";
+        output = embedded_concept.id + ". " +
+                embedded_concept.writeDefinitionWithStartLetters("ascii");
+        if (type.equals("nis") && !starting_number.equals(""))
+            output = output + "\nStarting with n="+starting_number;
+        return output;
     }
 
-    public String writePuzzle() {
-        String var1 = "";
-        if (this.type.equals("ooo")) {
-            var1 = "Which is the odd one out?\n";
-            var1 = var1 + this.writeChoices();
+    public String writePuzzle()
+    {
+        String output = "";
+        if (type.equals("ooo"))
+        {
+            output = "Which is the odd one out?\n";
+            output = output + writeChoices();
         }
-
-        if (this.type.equals("analogy")) {
-            var1 = (String)this.analogy_triple.elementAt(0) + " is to " + (String)this.analogy_triple.elementAt(1) + " as " + (String)this.analogy_triple.elementAt(2) + " is to:\n";
-            var1 = var1 + this.writeChoices();
+        if (type.equals("analogy"))
+        {
+            output = (String)analogy_triple.elementAt(0) + " is to " +
+                    (String)analogy_triple.elementAt(1) + " as " +
+                    (String)analogy_triple.elementAt(2) + " is to:\n";
+            output = output + writeChoices();
         }
+        if (type.equals("nis"))
+        {
+            output = "What's next in the sequence:\n";
+            for (int i=0; i<integer_sequence.size(); i++)
+                output = output + (String)integer_sequence.elementAt(i) + " ";
+            output = output + "(" + answer + ")";
+            output = output + "?\n";
+        }
+        return output;
+    }
 
-        if (this.type.equals("nis")) {
-            var1 = "What's next in the sequence:\n";
+    public String writeChoices()
+    {
+        String output = "";
+        String[] markers = {"i","ii","iii","iv","v","vi","vii","viii","ix","x"};
+        for (int i=0; i<choices.size(); i++)
+        {
+            output = output + markers[i] + ". ";
+            String entity = (String)choices.elementAt(i);
+            output = output + entity;
+            if(entity.equals(answer))
+                output = output + "*";
+            output = output + " ";
+        }
+        return output + "\n";
+    }
 
-            for(int var2 = 0; var2 < this.integer_sequence.size(); ++var2) {
-                var1 = var1 + (String)this.integer_sequence.elementAt(var2) + " ";
+    public void calculateDisguiseMeasure(Vector concepts)
+    {
+        for (int i=0; i<concepts.size(); i++)
+        {
+            Concept concept = (Concept)concepts.elementAt(i);
+            if (concept.arity==1)
+            {
+                int j=0;
+                boolean count_this = true;
+                while (count_this && j<choices.size())
+                {
+                    String entity = (String)choices.elementAt(j);
+                    if (concept.datatable.rowWithEntity(entity).tuples.isEmpty())
+                        count_this = false;
+                    j++;
+                }
+                if (count_this)
+                {
+                    disguise++;
+                    disguising_concepts.addElement(concept);
+                }
             }
-
-            var1 = var1 + "(" + this.answer + ")";
-            var1 = var1 + "?\n";
         }
-
-        return var1;
     }
 
-    public String writeChoices() {
-        String var1 = "";
-        String[] var2 = new String[]{"i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x"};
-
-        for(int var3 = 0; var3 < this.choices.size(); ++var3) {
-            var1 = var1 + var2[var3] + ". ";
-            String var4 = (String)this.choices.elementAt(var3);
-            var1 = var1 + var4;
-            if (var4.equals(this.answer)) {
-                var1 = var1 + "*";
-            }
-
-            var1 = var1 + " ";
-        }
-
-        return var1 + "\n";
-    }
-
-    public void calculateDisguiseMeasure(Vector concepts) {
-        for(int var2 = 0; var2 < concepts.size(); ++var2) {
-            Concept var3 = (Concept)concepts.elementAt(var2);
-            if (var3.arity == 1) {
-                int var4 = 0;
-
-                boolean var5;
-                for(var5 = true; var5 && var4 < this.choices.size(); ++var4) {
-                    String var6 = (String)this.choices.elementAt(var4);
-                    if (var3.datatable.rowWithEntity(var6).tuples.isEmpty()) {
-                        var5 = false;
+    public boolean hasAlternativeSolution(Vector concepts)
+    {
+        boolean output = false;
+        if (type.equals("ooo"))
+        {
+            for (int i=0; i<concepts.size() && !output; i++)
+            {
+                int num_neg = 0;
+                Concept concept = (Concept)concepts.elementAt(i);
+                if (!(concept==embedded_concept) && concept.arity==1)
+                {
+                    for (int j=0; j<choices.size(); j++)
+                    {
+                        String positive = (String)choices.elementAt(j);
+                        if (concept.datatable.rowWithEntity(positive).tuples.isEmpty())
+                            num_neg++;
                     }
-                }
-
-                if (var5) {
-                    ++this.disguise;
-                    this.disguising_concepts.addElement(var3);
+                    if (num_neg==1)
+                        output = true;
                 }
             }
         }
-
-    }
-
-    public boolean hasAlternativeSolution(Vector concepts) {
-        boolean var2 = false;
-        int var3;
-        int var6;
-        String var7;
-        if (this.type.equals("ooo")) {
-            for(var3 = 0; var3 < concepts.size() && !var2; ++var3) {
-                int var4 = 0;
-                Concept var5 = (Concept)concepts.elementAt(var3);
-                if (var5 != this.embedded_concept && var5.arity == 1) {
-                    for(var6 = 0; var6 < this.choices.size(); ++var6) {
-                        var7 = (String)this.choices.elementAt(var6);
-                        if (var5.datatable.rowWithEntity(var7).tuples.isEmpty()) {
-                            ++var4;
+        if (type.equals("analogy"))
+        {
+            for (int i=0; i<concepts.size() && !output; i++)
+            {
+                Concept concept = (Concept)concepts.elementAt(i);
+                if (!(concept==embedded_concept) &&
+                        concept.isGeneralisationOf(embedded_concept)<0)
+                {
+                    for (int j=0; j<concept.categorisation.size(); j++)
+                    {
+                        Vector category = (Vector)concept.categorisation.elementAt(j);
+                        String first_entity = (String)category.elementAt(0);
+                        if (!concept.datatable.rowWithEntity(first_entity).tuples.isEmpty())
+                        {
+                            boolean contains_analogy_triple = true;
+                            for (int k=0; k<3 && contains_analogy_triple; k++)
+                            {
+                                if (!category.contains((String)analogy_triple.elementAt(k)))
+                                    contains_analogy_triple = false;
+                            }
+                            if (contains_analogy_triple)
+                            {
+                                int num_choices_in_category = 0;
+                                for (int k=0; k<choices.size(); k++)
+                                {
+                                    String choice = (String)choices.elementAt(k);
+                                    if (!choice.equals(answer) && category.contains(choice))
+                                        num_choices_in_category++;
+                                }
+                                if (num_choices_in_category==1)
+                                    output = true;
+                            }
                         }
                     }
-
-                    if (var4 == 1) {
-                        var2 = true;
-                    }
                 }
             }
         }
-
-        int var9;
-        Concept var12;
-        if (this.type.equals("analogy")) {
-            for(var3 = 0; var3 < concepts.size() && !var2; ++var3) {
-                var12 = (Concept)concepts.elementAt(var3);
-                if (var12 != this.embedded_concept && var12.isGeneralisationOf(this.embedded_concept) < 0) {
-                    for(int var13 = 0; var13 < var12.categorisation.size(); ++var13) {
-                        Vector var15 = (Vector)var12.categorisation.elementAt(var13);
-                        var7 = (String)var15.elementAt(0);
-                        if (!var12.datatable.rowWithEntity(var7).tuples.isEmpty()) {
-                            boolean var8 = true;
-
-                            for(var9 = 0; var9 < 3 && var8; ++var9) {
-                                if (!var15.contains((String)this.analogy_triple.elementAt(var9))) {
-                                    var8 = false;
-                                }
-                            }
-
-                            if (var8) {
-                                var9 = 0;
-
-                                for(int var10 = 0; var10 < this.choices.size(); ++var10) {
-                                    String var11 = (String)this.choices.elementAt(var10);
-                                    if (!var11.equals(this.answer) && var15.contains(var11)) {
-                                        ++var9;
+        if (type.equals("nis"))
+        {
+            for (int i=0; i<concepts.size(); i++)
+            {
+                Concept concept = (Concept)concepts.elementAt(i);
+                if (concept.arity<2 && !(concept==embedded_concept) &&
+                        embedded_concept.isGeneralisationOf(concept)<0)
+                {
+                    Vector positives = new Vector();
+                    if (concept.arity==1)
+                    {
+                        for (int j=0; j<concept.datatable.size(); j++)
+                        {
+                            Row row = (Row)concept.datatable.elementAt(j);
+                            String e = row.entity;
+                            if (!row.tuples.isEmpty())
+                                positives.addElement(e);
+                        }
+                    }
+                    if (concept.arity==2)
+                    {
+                        boolean concept_is_function = false;
+                        for (int j=0; j<concept.functions.size() && !concept_is_function; j++)
+                        {
+                            Function function = (Function)concept.functions.elementAt(j);
+                            if (function.input_columns.toString().equals("[0]") &&
+                                    function.output_columns.toString().equals("[1]"))
+                                concept_is_function = true;
+                        }
+                        if (concept_is_function)
+                        {
+                            for (int j=0; j<concept.datatable.size(); j++)
+                            {
+                                {
+                                    Row row = (Row)concept.datatable.elementAt(j);
+                                    for (int k=0; k<row.tuples.size(); k++)
+                                    {
+                                        Vector tuple = (Vector)row.tuples.elementAt(k);
+                                        for (int l=0; l<tuple.size(); l++)
+                                            positives.addElement(tuple.elementAt(l));
                                     }
                                 }
-
-                                if (var9 == 1) {
-                                    var2 = true;
-                                }
                             }
+                        }
+                    }
+
+                    if (positives.size()>=integer_sequence.size())
+                    {
+                        for (int j=0; j<positives.size()-integer_sequence.size() && !output; j++)
+                        {
+                            boolean matches = true;
+                            for (int k=0; k<integer_sequence.size() && matches==true; k++)
+                            {
+                                String ise = (String)integer_sequence.elementAt(k);
+                                String positive = (String)positives.elementAt(k+j);
+                                if (!ise.equals(positive))
+                                    matches = false;
+                            }
+                            if (matches)
+                                output = true;
                         }
                     }
                 }
             }
         }
-
-        if (this.type.equals("nis")) {
-            for(var3 = 0; var3 < concepts.size(); ++var3) {
-                var12 = (Concept)concepts.elementAt(var3);
-                if (var12.arity < 2 && var12 != this.embedded_concept && this.embedded_concept.isGeneralisationOf(var12) < 0) {
-                    Vector var14 = new Vector();
-                    if (var12.arity == 1) {
-                        for(var6 = 0; var6 < var12.datatable.size(); ++var6) {
-                            Row var17 = (Row)var12.datatable.elementAt(var6);
-                            String var19 = var17.entity;
-                            if (!var17.tuples.isEmpty()) {
-                                var14.addElement(var19);
-                            }
-                        }
-                    }
-
-                    if (var12.arity == 2) {
-                        boolean var16 = false;
-
-                        int var18;
-                        for(var18 = 0; var18 < var12.functions.size() && !var16; ++var18) {
-                            Function var20 = (Function)var12.functions.elementAt(var18);
-                            if (var20.input_columns.toString().equals("[0]") && var20.output_columns.toString().equals("[1]")) {
-                                var16 = true;
-                            }
-                        }
-
-                        if (var16) {
-                            for(var18 = 0; var18 < var12.datatable.size(); ++var18) {
-                                Row var22 = (Row)var12.datatable.elementAt(var18);
-
-                                for(var9 = 0; var9 < var22.tuples.size(); ++var9) {
-                                    Vector var24 = (Vector)var22.tuples.elementAt(var9);
-
-                                    for(int var27 = 0; var27 < var24.size(); ++var27) {
-                                        var14.addElement(var24.elementAt(var27));
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    if (var14.size() >= this.integer_sequence.size()) {
-                        for(var6 = 0; var6 < var14.size() - this.integer_sequence.size() && !var2; ++var6) {
-                            boolean var21 = true;
-
-                            for(int var23 = 0; var23 < this.integer_sequence.size() && var21; ++var23) {
-                                String var25 = (String)this.integer_sequence.elementAt(var23);
-                                String var26 = (String)var14.elementAt(var23 + var6);
-                                if (!var25.equals(var26)) {
-                                    var21 = false;
-                                }
-                            }
-
-                            if (var21) {
-                                var2 = true;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return var2;
+        return output;
     }
 }

@@ -27,13 +27,13 @@ public class Motivation implements Serializable {
     }
 
     public String toString() {
-        String var1 = new String();
+        String str = "";
         if (this.attempted_method.equals("to get discussion started")) {
             return " (to get discussion started)";
         } else if (!this.conjecture_under_discussion.writeConjecture("ascii").equals("")) {
             return " (in order to perform " + this.attempted_method + " on " + this.conjecture_under_discussion.id + ": " + this.conjecture_under_discussion.writeConjecture("ascii") + ")";
         } else {
-            return !this.entity_under_discussion.name.equals("") ? " (in order to perform " + this.attempted_method + " on " + this.entity_under_discussion.name + ")" : var1;
+            return !this.entity_under_discussion.name.equals("") ? " (in order to perform " + this.attempted_method + " on " + this.entity_under_discussion.name + ")" : str;
         }
     }
 

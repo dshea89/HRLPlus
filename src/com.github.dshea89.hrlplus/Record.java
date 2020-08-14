@@ -1,87 +1,137 @@
 package com.github.dshea89.hrlplus;
 
-import java.io.Serializable;
 import java.util.Vector;
+import java.lang.String;
+import java.io.Serializable;
 
-public class Record extends ProductionRule implements Serializable {
-    public Record() {
-    }
+/** A class representing the record production rule. This production
+ * rule takes an old datatable as input and an empty paramaterization.
+ * If the concept is a numerical function, it returns a new concept which
+ * consists of the first entities which score higher for the function than
+ * those before it.
+ *
+ * @author Simon Colton, started 13th May 2000
+ * @version 1.0 */
 
-    public boolean isBinary() {
+public class Record extends ProductionRule implements Serializable
+{
+    /** Returns false as this is a unary production rule.
+     */
+
+    public boolean isBinary()
+    {
         return false;
     }
 
-    public boolean isCumulative() {
+    /** Whether or not this produces cumulative concepts. This is cumulative.
+     * @see Concept
+     */
+
+    public boolean isCumulative()
+    {
         return true;
     }
 
-    public String getName() {
+    /** Returns "record" as that is the name of this production rule.
+     */
+
+    public String getName()
+    {
         return "record";
     }
 
-    public Datatable transformTable(Vector old_datatables, Vector old_concepts, Vector parameters, Vector all_concepts) {
-        Datatable var5 = (Datatable) old_datatables.elementAt(0);
-        Datatable var6 = new Datatable();
-        int var7 = -1000000;
+    /** This produces the new datatable from the given datatable, using the parameters
+     * specified. This production rule removes columns from the input datatable, then
+     * removes any duplicated rows. The parameters details which columns are to be #removed#.
+     */
 
-        for(int var8 = 0; var8 < var5.size(); ++var8) {
-            Row var9 = (Row)var5.elementAt(var8);
-            Tuples var10 = new Tuples();
-            if (!var9.tuples.isEmpty()) {
-                Vector var11 = (Vector)var9.tuples.elementAt(0);
-                int var12 = new Integer((String)var11.elementAt(0));
-                if (var12 > var7) {
-                    var7 = var12;
-                    var10.addElement(new Vector());
+    public Datatable transformTable(Vector input_datatables, Vector input_concepts,
+                                    Vector parameters, Vector all_concepts)
+    {
+        Datatable old_datatable = (Datatable)input_datatables.elementAt(0);
+        Datatable output = new Datatable();
+        int top_number = -1000000;
+        for (int i=0; i<old_datatable.size(); i++)
+        {
+            Row row = (Row)old_datatable.elementAt(i);
+            Tuples tuples = new Tuples();
+            if (!row.tuples.isEmpty())
+            {
+                Vector tuple = (Vector)row.tuples.elementAt(0);
+                int try_number = (new Integer((String)tuple.elementAt(0))).intValue();
+                if (try_number > top_number)
+                {
+                    top_number = try_number;
+                    tuples.addElement(new Vector());
                 }
             }
-
-            Row var13 = new Row(var9.entity, var10);
-            var6.addElement(var13);
+            Row new_row = new Row(row.entity, tuples);
+            output.addElement(new_row);
         }
-
-        return var6;
+        return output;
     }
 
-    public Vector allParameters(Vector concept_list, Theory theory) {
-        Vector var3 = new Vector();
-        Concept var4 = (Concept) concept_list.elementAt(0);
-        if (!var4.domain.equals("number")) {
-            return var3;
-        } else {
-            if (var4.arity == 2) {
-                String var5 = (String)var4.types.elementAt(0);
-                if (((String)var4.types.elementAt(1)).equals("integer")) {
-                    var3.addElement(new Vector());
-                }
-            }
+    /** Given a vector of one concept, this will return all the parameterisations for this
+     * concept. It will return all tuples of columns which do not contain the first column.
+     */
 
-            return var3;
+    public Vector allParameters(Vector old_concepts, Theory theory)
+    {
+        Vector output = new Vector();
+        Concept old_concept = (Concept)old_concepts.elementAt(0);
+        if (!old_concept.domain.equals("number"))
+            return output;
+        if (old_concept.arity == 2)
+        {
+            String second_type = (String)old_concept.types.elementAt(0);
+            if (((String)old_concept.types.elementAt(1)).equals("integer"))
+                output.addElement(new Vector());
         }
+        return output;
     }
 
-    public Vector newSpecifications(Vector concept_list, Vector parameters, Theory theory, Vector new_functions) {
-        Vector var5 = new Vector();
-        Vector var6 = ((Concept) concept_list.elementAt(0)).specifications;
-        Specification var7 = new Specification();
-        var7.previous_specifications = var6;
-        var7.type = "record";
-        var7.permutation.addElement("0");
-        var7.multiple_variable_columns.addElement("1");
-        var7.multiple_types.addElement("integer");
-        var5.addElement(var7);
-        return var5;
+    /** This produces the new specifications for concepts output using the record production
+     * rule.
+     */
+
+    public Vector newSpecifications(Vector input_concepts, Vector input_parameters,
+                                    Theory theory, Vector new_functions)
+    {
+        Vector output = new Vector();
+        Vector old_specifications = ((Concept)input_concepts.elementAt(0)).specifications;
+        Specification record_specification = new Specification();
+        record_specification.previous_specifications = old_specifications;
+        record_specification.type = "record";
+        record_specification.permutation.addElement("0");
+        record_specification.multiple_variable_columns.addElement("1");
+        record_specification.multiple_types.addElement("integer");
+        output.addElement(record_specification);
+        return output;
     }
 
-    public Vector transformTypes(Vector old_concepts, Vector parameters) {
-        Vector var3 = (Vector)((Concept) old_concepts.elementAt(0)).types.clone();
-        Vector var4 = new Vector();
-        var4.addElement((String)var3.elementAt(0));
-        return var4;
+    /** Returns the types of the objects in the columns of the new datatable.
+     */
+
+    public Vector transformTypes(Vector old_concepts, Vector parameters)
+    {
+        Vector old_types = (Vector)((Concept)old_concepts.elementAt(0)).types.clone();
+        Vector output = new Vector();
+        output.addElement((String)old_types.elementAt(0));
+        return(output);
     }
 
-    public int patternScore(Vector concept_list, Vector all_concepts, Vector entity_list, Vector non_entity_list) {
-        byte var5 = 0;
-        return var5;
+    /** This assigns a score to  a concept depending on whether the
+     * production rule can see any likelihood of a pattern. The pattern for the exists
+     * production rule is that each of the entities has a non-empty row of tuples. The
+     * fewer the non-entities that have a non-empty row, the better. Alternatively, if
+     * none of the entities to learn has a non-empty row of tuples, this is also a
+     * pattern.
+     */
+
+    public int patternScore(Vector concept_list, Vector all_concepts,
+                            Vector entity_list, Vector non_entity_list)
+    {
+        int score = 0;
+        return score;
     }
 }
