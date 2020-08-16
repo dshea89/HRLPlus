@@ -189,14 +189,22 @@ a-mb-nt-S2.hrm
 a-nt-teacher.hrm  
 in the first, second student and teacher, respectively.
 
+## Puzzle Generation
+
+HRL also supports generating puzzles. The details of this are elaborated upon in Simon Colton's 2002 paper *Automated Puzzle Generation*, which can be found at:
+
+http://ccg.doc.gold.ac.uk/ccg_old/papers/colton_aisb02.pdf
+
+To use this, you must first load a relevant macro. Then, in the second dropdown labeled "APPLICATIONS," select the bottommost option "PUZZLE."
+
 ## To Do
 
 There is a lot that can be done to extend functionality beyond what is already here. Some of the biggest things that would improve usability, in order of significance:
 
-1. Renaming variables and adding comments! As this code is the result of decompiling class files, all local variable names and comments have been lost. This is the single biggest thing that could significantly improve the codebase.
+1. ~~Renaming variables and adding comments! As this code is the result of decompiling class files, all local variable names and comments have been lost. This is the single biggest thing that could significantly improve the codebase.~~ - ***Completed. Special thanks to Michael Iltis for providing this.***
 2. Documentation on how to develop the HRD and HRM files used to define the axioms and macros used in **HRL**.
 3. Extend theorem proving support to Coq and HOL Light.
-4. Resolve compiler and IDE warnings (note that some IDE warnings are false positives that should be suppressed, as attempting to "fix" them will break the program, e.g. the IDE claiming that setValue in ConfigHandler is unused and can be safely removed when it in fact cannot).
+4. Resolve compiler and IDE warnings (note that some IDE warnings are false positives that should be suppressed, as attempting to "fix" them will break the program, e.g., the IDE claiming that setValue in ConfigHandler is unused and can be safely removed when it in fact cannot).
 
 ## Changelog
 
